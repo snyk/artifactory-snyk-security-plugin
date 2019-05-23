@@ -1,0 +1,1 @@
+# Artifactory Snyk Security Plugin

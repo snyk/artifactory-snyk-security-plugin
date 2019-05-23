@@ -24,6 +24,7 @@
      | dependency and plugin versions, please keep alphabetical.
      | each version property should be of the form "version.<identifier>".
     -->
+    <version.jsr305.annotations>3.0.2</version.jsr305.annotations>
     <version.maven.assembly.plugin>3.1.1</version.maven.assembly.plugin>
     <version.maven.clean.plugin>3.1.0</version.maven.clean.plugin>
     <version.maven.compiler.plugin>3.8.1</version.maven.compiler.plugin>
@@ -104,13 +105,18 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.squareup.retrofit2</groupId>
-        <artifactId>retrofit</artifactId>
-        <version>${version.retrofit2}</version>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>${version.jsr305.annotations}</version>
       </dependency>
       <dependency>
         <groupId>com.squareup.retrofit2</groupId>
         <artifactId>converter-jackson</artifactId>
+        <version>${version.retrofit2}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.retrofit2</groupId>
+        <artifactId>retrofit</artifactId>
         <version>${version.retrofit2}</version>
       </dependency>
     </dependencies>

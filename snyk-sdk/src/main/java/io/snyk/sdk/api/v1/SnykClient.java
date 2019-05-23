@@ -1,5 +1,7 @@
 package io.snyk.sdk.api.v1;
 
+import javax.annotation.Nullable;
+
 import io.snyk.sdk.model.TestResult;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -22,6 +24,6 @@ public interface SnykClient {
   Call<TestResult> testMavenByGAV(@Path("groupId") String groupId,
                                   @Path("artifactId") String artifactId,
                                   @Path("version") String version,
-                                  @Query("org") String organisation,
-                                  @Query("repository") String repository);
+                                  @Nullable @Query("org") String organisation,
+                                  @Nullable @Query("repository") String repository);
 }

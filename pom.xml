@@ -24,6 +24,7 @@
      | dependency and plugin versions, please keep alphabetical.
      | each version property should be of the form "version.<identifier>".
     -->
+    <version.artifactory.api>6.10.0</version.artifactory.api>
     <version.jsr305.annotations>3.0.2</version.jsr305.annotations>
     <version.junit5>5.4.2</version.junit5>
     <version.maven.assembly.plugin>3.1.1</version.maven.assembly.plugin>
@@ -106,6 +107,11 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.artifactory</groupId>
+        <artifactId>artifactory-papi</artifactId>
+        <version>${version.artifactory.api}</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>${version.jsr305.annotations}</version>
@@ -118,11 +124,6 @@
       <dependency>
         <groupId>com.squareup.retrofit2</groupId>
         <artifactId>retrofit</artifactId>
-        <version>${version.retrofit2}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.squareup.retrofit2</groupId>
-        <artifactId>retrofit-mock</artifactId>
         <version>${version.retrofit2}</version>
       </dependency>
       <dependency>
@@ -139,8 +140,9 @@
   </dependencyManagement>
 
   <modules>
+    <module>core</module>
     <module>snyk-sdk</module>
-    <module>snyk-sdk-tests</module>
+    <module>distribution</module>
   </modules>
 
   <repositories>

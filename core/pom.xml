@@ -42,7 +42,7 @@
             <configuration>
               <appendAssemblyId>false</appendAssemblyId>
               <attach>false</attach>
-              <finalName>${project.parent.artifactId}-${revision}</finalName>
+              <finalName>artifactory-snyk-security-core</finalName>
               <outputDirectory>${project.build.directory}/maven-plugin-assembly</outputDirectory>
               <descriptors>
                 <descriptor>src/assembly/descriptor.xml</descriptor>

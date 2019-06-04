@@ -1,4 +1,4 @@
-package io.snyk.plugins.arttifactory.core.config;
+package io.snyk.plugins.artifactory.core.config;
 
 import java.util.Properties;
 

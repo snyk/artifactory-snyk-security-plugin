@@ -1,7 +1,7 @@
 package io.snyk.plugins.artifactory
 
 import groovy.transform.Field
-import io.snyk.plugins.arttifactory.core.SnykPlugin
+import io.snyk.plugins.artifactory.core.SnykPlugin
 import org.artifactory.repo.RepoPath
 import org.artifactory.request.Request
 

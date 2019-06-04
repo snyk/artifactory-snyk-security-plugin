@@ -1,4 +1,4 @@
-package io.snyk.plugins.arttifactory.core.scanner;
+package io.snyk.plugins.artifactory.core.scanner;
 
 import java.io.IOException;
 import java.util.Properties;

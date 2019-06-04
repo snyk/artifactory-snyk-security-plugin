@@ -1,4 +1,4 @@
-package io.snyk.plugins.arttifactory.core;
+package io.snyk.plugins.artifactory.core;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import io.snyk.plugins.arttifactory.core.scanner.MavenScanner;
-import io.snyk.plugins.arttifactory.core.scanner.NpmScanner;
+import io.snyk.plugins.artifactory.core.scanner.MavenScanner;
+import io.snyk.plugins.artifactory.core.scanner.NpmScanner;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Severity;

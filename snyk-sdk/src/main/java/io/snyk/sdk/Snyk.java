@@ -15,9 +15,9 @@ public class Snyk {
 
   private static final String DEFAULT_BASE_URL = "https://snyk.io/api/v1/";
   private static final String DEFAULT_USER_AGENT = "snyk-sdk-java";
-  private static final long DEFAULT_CONNECTION_TIMEOUT = 10_000L;
-  private static final long DEFAULT_READ_TIMEOUT = 10_000L;
-  private static final long DEFAULT_WRITE_TIMEOUT = 10_000L;
+  private static final long DEFAULT_CONNECTION_TIMEOUT = 30_000L;
+  private static final long DEFAULT_READ_TIMEOUT = 60_000L;
+  private static final long DEFAULT_WRITE_TIMEOUT = 60_000L;
 
   private final Retrofit retrofit;
 

@@ -11,4 +11,10 @@
       <outputDirectory>plugins/lib</outputDirectory>
     </fileSet>
   </fileSets>
+  <files>
+    <file>
+      <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.groovy</source>
+      <outputDirectory>plugins</outputDirectory>
+    </file>
+  </files>
 </assembly>

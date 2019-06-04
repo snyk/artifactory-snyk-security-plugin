@@ -20,4 +20,13 @@ public enum Severity {
   public String getSeverityLevel() {
     return level;
   }
+
+  public static Severity of(String level) {
+    for (Severity value : values()) {
+      if (value.level.equals(level)) {
+        return value;
+      }
+    }
+    return null;
+  }
 }

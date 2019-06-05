@@ -39,6 +39,9 @@ public class SnykPlugin {
     snykClient = getSnykClient(properties);
     mavenScanner = new MavenScanner(properties, snykClient);
     npmScanner = new NpmScanner(properties, snykClient);
+
+    LOG.info("snykPlugin configuration:");
+    LOG.info("snyk.artifactory.scanner.threshold: {}", properties.getProperty("snyk.artifactory.scanner.threshold"));
   }
 
 

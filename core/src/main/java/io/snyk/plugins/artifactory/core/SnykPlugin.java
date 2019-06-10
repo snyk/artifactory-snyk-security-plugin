@@ -65,11 +65,22 @@ public class SnykPlugin {
 
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
 
+    boolean allowDownload = false;
+    String allowDownloadProperty = repositories.getProperty(repoPath, "snyk.scanner.allowDownload");
+    if (allowDownloadProperty != null) {
+      allowDownload = "true".equalsIgnoreCase(allowDownloadProperty);
+    }
+
     TestResult testResult;
     String extension = fileLayoutInfo.getExt();
     if ("jar".equals(extension)) {
       testResult = mavenScanner.performScan(fileLayoutInfo);
       updateProperties(repoPath, fileLayoutInfo, testResult);
+
+      if (allowDownload) {
+        LOG.info("Property 'snyk.scanner.allowDownload' is true, so we allow to download artifact: {}", repoPath);
+        return;
+      }
 
       Severity threshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.threshold"));
       if (threshold == Severity.LOW) {
@@ -94,6 +105,11 @@ public class SnykPlugin {
     } else if ("tgz".equals(extension)) {
       testResult = npmScanner.performScan(fileLayoutInfo);
       updateProperties(repoPath, fileLayoutInfo, testResult);
+
+      if (allowDownload) {
+        LOG.info("Property 'snyk.scanner.allowDownload' is true, so we allow to download artifact: {}", repoPath);
+        return;
+      }
 
       Severity threshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.threshold"));
       if (threshold == Severity.LOW) {
@@ -120,6 +136,13 @@ public class SnykPlugin {
   }
 
   private void updateProperties(RepoPath repoPath, FileLayoutInfo fileLayoutInfo, TestResult testResult) {
+    String scannerStatus = repositories.getProperty(repoPath, "snyk.scanner.status");
+    if (scannerStatus != null && !scannerStatus.isEmpty()) {
+      LOG.debug("Skip already scanned artifact: {}", repoPath);
+      return;
+    }
+
+    repositories.setProperty(repoPath, "snyk.scanner.allowDownload", "false");
     repositories.setProperty(repoPath, "snyk.scanner.status", testResult.success ? "SUCCESS" : "FAILURE");
     repositories.setProperty(repoPath, "snyk.vulnerability.count", getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
 

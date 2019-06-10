@@ -9,6 +9,12 @@ import org.artifactory.request.Request
 
 initialize()
 
+executions {
+  snykSecurityReload(httpMethod: "POST") { params ->
+    initialize()
+  }
+}
+
 download {
   beforeDownload { Request request, RepoPath repoPath ->
     snykPlugin.handleBeforeDownloadEvent(repoPath)

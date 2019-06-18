@@ -10,7 +10,7 @@ import io.snyk.plugins.artifactory.core.scanner.MavenScanner;
 import io.snyk.plugins.artifactory.core.scanner.NpmScanner;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.IssueType;
+import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
 import io.snyk.sdk.model.Vulnerability;
@@ -106,7 +106,7 @@ public class SnykPlugin {
 
     repositories.setProperty(repoPath, "snyk.scanner.allowDownload", "false");
     repositories.setProperty(repoPath, "snyk.scanner.vulnerabilities", getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
-    repositories.setProperty(repoPath, "snyk.scanner.licenses", getLicencesBySeverity(testResult.issues.vulnerabilities));
+    repositories.setProperty(repoPath, "snyk.scanner.licenses", getLicencesBySeverity(testResult.issues.licenses));
 
     StringBuilder snykVulnerabilityUrl = new StringBuilder("https://snyk.io/vuln/");
     if ("maven".equals(testResult.packageManager)) {
@@ -123,35 +123,17 @@ public class SnykPlugin {
   }
 
   private String getVulnerabilitiesBySeverity(List<Vulnerability> issues) {
-    long countOfHighVulnerabilities = issues.stream()
-                                            .filter(vulnerability -> vulnerability.type == IssueType.VULNERABILITY)
-                                            .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
-                                            .count();
-    long countOfMediumVulnerabilities = issues.stream()
-                                              .filter(vulnerability -> vulnerability.type == IssueType.VULNERABILITY)
-                                              .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM)
-                                              .count();
-    long countOfLowVulnerabilities = issues.stream()
-                                           .filter(vulnerability -> vulnerability.type == IssueType.VULNERABILITY)
-                                           .filter(vulnerability -> vulnerability.severity == Severity.LOW)
-                                           .count();
+    long countOfHighVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.HIGH).count();
+    long countOfMediumVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.MEDIUM).count();
+    long countOfLowVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.LOW).count();
 
     return format("%d high, %d medium, %d low", countOfHighVulnerabilities, countOfMediumVulnerabilities, countOfLowVulnerabilities);
   }
 
-  private String getLicencesBySeverity(List<Vulnerability> issues) {
-    long countOfHighVulnerabilities = issues.stream()
-                                            .filter(vulnerability -> vulnerability.type == IssueType.LICENSE)
-                                            .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
-                                            .count();
-    long countOfMediumVulnerabilities = issues.stream()
-                                              .filter(vulnerability -> vulnerability.type == IssueType.LICENSE)
-                                              .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM)
-                                              .count();
-    long countOfLowVulnerabilities = issues.stream()
-                                           .filter(vulnerability -> vulnerability.type == IssueType.LICENSE)
-                                           .filter(vulnerability -> vulnerability.severity == Severity.LOW)
-                                           .count();
+  private String getLicencesBySeverity(List<Issue> issues) {
+    long countOfHighVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.HIGH).count();
+    long countOfMediumVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.MEDIUM).count();
+    long countOfLowVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.LOW).count();
 
     return format("%d high, %d medium, %d low", countOfHighVulnerabilities, countOfMediumVulnerabilities, countOfLowVulnerabilities);
   }
@@ -159,15 +141,11 @@ public class SnykPlugin {
   private void validateSeverityThreshold(TestResult testResult, RepoPath repoPath) {
     Severity vulnerabilitiesThreshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.vulnerability.threshold"));
     if (vulnerabilitiesThreshold == Severity.LOW) {
-      long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.type == IssueType.VULNERABILITY)
-                                                    .count();
-      if (count > 0) {
+      if (!testResult.issues.vulnerabilities.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities", repoPath), 403);
       }
     } else if (vulnerabilitiesThreshold == Severity.MEDIUM) {
       long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.type == IssueType.VULNERABILITY)
                                                     .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
                                                     .count();
       if (count > 0) {
@@ -175,7 +153,6 @@ public class SnykPlugin {
       }
     } else if (vulnerabilitiesThreshold == Severity.HIGH) {
       long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.type == IssueType.VULNERABILITY)
                                                     .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
                                                     .count();
       if (count > 0) {
@@ -184,27 +161,21 @@ public class SnykPlugin {
     }
 
     Severity licensesThreshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.license.threshold"));
-    LOG.error("licence threshold: {}", licensesThreshold);
-    if (licensesThreshold == Severity.LOW) {
-      long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.type == IssueType.LICENSE)
-                                                    .count();
-      if (count > 0) {
+    if (vulnerabilitiesThreshold == Severity.LOW) {
+      if (!testResult.issues.licenses.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses')", repoPath), 403);
       }
     } else if (licensesThreshold == Severity.MEDIUM) {
-      long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.type == IssueType.LICENSE)
-                                                    .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
-                                                    .count();
+      long count = testResult.issues.licenses.stream()
+                                             .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
+                                             .count();
       if (count > 0) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses') with severity medium or high", repoPath), 403);
       }
     } else if (licensesThreshold == Severity.HIGH) {
-      long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.type == IssueType.LICENSE)
-                                                    .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
-                                                    .count();
+      long count = testResult.issues.licenses.stream()
+                                             .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
+                                             .count();
       if (count > 0) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses') with severity high", repoPath), 403);
       }

@@ -11,4 +11,7 @@ public class Issues implements Serializable {
 
   @JsonProperty("vulnerabilities")
   public List<Vulnerability> vulnerabilities;
+
+  @JsonProperty("licenses")
+  public List<Issue> licenses;
 }

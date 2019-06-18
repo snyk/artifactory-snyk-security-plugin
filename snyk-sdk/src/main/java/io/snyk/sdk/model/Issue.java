@@ -18,7 +18,7 @@ public class Issue implements Serializable {
   @JsonProperty("title")
   public String title;
   @JsonProperty("type")
-  public String type;
+  public IssueType type;
   @JsonProperty("package")
   public String packageId;
   @JsonProperty("version")

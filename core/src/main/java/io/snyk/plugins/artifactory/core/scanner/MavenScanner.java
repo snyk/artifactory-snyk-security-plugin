@@ -12,7 +12,7 @@ import retrofit2.Response;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class MavenScanner {
+public class MavenScanner implements Scanner {
   private static final Logger LOG = getLogger(MavenScanner.class);
 
   private final Properties properties;
@@ -23,7 +23,8 @@ public class MavenScanner {
     this.snykClient = snykClient;
   }
 
-  public TestResult performScan(FileLayoutInfo fileLayoutInfo) {
+  @Override
+  public TestResult scan(FileLayoutInfo fileLayoutInfo) {
     String organisation = properties.getProperty("snyk.api.organisation");
 
     TestResult testResult = null;

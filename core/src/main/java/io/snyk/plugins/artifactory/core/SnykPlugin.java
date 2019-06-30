@@ -66,7 +66,7 @@ public class SnykPlugin {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
 
     boolean allowDownload = false;
-    String allowDownloadProperty = repositories.getProperty(repoPath, "snyk.scanner.allowDownload");
+    String allowDownloadProperty = repositories.getProperty(repoPath, "snyk.scanner.forceDownload");
     if (allowDownloadProperty != null) {
       allowDownload = "true".equalsIgnoreCase(allowDownloadProperty);
     }
@@ -78,7 +78,7 @@ public class SnykPlugin {
       updateProperties(repoPath, fileLayoutInfo, testResult);
 
       if (allowDownload) {
-        LOG.info("Property 'snyk.scanner.allowDownload' is true, so we allow to download artifact: {}", repoPath);
+        LOG.info("Property 'snyk.scanner.forceDownload' is true, so we allow to download artifact: {}", repoPath);
         return;
       }
 
@@ -88,7 +88,7 @@ public class SnykPlugin {
       updateProperties(repoPath, fileLayoutInfo, testResult);
 
       if (allowDownload) {
-        LOG.info("Property 'snyk.scanner.allowDownload' is true, so we allow to download artifact: {}", repoPath);
+        LOG.info("Property 'snyk.scanner.forceDownload' is true, so we allow to download artifact: {}", repoPath);
         return;
       }
 
@@ -104,7 +104,8 @@ public class SnykPlugin {
       return;
     }
 
-    repositories.setProperty(repoPath, "snyk.scanner.allowDownload", "false");
+    repositories.setProperty(repoPath, "snyk.scanner.forceDownload", "false");
+    repositories.setProperty(repoPath, "snyk.scanner.forceDownload.info", "");
     repositories.setProperty(repoPath, "snyk.scanner.vulnerabilities", getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
     repositories.setProperty(repoPath, "snyk.scanner.licenses", getLicencesBySeverity(testResult.issues.licenses));
 

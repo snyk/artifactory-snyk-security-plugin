@@ -16,5 +16,9 @@
       <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.groovy</source>
       <outputDirectory>plugins</outputDirectory>
     </file>
+    <file>
+      <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.properties</source>
+      <outputDirectory>plugins</outputDirectory>
+    </file>
   </files>
 </assembly>

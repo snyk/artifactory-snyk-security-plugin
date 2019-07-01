@@ -162,7 +162,7 @@ public class SnykPlugin {
     }
 
     Severity licensesThreshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.license.threshold"));
-    if (vulnerabilitiesThreshold == Severity.LOW) {
+    if (licensesThreshold == Severity.LOW) {
       if (!testResult.issues.licenses.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses')", repoPath), 403);
       }

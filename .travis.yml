@@ -21,3 +21,21 @@ notifications:
 
 install: true
 script: ./mvnw verify --show-version --batch-mode --errors
+
+before_deploy:
+  - ./mvnw clean verify --show-version --batch-mode --errors -Drevision=$TRAVIS_TAG
+  - cd $TRAVIS_BUILD_DIR/distribution/target
+  - sha256sum artifactory-snyk-security-plugin-$TRAVIS_TAG.zip > artifactory-snyk-security-plugin-$TRAVIS_TAG.zip.sha256
+  - cd $TRAVIS_BUILD_DIR
+deploy:
+  # GitHub releases
+  - provider: releases
+    api_key:
+      secure: <INSERT-TOKEN-HERE>
+    file:
+      - distribution/target/artifactory-snyk-security-plugin-$TRAVIS_TAG.zip
+      - distribution/target/artifactory-snyk-security-plugin-$TRAVIS_TAG.zip.sha256
+    skip_cleanup: true
+    on:
+      repo: snyk/artifactory-snyk-security-plugin
+      tags: true

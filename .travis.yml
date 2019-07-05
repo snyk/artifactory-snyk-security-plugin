@@ -1,0 +1,41 @@
+sudo: false
+dist: trusty
+language: java
+
+jdk:
+  - openjdk8
+
+cache:
+  directories:
+    - "$HOME/.m2/repository"
+    - "$HOME/.m2/wrapper"
+
+notifications:
+  email: false
+  slack:
+    on_failure: always
+    on_success: never
+    on_pull_requests: false
+    rooms:
+      secure: mWzYwXXkaPJ/t24kG9gz6hYyRGoGX+zsjKDa+IzjhY4NeMJyzgHyN3x1vWwSXhfG1jQuBTFyT5RTWN8Jfo2Za/XDKYfMXXP5gCMtNkeWdflYWaUC7sAZepRANUB3gzkCTvkc/DOY/FI07xCcLMJoZ7jGiADNakTaWvzdExJUBs6NuhGdIUmOT+chbip02yN7mSPeqyU7/vFqpCxxEoPeNzaNshLufbZUEWgmLm0bm5Uxdo7Yi5rL0/nA7oqXUzzWTtgQEu0mOG4Oqu7oXAki2rLISw8enZwt5/fUbxGgK1J3UB86vgnDrxbTAhuNUuddaSxUuDsg1+3xyRzU74cyKUWnWqL10Tyy9KgDR0A+48w2v8DH/pOvnvfXA+FL0zLtDJ9jPuSK0dFbceRYmolEGMDF53Q/s2W+waC13Bi3nHRQJKYmT+bOnoLABLpfm5fbV/2br4LVTQwiP80HJ+19Vy4lriF55zu1yjESUBzdvvX1Dhp5E3AXZZv6xB0v4gyZZeOoIv6BxqinLauZiS3nM7O9vu1QnFvbo4HH0Df651fyy1kOU5UAAD+CNRgpZ8GMc+EegvnLbS3nzbNOPlkACmhxMNcpEvD6MomcB4UV2dPWAYIQSfrRV5h+iZlNSqCkA2pl3p6TTZhLMvoSxziRzUZZx7GQe/cnUGN6GbzyyRk=
+
+install: true
+script: ./mvnw verify --show-version --batch-mode --errors
+
+before_deploy:
+  - ./mvnw clean verify --show-version --batch-mode --errors -Drevision=$TRAVIS_TAG
+  - cd $TRAVIS_BUILD_DIR/distribution/target
+  - sha256sum artifactory-snyk-security-plugin-$TRAVIS_TAG.zip > artifactory-snyk-security-plugin-$TRAVIS_TAG.zip.sha256
+  - cd $TRAVIS_BUILD_DIR
+deploy:
+  # GitHub releases
+  - provider: releases
+    api_key:
+      secure: JpaqqMdER6muFkfjf9RmgPUNbfO7aGyz3gy5AeoRoUX1luvN56wBwQ2XqU6PYM71uI9+UPa1KS+TQGiOX6EBQLdaizG+nhpw86w1A0waHOACkBTLqtvxXU4c35q+jMFPhSi9VwAwtH/z2Dx9RbcvHUXeHwcQOqVILd61lIpipRuVTjP9oseQ3bKZyIS7v/PxbuSCXSnQmnfIxQcHfUrRrXuP+M1mEEGy8n+C0WZIkB6HTsTRrNn8n9dKp15/VPH8E4qOY/SJ3U4auKz5xM0TYLmM7HXKgWqFFYid4upYg4A2QzMdSPbyZ2W/GO3Lf4RHApczwQeSDqXoqZjoQxedykbOYeDXfqVPHtg/rVoTnhSRxAzbHIO4+yiqYlnWlLaK3nvVhvFcIfhL53zdSmh39DiVlxXP+SRdIu5Udoi9HxFo62ZMTtWssxzSovNhq/MYJL+FjZJdLvS8xh2AahAwdHVtMw2GaeUM5JlJUyaXGIsBL6TJ8jasXJHVBtHLMt75QEyBmUIP9Bj9F/M3EFvGDR4JocWg9L9TZ5YOuRdQ9r3v6rLGci202k0mqPbyJdHZpKj72qUBTy0sOVmjqRT/K91Yzaq9skA1OgRJfICa3Rm7GxHJiNHkHemBasmLMRix2bFfMSJBqHPP0cCo4Bz0Bm0orq/V0yXHS5UdWoSZi0Y=
+    file:
+      - distribution/target/artifactory-snyk-security-plugin-$TRAVIS_TAG.zip
+      - distribution/target/artifactory-snyk-security-plugin-$TRAVIS_TAG.zip.sha256
+    skip_cleanup: true
+    on:
+      repo: snyk/artifactory-snyk-security-plugin
+      tags: true

@@ -29,7 +29,7 @@ class PluginConfigurationTest {
     );
   }
 
-  private String getAssertionMessage(PluginConfiguration entry, String message) {
+  private String getAssertionMessage(Configuration entry, String message) {
     return String.format("'%s' %s", entry.propertyKey(), message);
   }
 }

@@ -52,7 +52,7 @@ public class SnykPlugin {
   }
 
   private void validateConfiguration() {
-    LOG.info("Validate Snyk plugin configuration");
+    LOG.info("Validate plugin configuration");
     try {
       configurationModule.validate();
     } catch (Exception ex) {

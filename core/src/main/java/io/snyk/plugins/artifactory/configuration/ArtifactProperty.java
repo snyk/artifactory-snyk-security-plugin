@@ -15,7 +15,7 @@ public enum ArtifactProperty {
     this.propertyKey = propertyKey;
   }
 
-  public String getPropertyKey() {
+  public String propertyKey() {
     return propertyKey;
   }
 }

@@ -1,38 +1,39 @@
-package io.snyk.plugins.artifactory.core.scanner;
+package io.snyk.plugins.artifactory.scanner;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.slf4j.Logger;
 import retrofit2.Response;
 
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class MavenScanner implements Scanner {
+class MavenScanner {
+
   private static final Logger LOG = getLogger(MavenScanner.class);
 
-  private final Properties properties;
+  private final ConfigurationModule configurationModule;
   private final SnykClient snykClient;
 
-  public MavenScanner(Properties properties, SnykClient snykClient) {
-    this.properties = properties;
+  MavenScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+    this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }
 
-  @Override
   public TestResult scan(FileLayoutInfo fileLayoutInfo) {
-    String organisation = properties.getProperty("snyk.api.organisation");
+    String organization = configurationModule.getProperty(API_ORGANIZATION);
 
     TestResult testResult = null;
     try {
       Response<TestResult> response = snykClient.testMaven(fileLayoutInfo.getOrganization(),
                                                            fileLayoutInfo.getModule(),
                                                            fileLayoutInfo.getBaseRevision(),
-                                                           organisation,
+                                                           organization,
                                                            null).execute();
       if (response.isSuccessful() && response.body() != null) {
         testResult = response.body();

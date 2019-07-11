@@ -1,5 +1,6 @@
 package io.snyk.sdk.interceptor;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 
 import okhttp3.Interceptor;
@@ -16,8 +17,9 @@ public class ServiceInterceptor implements Interceptor {
     this.userAgent = userAgent;
   }
 
+  @Nonnull
   @Override
-  public Response intercept(Chain chain) throws IOException {
+  public Response intercept(@Nonnull Chain chain) throws IOException {
     Request.Builder builder = chain.request().newBuilder();
 
     builder.addHeader("Accept", "application/json")

@@ -1,14 +1,11 @@
-package io.snyk.plugins.artifactory.core;
+package io.snyk.plugins.artifactory.scanner;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
-import io.snyk.plugins.artifactory.core.scanner.MavenScanner;
-import io.snyk.plugins.artifactory.core.scanner.NpmScanner;
-import io.snyk.sdk.Snyk;
+import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
@@ -21,106 +18,101 @@ import org.artifactory.repo.Repositories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_LICENSES;
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD;
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD_INFO;
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_URL;
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES;
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-public class SnykPlugin {
-  private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
+public class ScannerModule {
 
+  private static final Logger LOG = LoggerFactory.getLogger(ScannerModule.class);
+
+  private final ConfigurationModule configurationModule;
   private final Repositories repositories;
-  private final Properties properties;
-  private final SnykClient snykClient;
   private final MavenScanner mavenScanner;
   private final NpmScanner npmScanner;
 
-  public SnykPlugin(Repositories repositories, File pluginsDirectory) {
+  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykClient snykClient) {
+    this.configurationModule = requireNonNull(configurationModule);
     this.repositories = requireNonNull(repositories);
 
-    properties = getPropertyFile(pluginsDirectory.getAbsoluteFile());
-    snykClient = getSnykClient(properties);
-    mavenScanner = new MavenScanner(properties, snykClient);
-    npmScanner = new NpmScanner(properties, snykClient);
-
-    LOG.info("snykPlugin configuration:");
-    LOG.info("snyk.artifactory.scanner.vulnerability.threshold: {}", properties.getProperty("snyk.artifactory.scanner.vulnerability.threshold"));
+    mavenScanner = new MavenScanner(configurationModule, snykClient);
+    npmScanner = new NpmScanner(configurationModule, snykClient);
   }
 
-  private Properties getPropertyFile(File pluginsDirectory) {
-    final Properties properties = new Properties();
-    File propertiesFile = new File(pluginsDirectory.getAbsoluteFile(), "snykSecurityPlugin.properties");
-    try (final FileInputStream fis = new FileInputStream(propertiesFile)) {
-      properties.load(fis);
-    } catch (IOException ex) {
-      LOG.error("Plugin properties could not be loaded", ex);
-    }
-    return properties;
-  }
-
-  private SnykClient getSnykClient(Properties properties) {
-    return Snyk.newBuilder(new Snyk.Config(properties.getProperty("snyk.api.token"))).buildSync();
-  }
-
-  public void handleBeforeDownloadEvent(RepoPath repoPath) {
-    LOG.debug("Handle 'beforeDownload' event for: {}", repoPath);
-
+  public void scanArtifact(@Nonnull RepoPath repoPath) {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
-
-    boolean allowDownload = false;
-    String allowDownloadProperty = repositories.getProperty(repoPath, "snyk.scanner.forceDownload");
-    if (allowDownloadProperty != null) {
-      allowDownload = "true".equalsIgnoreCase(allowDownloadProperty);
-    }
-
-    TestResult testResult;
-    String extension = fileLayoutInfo.getExt();
-    if ("jar".equals(extension)) {
-      testResult = mavenScanner.scan(fileLayoutInfo);
-      updateProperties(repoPath, fileLayoutInfo, testResult);
-
-      if (allowDownload) {
-        LOG.info("Property 'snyk.scanner.forceDownload' is true, so we allow to download artifact: {}", repoPath);
-        return;
-      }
-
-      validateSeverityThreshold(testResult, repoPath);
-    } else if ("tgz".equals(extension)) {
-      testResult = npmScanner.performScan(fileLayoutInfo);
-      updateProperties(repoPath, fileLayoutInfo, testResult);
-
-      if (allowDownload) {
-        LOG.info("Property 'snyk.scanner.forceDownload' is true, so we allow to download artifact: {}", repoPath);
-        return;
-      }
-
-      validateSeverityThreshold(testResult, repoPath);
-    }
-
-  }
-
-  private void updateProperties(RepoPath repoPath, FileLayoutInfo fileLayoutInfo, TestResult testResult) {
-    String vulnerabilityCount = repositories.getProperty(repoPath, "snyk.scanner.vulnerabilities");
-    if (vulnerabilityCount != null && !vulnerabilityCount.isEmpty()) {
-      LOG.debug("Skip already scanned artifact: {}", repoPath);
+    if (!isExtensionSupported(fileLayoutInfo)) {
       return;
     }
 
-    repositories.setProperty(repoPath, "snyk.scanner.forceDownload", "false");
-    repositories.setProperty(repoPath, "snyk.scanner.forceDownload.info", "");
-    repositories.setProperty(repoPath, "snyk.scanner.vulnerabilities", getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
-    repositories.setProperty(repoPath, "snyk.scanner.licenses", getLicencesBySeverity(testResult.issues.licenses));
-
-    StringBuilder snykVulnerabilityUrl = new StringBuilder("https://snyk.io/vuln/");
-    if ("maven".equals(testResult.packageManager)) {
-      snykVulnerabilityUrl.append("maven:")
-                          .append(fileLayoutInfo.getOrganization()).append("%3A")
-                          .append(fileLayoutInfo.getModule()).append("@")
-                          .append(fileLayoutInfo.getBaseRevision());
-    } else if ("npm".equals(testResult.packageManager)) {
-      snykVulnerabilityUrl.append("npm:")
-                          .append(fileLayoutInfo.getModule()).append("@")
-                          .append(fileLayoutInfo.getBaseRevision());
+    TestResult testResult = null;
+    String extension = fileLayoutInfo.getExt();
+    if ("jar".equals(extension)) {
+      testResult = mavenScanner.scan(fileLayoutInfo);
+    } else if ("tgz".equals(extension)) {
+      testResult = npmScanner.scan(fileLayoutInfo);
     }
-    repositories.setProperty(repoPath, "snyk.vulnerability.url", snykVulnerabilityUrl.toString());
+
+    if (testResult == null) {
+      LOG.error("Scanning was not successful");
+      return;
+    }
+
+    updateProperties(repoPath, fileLayoutInfo, testResult);
+
+    boolean forceDownload = false;
+    String forceDownloadProperty = repositories.getProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey());
+    if (forceDownloadProperty != null) {
+      forceDownload = "true".equalsIgnoreCase(forceDownloadProperty);
+    }
+    if (forceDownload) {
+      LOG.info("Property '{}' is true, so we allow to download artifact: {}", ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), repoPath);
+      return;
+    }
+
+    validateSeverityThreshold(testResult, repoPath);
+  }
+
+  private boolean isExtensionSupported(FileLayoutInfo fileLayoutInfo) {
+    if (fileLayoutInfo == null) {
+      return false;
+    }
+    List<String> supportedExtensions = Arrays.asList("jar", "tgz");
+    return supportedExtensions.contains(fileLayoutInfo.getExt());
+  }
+
+  private void updateProperties(RepoPath repoPath, FileLayoutInfo fileLayoutInfo, TestResult testResult) {
+    String issueVulnerabilitiesProperty = repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey());
+    if (issueVulnerabilitiesProperty != null && !issueVulnerabilitiesProperty.isEmpty()) {
+      LOG.debug("Skip updating properties for already scanned artifact: {}", repoPath);
+      return;
+    }
+
+    StringBuilder snykIssueUrl = new StringBuilder("https://snyk.io/vuln/");
+    if ("maven".equals(testResult.packageManager)) {
+      snykIssueUrl.append("maven:")
+                  .append(fileLayoutInfo.getOrganization()).append("%3A")
+                  .append(fileLayoutInfo.getModule()).append("@")
+                  .append(fileLayoutInfo.getBaseRevision());
+    } else if ("npm".equals(testResult.packageManager)) {
+      snykIssueUrl.append("npm:")
+                  .append(fileLayoutInfo.getModule()).append("@")
+                  .append(fileLayoutInfo.getBaseRevision());
+    }
+
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), "false");
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
+    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getLicencesBySeverity(testResult.issues.licenses));
+    repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey(), "false");
+    repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
+    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), snykIssueUrl.toString());
   }
 
   private String getVulnerabilitiesBySeverity(List<Vulnerability> issues) {
@@ -140,7 +132,7 @@ public class SnykPlugin {
   }
 
   private void validateSeverityThreshold(TestResult testResult, RepoPath repoPath) {
-    Severity vulnerabilitiesThreshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.vulnerability.threshold"));
+    Severity vulnerabilitiesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
     if (vulnerabilitiesThreshold == Severity.LOW) {
       if (!testResult.issues.vulnerabilities.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities", repoPath), 403);
@@ -161,7 +153,7 @@ public class SnykPlugin {
       }
     }
 
-    Severity licensesThreshold = Severity.of(properties.getProperty("snyk.artifactory.scanner.license.threshold"));
+    Severity licensesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));
     if (licensesThreshold == Severity.LOW) {
       if (!testResult.issues.licenses.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses')", repoPath), 403);

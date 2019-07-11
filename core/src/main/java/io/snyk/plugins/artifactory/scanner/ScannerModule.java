@@ -10,7 +10,6 @@ import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
-import io.snyk.sdk.model.Vulnerability;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -72,7 +71,7 @@ public class ScannerModule {
       forceDownload = "true".equalsIgnoreCase(forceDownloadProperty);
     }
     if (forceDownload) {
-      LOG.info("Property '{}' is true, so we allow to download artifact: {}", ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), repoPath);
+      LOG.info("Property '{}' is true, so we allow to download artifact: {}", forceDownloadProperty, repoPath);
       return;
     }
 
@@ -106,29 +105,21 @@ public class ScannerModule {
                   .append(fileLayoutInfo.getBaseRevision());
     }
 
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), "false");
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
-    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getLicencesBySeverity(testResult.issues.licenses));
+    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
     repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey(), "false");
     repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
     repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), snykIssueUrl.toString());
   }
 
-  private String getVulnerabilitiesBySeverity(List<Vulnerability> issues) {
-    long countOfHighVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.HIGH).count();
-    long countOfMediumVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.MEDIUM).count();
-    long countOfLowVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.LOW).count();
+  private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
+    long countHighSeverities = issues.stream().filter(issue -> issue.severity == Severity.HIGH).count();
+    long countMediumSeverities = issues.stream().filter(issue -> issue.severity == Severity.MEDIUM).count();
+    long countLowSeverities = issues.stream().filter(issue -> issue.severity == Severity.LOW).count();
 
-    return format("%d high, %d medium, %d low", countOfHighVulnerabilities, countOfMediumVulnerabilities, countOfLowVulnerabilities);
-  }
-
-  private String getLicencesBySeverity(List<Issue> issues) {
-    long countOfHighVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.HIGH).count();
-    long countOfMediumVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.MEDIUM).count();
-    long countOfLowVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.LOW).count();
-
-    return format("%d high, %d medium, %d low", countOfHighVulnerabilities, countOfMediumVulnerabilities, countOfLowVulnerabilities);
+    return format("%d high, %d medium, %d low", countHighSeverities, countMediumSeverities, countLowSeverities);
   }
 
   private void validateSeverityThreshold(TestResult testResult, RepoPath repoPath) {

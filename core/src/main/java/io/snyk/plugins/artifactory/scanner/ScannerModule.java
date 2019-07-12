@@ -10,7 +10,6 @@ import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
-import io.snyk.sdk.model.Vulnerability;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -66,17 +65,8 @@ public class ScannerModule {
 
     updateProperties(repoPath, fileLayoutInfo, testResult);
 
-    boolean forceDownload = false;
-    String forceDownloadProperty = repositories.getProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey());
-    if (forceDownloadProperty != null) {
-      forceDownload = "true".equalsIgnoreCase(forceDownloadProperty);
-    }
-    if (forceDownload) {
-      LOG.info("Property '{}' is true, so we allow to download artifact: {}", ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), repoPath);
-      return;
-    }
-
-    validateSeverityThreshold(testResult, repoPath);
+    validateVulnerabilityIssues(testResult, repoPath);
+    validateLicenseIssues(testResult, repoPath);
   }
 
   private boolean isExtensionSupported(FileLayoutInfo fileLayoutInfo) {
@@ -106,51 +96,61 @@ public class ScannerModule {
                   .append(fileLayoutInfo.getBaseRevision());
     }
 
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getVulnerabilitiesBySeverity(testResult.issues.vulnerabilities));
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), "false");
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
-    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getLicencesBySeverity(testResult.issues.licenses));
+    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
     repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey(), "false");
     repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
     repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), snykIssueUrl.toString());
   }
 
-  private String getVulnerabilitiesBySeverity(List<Vulnerability> issues) {
-    long countOfHighVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.HIGH).count();
-    long countOfMediumVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.MEDIUM).count();
-    long countOfLowVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.LOW).count();
+  private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
+    long countHighSeverities = issues.stream().filter(issue -> issue.severity == Severity.HIGH).count();
+    long countMediumSeverities = issues.stream().filter(issue -> issue.severity == Severity.MEDIUM).count();
+    long countLowSeverities = issues.stream().filter(issue -> issue.severity == Severity.LOW).count();
 
-    return format("%d high, %d medium, %d low", countOfHighVulnerabilities, countOfMediumVulnerabilities, countOfLowVulnerabilities);
+    return format("%d high, %d medium, %d low", countHighSeverities, countMediumSeverities, countLowSeverities);
   }
 
-  private String getLicencesBySeverity(List<Issue> issues) {
-    long countOfHighVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.HIGH).count();
-    long countOfMediumVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.MEDIUM).count();
-    long countOfLowVulnerabilities = issues.stream().filter(vulnerability -> vulnerability.severity == Severity.LOW).count();
+  private void validateVulnerabilityIssues(TestResult testResult, RepoPath repoPath) {
+    final String vulnerabilitiesForceDownloadProperty = ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey();
+    final String vulnerabilitiesForceDownload = repositories.getProperty(repoPath, vulnerabilitiesForceDownloadProperty);
+    final boolean forceDownload = "true".equalsIgnoreCase(vulnerabilitiesForceDownload);
+    if (forceDownload) {
+      LOG.info("Property '{}' is true, so we allow to download artifact: {}", vulnerabilitiesForceDownloadProperty, repoPath);
+      return;
+    }
 
-    return format("%d high, %d medium, %d low", countOfHighVulnerabilities, countOfMediumVulnerabilities, countOfLowVulnerabilities);
-  }
-
-  private void validateSeverityThreshold(TestResult testResult, RepoPath repoPath) {
-    Severity vulnerabilitiesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
-    if (vulnerabilitiesThreshold == Severity.LOW) {
+    Severity vulnerabilityThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
+    if (vulnerabilityThreshold == Severity.LOW) {
       if (!testResult.issues.vulnerabilities.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities", repoPath), 403);
       }
-    } else if (vulnerabilitiesThreshold == Severity.MEDIUM) {
+    } else if (vulnerabilityThreshold == Severity.MEDIUM) {
       long count = testResult.issues.vulnerabilities.stream()
                                                     .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
                                                     .count();
       if (count > 0) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities with severity medium or high", repoPath), 403);
       }
-    } else if (vulnerabilitiesThreshold == Severity.HIGH) {
+    } else if (vulnerabilityThreshold == Severity.HIGH) {
       long count = testResult.issues.vulnerabilities.stream()
                                                     .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
                                                     .count();
       if (count > 0) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities with severity high", repoPath), 403);
       }
+    }
+  }
+
+  private void validateLicenseIssues(TestResult testResult, RepoPath repoPath) {
+    final String licensesForceDownloadProperty = ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey();
+    final String licensesForceDownload = repositories.getProperty(repoPath, licensesForceDownloadProperty);
+    final boolean forceDownload = "true".equalsIgnoreCase(licensesForceDownload);
+    if (forceDownload) {
+      LOG.info("Property '{}' is true, so we allow to download artifact: {}", licensesForceDownloadProperty, repoPath);
+      return;
     }
 
     Severity licensesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));

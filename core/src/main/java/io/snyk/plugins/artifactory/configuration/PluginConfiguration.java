@@ -2,7 +2,7 @@ package io.snyk.plugins.artifactory.configuration;
 
 public enum PluginConfiguration implements Configuration {
   // general settings
-  API_URL("snyk.api.url", "https://snyk.io/api/v1/"),
+  API_URL("snyk.api.url", ""),
   API_TOKEN("snyk.api.token", ""),
   API_ORGANIZATION("snyk.api.organization", ""),
 

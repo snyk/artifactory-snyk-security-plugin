@@ -79,6 +79,10 @@ public class SnykPlugin {
     }
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
 
-    return Snyk.newBuilder(new Snyk.Config(baseUrl, token)).buildSync();
+    if (baseUrl.isEmpty()) {
+      return Snyk.newBuilder(new Snyk.Config(token)).buildSync();
+    } else {
+      return Snyk.newBuilder(new Snyk.Config(baseUrl, token)).buildSync();
+    }
   }
 }

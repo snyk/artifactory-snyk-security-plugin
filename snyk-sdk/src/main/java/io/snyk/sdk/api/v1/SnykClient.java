@@ -2,6 +2,7 @@ package io.snyk.sdk.api.v1;
 
 import javax.annotation.Nullable;
 
+import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -9,6 +10,12 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface SnykClient {
+
+  /**
+   * Get the user notification settings that will determine which emails are sent.
+   */
+  @GET("user/me/notification-settings")
+  Call<NotificationSettings> getNotificationSettings();
 
   /**
    * Test Maven packages for issues according to their coordinates: group ID, artifact ID and version:

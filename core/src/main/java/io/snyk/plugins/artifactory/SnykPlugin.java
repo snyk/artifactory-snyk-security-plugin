@@ -10,10 +10,12 @@ import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.model.NotificationSettings;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit2.Response;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
@@ -28,12 +30,12 @@ public class SnykPlugin {
 
   public SnykPlugin(@Nonnull Repositories repositories, File pluginsDirectory) {
     try {
-      //load and validate plugin properties
+      LOG.info("Loading and validating plugin properties...");
       Properties properties = PropertyLoader.loadProperties(pluginsDirectory);
       configurationModule = new ConfigurationModule(properties);
       validateConfiguration();
 
-      //create api client and modules
+      LOG.info("Creating api client and modules...");
       final SnykClient snykClient = createSnykClient(configurationModule);
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
     } catch (IOException ex) {
@@ -52,7 +54,6 @@ public class SnykPlugin {
   }
 
   private void validateConfiguration() {
-    LOG.info("Validate plugin configuration");
     try {
       configurationModule.validate();
     } catch (Exception ex) {
@@ -69,16 +70,29 @@ public class SnykPlugin {
   }
 
   @Nonnull
-  private SnykClient createSnykClient(ConfigurationModule configurationModule) {
-    String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
-    if (!baseUrl.endsWith("/")) {
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("'{}' must end in /, your value is '{}'", API_URL.propertyKey(), baseUrl);
-      }
-      baseUrl = baseUrl + "/";
-    }
+  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule) throws IOException {
+    final SnykClient snykClient;
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
+    String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
 
-    return Snyk.newBuilder(new Snyk.Config(baseUrl, token)).buildSync();
+    if (baseUrl.isEmpty()) {
+      snykClient = Snyk.newBuilder(new Snyk.Config(token)).buildSync();
+    } else {
+      if (!baseUrl.endsWith("/")) {
+        if (LOG.isWarnEnabled()) {
+          LOG.warn("'{}' must end in /, your value is '{}'", API_URL.propertyKey(), baseUrl);
+        }
+        baseUrl = baseUrl + "/";
+      }
+      snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token)).buildSync();
+    }
+
+    // get notification settings to check whether api token is valid
+    Response<NotificationSettings> response = snykClient.getNotificationSettings().execute();
+    if (response.code() == 401) {
+      throw new SnykRuntimeException("Invalid 'snyk.api.token' provided");
+    }
+
+    return snykClient;
   }
 }

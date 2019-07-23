@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_BLOCK_ON_API_FAILURE;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_LICENSE_THRESHOLD;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -18,6 +19,7 @@ class PluginConfigurationTest {
   @Test
   void checkDefaultValues() {
     assertAll("should be not empty",
+              () -> assertEquals("true", SCANNER_BLOCK_ON_API_FAILURE.defaultValue(), getAssertionMessage(SCANNER_BLOCK_ON_API_FAILURE, "default value must be 'true'")),
               () -> assertEquals("low", SCANNER_VULNERABILITY_THRESHOLD.defaultValue(), getAssertionMessage(SCANNER_VULNERABILITY_THRESHOLD, "default value must be 'low'")),
               () -> assertEquals("low", SCANNER_LICENSE_THRESHOLD.defaultValue(), getAssertionMessage(SCANNER_LICENSE_THRESHOLD, "default value must be 'low'"))
     );

@@ -7,6 +7,7 @@ public enum PluginConfiguration implements Configuration {
   API_ORGANIZATION("snyk.api.organization", ""),
 
   // scanner module
+  SCANNER_BLOCK_ON_API_FAILURE("snyk.scanner.block-on-api-failure", "true"),
   SCANNER_VULNERABILITY_THRESHOLD("snyk.scanner.vulnerability.threshold", "low"),
   SCANNER_LICENSE_THRESHOLD("snyk.scanner.license.threshold", "low");
 

@@ -24,6 +24,7 @@ import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_U
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES;
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_BLOCK_ON_API_FAILURE;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
@@ -59,8 +60,14 @@ public class ScannerModule {
     }
 
     if (testResult == null) {
-      LOG.error("Scanning was not successful");
-      return;
+      final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
+      final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
+      if ("true".equals(blockOnApiFailure)) {
+        throw new CancelException(format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath), 500);
+      } else {
+        LOG.warn("Property '{}' is false, so we allow to download the artifact '{}'", blockOnApiFailurePropertyKey, repoPath);
+        return;
+      }
     }
 
     updateProperties(repoPath, fileLayoutInfo, testResult);

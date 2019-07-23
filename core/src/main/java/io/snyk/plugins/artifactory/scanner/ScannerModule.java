@@ -63,7 +63,7 @@ public class ScannerModule {
       final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
       final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
       if ("true".equals(blockOnApiFailure)) {
-        throw new CancelException(format("Artifact '%s' could not be scanned and '%s' is 'true'", repoPath, blockOnApiFailurePropertyKey), 500);
+        throw new CancelException(format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath), 500);
       } else {
         LOG.warn("Property '{}' is false, so we allow to download the artifact '{}'", blockOnApiFailurePropertyKey, repoPath);
         return;

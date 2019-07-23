@@ -5,14 +5,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+import io.snyk.plugins.artifactory.audit.AuditModule;
+import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.NotificationSettings;
+import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
+import org.artifactory.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
@@ -26,6 +30,7 @@ public class SnykPlugin {
   private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
 
   private final ConfigurationModule configurationModule;
+  private final AuditModule auditModule;
   private final ScannerModule scannerModule;
 
   public SnykPlugin(@Nonnull Repositories repositories, File pluginsDirectory) {
@@ -37,10 +42,27 @@ public class SnykPlugin {
 
       LOG.info("Creating api client and modules...");
       final SnykClient snykClient = createSnykClient(configurationModule);
+      auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
     } catch (IOException ex) {
       throw new SnykRuntimeException("Snyk plugin could not be initialized!", ex);
     }
+  }
+
+  /**
+   * Logs update event for following artifact properties:
+   * <ul>
+   * <li>{@link ArtifactProperty#ISSUE_LICENSES_FORCE_DOWNLOAD}</li>
+   * <li>{@link ArtifactProperty#ISSUE_LICENSES_FORCE_DOWNLOAD_INFO}</li>
+   * <li>{@link ArtifactProperty#ISSUE_VULNERABILITIES_FORCE_DOWNLOAD}</li>
+   * <li>{@link ArtifactProperty#ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO}</li>
+   * </ul>
+   * <p>
+   * Extension point: {@code storage.afterPropertyCreate}.
+   */
+  public void handleAfterPropertyCreateEvent(User user, ItemInfo itemInfo, String propertyName, String[] propertyValues) {
+    LOG.debug("Handle 'afterPropertyCreate' event for: {}", itemInfo);
+    auditModule.logPropertyUpdate(user, itemInfo, propertyName, propertyValues);
   }
 
   /**

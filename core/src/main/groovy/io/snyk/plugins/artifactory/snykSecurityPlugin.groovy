@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory
 
 import groovy.transform.Field
+import org.artifactory.fs.ItemInfo
 import org.artifactory.repo.RepoPath
 import org.artifactory.request.Request
 
@@ -26,5 +27,11 @@ executions {
 download {
   beforeDownload { Request request, RepoPath repoPath ->
     snykPlugin.handleBeforeDownloadEvent(repoPath)
+  }
+}
+
+storage {
+  afterPropertyCreate { ItemInfo itemInfo, String propertyName, String[] propertyValues ->
+    snykPlugin.handleAfterPropertyCreateEvent(security.currentUser(), itemInfo, propertyName, propertyValues)
   }
 }

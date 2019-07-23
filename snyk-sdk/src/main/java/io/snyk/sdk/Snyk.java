@@ -63,5 +63,11 @@ public class Snyk {
       this.token = token;
       this.userAgent = DEFAULT_USER_AGENT;
     }
+
+    public Config(String baseUrl, String token, String userAgent) {
+      this.baseUrl = baseUrl;
+      this.token = token;
+      this.userAgent = userAgent;
+    }
   }
 }

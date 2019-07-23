@@ -28,6 +28,8 @@ import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_
 public class SnykPlugin {
 
   private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
+  //TODO(pavel): currently version is hard-coded, will be dynamically loaded later from property file
+  private static final String API_USER_AGENT = "snyk-artifactory-plugin/0.0.5";
 
   private final ConfigurationModule configurationModule;
   private final AuditModule auditModule;
@@ -97,17 +99,13 @@ public class SnykPlugin {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
 
-    if (baseUrl.isEmpty()) {
-      snykClient = Snyk.newBuilder(new Snyk.Config(token)).buildSync();
-    } else {
-      if (!baseUrl.endsWith("/")) {
-        if (LOG.isWarnEnabled()) {
-          LOG.warn("'{}' must end in /, your value is '{}'", API_URL.propertyKey(), baseUrl);
-        }
-        baseUrl = baseUrl + "/";
+    if (!baseUrl.endsWith("/")) {
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("'{}' must end in /, your value is '{}'", API_URL.propertyKey(), baseUrl);
       }
-      snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token)).buildSync();
+      baseUrl = baseUrl + "/";
     }
+    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT)).buildSync();
 
     // get notification settings to check whether api token is valid
     Response<NotificationSettings> response = snykClient.getNotificationSettings().execute();

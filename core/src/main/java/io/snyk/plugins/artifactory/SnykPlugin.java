@@ -30,7 +30,7 @@ public class SnykPlugin {
 
   private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
   //TODO(pavel): currently version is hard-coded, will be dynamically loaded later from property file
-  private static final String API_USER_AGENT = "snyk-artifactory-plugin/0.0.5";
+  private static final String API_USER_AGENT = "snyk-artifactory-plugin/0.0.6";
 
   private final ConfigurationModule configurationModule;
   private final AuditModule auditModule;

@@ -5,6 +5,7 @@ public enum PluginConfiguration implements Configuration {
   API_URL("snyk.api.url", "https://snyk.io/api/v1/"),
   API_TOKEN("snyk.api.token", ""),
   API_ORGANIZATION("snyk.api.organization", ""),
+  TRUST_ALL_CERTIFICATES("snyk.api.trustAllCertificates", "false"),
 
   // scanner module
   SCANNER_BLOCK_ON_API_FAILURE("snyk.scanner.block-on-api-failure", "true"),

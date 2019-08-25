@@ -21,9 +21,10 @@ import org.slf4j.LoggerFactory;
 import retrofit2.Response;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_SSL_CERTIFICATE_PATH;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TRUST_ALL_CERTIFICATES;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.TRUST_ALL_CERTIFICATES;
 
 public class SnykPlugin {
 
@@ -99,7 +100,7 @@ public class SnykPlugin {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
     boolean trustAllCertificates = false;
-    String trustAllCertificatesProperty = configurationModule.getPropertyOrDefault(TRUST_ALL_CERTIFICATES);
+    String trustAllCertificatesProperty = configurationModule.getPropertyOrDefault(API_TRUST_ALL_CERTIFICATES);
     if ("true".equals(trustAllCertificatesProperty)) {
       trustAllCertificates = true;
     }
@@ -110,7 +111,9 @@ public class SnykPlugin {
       }
       baseUrl = baseUrl + "/";
     }
-    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT, trustAllCertificates)).buildSync();
+
+    String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
+    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT, trustAllCertificates, sslCertificatePath)).buildSync();
 
     // get notification settings to check whether api token is valid
     Response<NotificationSettings> response = snykClient.getNotificationSettings().execute();

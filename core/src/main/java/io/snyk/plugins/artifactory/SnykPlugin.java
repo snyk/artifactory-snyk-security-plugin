@@ -2,7 +2,6 @@ package io.snyk.plugins.artifactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.IOException;
 import java.util.Properties;
 
 import io.snyk.plugins.artifactory.audit.AuditModule;
@@ -22,14 +21,16 @@ import org.slf4j.LoggerFactory;
 import retrofit2.Response;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_SSL_CERTIFICATE_PATH;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TRUST_ALL_CERTIFICATES;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
 
 public class SnykPlugin {
 
   private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
   //TODO(pavel): currently version is hard-coded, will be dynamically loaded later from property file
-  private static final String API_USER_AGENT = "snyk-artifactory-plugin/0.0.5";
+  private static final String API_USER_AGENT = "snyk-artifactory-plugin/0.0.6";
 
   private final ConfigurationModule configurationModule;
   private final AuditModule auditModule;
@@ -46,7 +47,7 @@ public class SnykPlugin {
       final SnykClient snykClient = createSnykClient(configurationModule);
       auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       throw new SnykRuntimeException("Snyk plugin could not be initialized!", ex);
     }
   }
@@ -94,10 +95,15 @@ public class SnykPlugin {
   }
 
   @Nonnull
-  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule) throws IOException {
+  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule) throws Exception {
     final SnykClient snykClient;
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
+    boolean trustAllCertificates = false;
+    String trustAllCertificatesProperty = configurationModule.getPropertyOrDefault(API_TRUST_ALL_CERTIFICATES);
+    if ("true".equals(trustAllCertificatesProperty)) {
+      trustAllCertificates = true;
+    }
 
     if (!baseUrl.endsWith("/")) {
       if (LOG.isWarnEnabled()) {
@@ -105,7 +111,9 @@ public class SnykPlugin {
       }
       baseUrl = baseUrl + "/";
     }
-    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT)).buildSync();
+
+    String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
+    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT, trustAllCertificates, sslCertificatePath)).buildSync();
 
     // get notification settings to check whether api token is valid
     Response<NotificationSettings> response = snykClient.getNotificationSettings().execute();

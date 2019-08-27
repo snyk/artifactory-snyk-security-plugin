@@ -1,9 +1,16 @@
 package io.snyk.sdk;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.SecureRandom;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.interceptor.ServiceInterceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -21,7 +28,7 @@ public class Snyk {
 
   private final Retrofit retrofit;
 
-  private Snyk(Config config) {
+  private Snyk(Config config) throws Exception {
     if (config.token == null || config.token.isEmpty()) {
       throw new IllegalArgumentException("Snyk API token is empty");
     }
@@ -29,6 +36,21 @@ public class Snyk {
     OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(DEFAULT_CONNECTION_TIMEOUT, MILLISECONDS)
                                                              .readTimeout(DEFAULT_READ_TIMEOUT, MILLISECONDS)
                                                              .writeTimeout(DEFAULT_WRITE_TIMEOUT, MILLISECONDS);
+
+    if (config.trustAllCertificates) {
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      TrustManager[] trustManagers = SSLConfiguration.buildUnsafeTrustManager();
+      sslContext.init(null, trustManagers, new SecureRandom());
+      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+      builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustManagers[0]);
+    } else if (config.sslCertificatePath != null && !config.sslCertificatePath.isEmpty()) {
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      X509TrustManager trustManager = SSLConfiguration.buildCustomTrustManager(config.sslCertificatePath);
+      sslContext.init(null, new TrustManager[]{trustManager}, null);
+      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+      builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustManager);
+    }
+
     builder.addInterceptor(new ServiceInterceptor(config.token, config.userAgent));
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -39,7 +61,7 @@ public class Snyk {
                                      .build();
   }
 
-  public static Snyk newBuilder(Config config) {
+  public static Snyk newBuilder(Config config) throws Exception {
     return new Snyk(config);
   }
 
@@ -51,23 +73,31 @@ public class Snyk {
     String baseUrl;
     String token;
     String userAgent;
+    boolean trustAllCertificates;
+    String sslCertificatePath;
 
     public Config(String token) {
-      this.baseUrl = DEFAULT_BASE_URL;
-      this.token = token;
-      this.userAgent = DEFAULT_USER_AGENT;
+      this(DEFAULT_BASE_URL, token);
     }
 
     public Config(String baseUrl, String token) {
-      this.baseUrl = baseUrl;
-      this.token = token;
-      this.userAgent = DEFAULT_USER_AGENT;
+      this(baseUrl, token, DEFAULT_USER_AGENT);
     }
 
     public Config(String baseUrl, String token, String userAgent) {
+      this(baseUrl, token, userAgent, false);
+    }
+
+    public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates) {
+      this(baseUrl, token, userAgent, trustAllCertificates, "");
+    }
+
+    public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates, String sslCertificatePath) {
       this.baseUrl = baseUrl;
       this.token = token;
       this.userAgent = userAgent;
+      this.trustAllCertificates = trustAllCertificates;
+      this.sslCertificatePath = sslCertificatePath;
     }
   }
 }

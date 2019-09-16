@@ -29,8 +29,7 @@ import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_
 public class SnykPlugin {
 
   private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
-  //TODO(pavel): currently version is hard-coded, will be dynamically loaded later from property file
-  private static final String API_USER_AGENT = "snyk-artifactory-plugin/0.0.6";
+  private static final String API_USER_AGENT = "snyk-artifactory-plugin/";
 
   private final ConfigurationModule configurationModule;
   private final AuditModule auditModule;
@@ -40,11 +39,12 @@ public class SnykPlugin {
     try {
       LOG.info("Loading and validating plugin properties...");
       Properties properties = PropertyLoader.loadProperties(pluginsDirectory);
+      String pluginVersion = PropertyLoader.loadPluginVersion(pluginsDirectory);
       configurationModule = new ConfigurationModule(properties);
       validateConfiguration();
 
       LOG.info("Creating api client and modules...");
-      final SnykClient snykClient = createSnykClient(configurationModule);
+      final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
       auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
     } catch (Exception ex) {
@@ -95,7 +95,7 @@ public class SnykPlugin {
   }
 
   @Nonnull
-  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule) throws Exception {
+  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
     final SnykClient snykClient;
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
@@ -113,7 +113,7 @@ public class SnykPlugin {
     }
 
     String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
-    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT, trustAllCertificates, sslCertificatePath)).buildSync();
+    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT + pluginVersion, trustAllCertificates, sslCertificatePath)).buildSync();
 
     // get notification settings to check whether api token is valid
     Response<NotificationSettings> response = snykClient.getNotificationSettings().execute();

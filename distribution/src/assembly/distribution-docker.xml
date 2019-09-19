@@ -16,5 +16,10 @@
       <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.groovy</source>
       <outputDirectory>etc/plugins</outputDirectory>
     </file>
+    <file>
+      <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.version</source>
+      <outputDirectory>etc/plugins/lib</outputDirectory>
+      <filtered>true</filtered>
+    </file>
   </files>
 </assembly>

@@ -47,6 +47,8 @@ public class SnykPlugin {
       final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
       auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
+
+      LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {
       throw new SnykRuntimeException("Snyk plugin could not be initialized!", ex);
     }

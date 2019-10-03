@@ -36,6 +36,7 @@ public class ScannerModule {
   private final Repositories repositories;
   private final MavenScanner mavenScanner;
   private final NpmScanner npmScanner;
+  private final PythonScanner pythonScanner;
 
   public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykClient snykClient) {
     this.configurationModule = requireNonNull(configurationModule);
@@ -43,11 +44,13 @@ public class ScannerModule {
 
     mavenScanner = new MavenScanner(configurationModule, snykClient);
     npmScanner = new NpmScanner(configurationModule, snykClient);
+    pythonScanner = new PythonScanner(configurationModule, snykClient);
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
     if (!isExtensionSupported(fileLayoutInfo)) {
+      LOG.warn("Artifact '{}' will not be scanned, because the extension is not supported", repoPath);
       return;
     }
 
@@ -57,6 +60,8 @@ public class ScannerModule {
       testResult = mavenScanner.scan(fileLayoutInfo);
     } else if ("tgz".equals(extension)) {
       testResult = npmScanner.scan(fileLayoutInfo);
+    } else if ("whl".equals(extension) || "tar.gz".equals(extension) || "zip".equals(extension) || "egg".equals(extension)) {
+      testResult = pythonScanner.scan(fileLayoutInfo);
     }
 
     if (testResult == null) {
@@ -77,10 +82,11 @@ public class ScannerModule {
   }
 
   private boolean isExtensionSupported(FileLayoutInfo fileLayoutInfo) {
+    LOG.error("isExtensionSupported: {}", fileLayoutInfo);
     if (fileLayoutInfo == null) {
       return false;
     }
-    List<String> supportedExtensions = Arrays.asList("jar", "tgz");
+    List<String> supportedExtensions = Arrays.asList("jar", "tgz", "whl", "tar.gz", "zip", "egg");
     return supportedExtensions.contains(fileLayoutInfo.getExt());
   }
 
@@ -91,6 +97,8 @@ public class ScannerModule {
       return;
     }
 
+    LOG.error(testResult.packageManager);
+
     StringBuilder snykIssueUrl = new StringBuilder("https://snyk.io/vuln/");
     if ("maven".equals(testResult.packageManager)) {
       snykIssueUrl.append("maven:")
@@ -99,6 +107,10 @@ public class ScannerModule {
                   .append(fileLayoutInfo.getBaseRevision());
     } else if ("npm".equals(testResult.packageManager)) {
       snykIssueUrl.append("npm:")
+                  .append(fileLayoutInfo.getModule()).append("@")
+                  .append(fileLayoutInfo.getBaseRevision());
+    } else if ("pip".equals(testResult.packageManager)) {
+      snykIssueUrl.append("pip:")
                   .append(fileLayoutInfo.getModule()).append("@")
                   .append(fileLayoutInfo.getBaseRevision());
     }

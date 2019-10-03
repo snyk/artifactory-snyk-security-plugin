@@ -13,14 +13,14 @@ import retrofit2.Response;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static org.slf4j.LoggerFactory.getLogger;
 
-class MavenScanner {
+class PythonScanner {
 
-  private static final Logger LOG = getLogger(MavenScanner.class);
+  private static final Logger LOG = getLogger(PythonScanner.class);
 
   private final ConfigurationModule configurationModule;
   private final SnykClient snykClient;
 
-  MavenScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  PythonScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
     this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }
@@ -30,18 +30,17 @@ class MavenScanner {
 
     TestResult testResult = null;
     try {
-      Response<TestResult> response = snykClient.testMaven(fileLayoutInfo.getOrganization(),
-                                                           fileLayoutInfo.getModule(),
-                                                           fileLayoutInfo.getBaseRevision(),
-                                                           organization,
-                                                           null).execute();
+      Response<TestResult> response = snykClient.testPip(fileLayoutInfo.getModule(),
+                                                         fileLayoutInfo.getBaseRevision(),
+                                                         organization).execute();
       if (response.isSuccessful() && response.body() != null) {
         testResult = response.body();
         String responseAsText = new ObjectMapper().writeValueAsString(response.body());
-        LOG.debug("testMaven response: {}", responseAsText);
+        LOG.debug("testPip response: {}", responseAsText);
       }
+
     } catch (IOException ex) {
-      LOG.error("Could not test maven artifact: {}", fileLayoutInfo, ex);
+      LOG.error("Could not test python artifact: {}", fileLayoutInfo, ex);
     }
 
     return testResult;

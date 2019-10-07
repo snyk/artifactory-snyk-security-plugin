@@ -3,7 +3,10 @@ services:
 
   artifactory:
     image: docker.bintray.io/jfrog/artifactory-pro:6.2.0
+    environment:
+      - EXTRA_JAVA_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=8082,server=y,suspend=n"
     ports:
       - "8081:8081"
+      - "8082:8082"
     volumes:
       - "./distribution/docker/artifactory:/var/opt/jfrog/artifactory"

@@ -36,7 +36,7 @@
     <version.maven.resources.plugin>3.1.0</version.maven.resources.plugin>
     <version.maven.site.plugin>3.7.1</version.maven.site.plugin>
     <version.maven.surefire.plugin>3.0.0-M3</version.maven.surefire.plugin>
-    <version.retrofit2>2.7.2</version.retrofit2>
+    <version.retrofit2>2.8.0</version.retrofit2>
   </properties>
 
   <build>

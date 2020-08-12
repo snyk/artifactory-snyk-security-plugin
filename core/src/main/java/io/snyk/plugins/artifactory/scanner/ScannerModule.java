@@ -10,6 +10,7 @@ import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.util.Predicates;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -25,6 +26,7 @@ import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_V
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_BLOCK_ON_API_FAILURE;
+import static io.snyk.sdk.util.Predicates.distinctByKey;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
@@ -122,9 +124,18 @@ public class ScannerModule {
   }
 
   private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
-    long countHighSeverities = issues.stream().filter(issue -> issue.severity == Severity.HIGH).count();
-    long countMediumSeverities = issues.stream().filter(issue -> issue.severity == Severity.MEDIUM).count();
-    long countLowSeverities = issues.stream().filter(issue -> issue.severity == Severity.LOW).count();
+    long countHighSeverities = issues.stream()
+                                     .filter(issue -> issue.severity == Severity.HIGH)
+                                     .filter(distinctByKey(issue -> issue.id))
+                                     .count();
+    long countMediumSeverities = issues.stream()
+                                       .filter(issue -> issue.severity == Severity.MEDIUM)
+                                       .filter(distinctByKey(issue -> issue.id))
+                                       .count();
+    long countLowSeverities = issues.stream()
+                                    .filter(issue -> issue.severity == Severity.LOW)
+                                    .filter(distinctByKey(issue -> issue.id))
+                                    .count();
 
     return format("%d high, %d medium, %d low", countHighSeverities, countMediumSeverities, countLowSeverities);
   }

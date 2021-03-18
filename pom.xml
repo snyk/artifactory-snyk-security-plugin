@@ -14,8 +14,8 @@
     <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <project.sourceCompatibility>1.8</project.sourceCompatibility>
-    <project.targetCompatibility>1.8</project.targetCompatibility>
+    <project.sourceCompatibility>11</project.sourceCompatibility>
+    <project.targetCompatibility>11</project.targetCompatibility>
 
     <!-- will be overridden in CD pipeline -->
     <revision>LOCAL-SNAPSHOT</revision>
@@ -24,7 +24,7 @@
      | dependency and plugin versions, please keep alphabetical.
      | each version property should be of the form "version.<identifier>".
     -->
-    <version.artifactory.api>6.2.0</version.artifactory.api>
+    <version.artifactory.api>7.12.5</version.artifactory.api>
     <version.jsr305.annotations>3.0.2</version.jsr305.annotations>
     <version.junit5>5.4.2</version.junit5>
     <version.maven.assembly.plugin>3.1.1</version.maven.assembly.plugin>

@@ -2,7 +2,7 @@ version: "3.7"
 services:
 
   artifactory:
-    image: docker.bintray.io/jfrog/artifactory-pro:6.2.0
+    image: releases-docker.jfrog.io/jfrog/artifactory-pro:7.12.5
     environment:
       - EXTRA_JAVA_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=8082,server=y,suspend=n"
     ports:

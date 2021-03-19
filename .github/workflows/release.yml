@@ -1,0 +1,44 @@
+name: Release
+on:
+  push:
+    tags:
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch sources
+        uses: actions/checkout@v2
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Configure build metadata
+        id: metadata
+        run: echo ::set-output name=tag::${GITHUB_REF/refs\/tags\//}
+
+      - name: Build plugin
+        run: |
+          ./mvnw clean verify --show-version --batch-mode --no-transfer-progress --errors -Drevision=${{ steps.metadata.outputs.tag }}
+          cd ${GITHUB_WORKSPACE}/distribution/target
+          sha256sum artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip > artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip.sha256
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          files: distribution/target/*

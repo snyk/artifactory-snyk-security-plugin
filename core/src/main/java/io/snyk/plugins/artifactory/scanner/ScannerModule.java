@@ -10,7 +10,6 @@ import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
-import io.snyk.sdk.util.Predicates;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -124,6 +123,10 @@ public class ScannerModule {
   }
 
   private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
+     long countCriticalSeverities = issues.stream()
+                                     .filter(issue -> issue.severity == Severity.CRITICAL)
+                                     .filter(distinctByKey(issue -> issue.id))
+                                     .count();
     long countHighSeverities = issues.stream()
                                      .filter(issue -> issue.severity == Severity.HIGH)
                                      .filter(distinctByKey(issue -> issue.id))
@@ -137,7 +140,7 @@ public class ScannerModule {
                                     .filter(distinctByKey(issue -> issue.id))
                                     .count();
 
-    return format("%d high, %d medium, %d low", countHighSeverities, countMediumSeverities, countLowSeverities);
+    return format("%d critical, %d high, %d medium, %d low", countCriticalSeverities, countHighSeverities, countMediumSeverities, countLowSeverities);
   }
 
   private void validateVulnerabilityIssues(TestResult testResult, RepoPath repoPath) {
@@ -148,25 +151,37 @@ public class ScannerModule {
       LOG.info("Property '{}' is true, so we allow to download artifact: {}", vulnerabilitiesForceDownloadProperty, repoPath);
       return;
     }
-
     Severity vulnerabilityThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
+//: this can be set by the customer
+    charlotte(testResult, repoPath, vulnerabilityThreshold);
+  }
+
+  public void charlotte(TestResult testResult, RepoPath repoPath, Severity vulnerabilityThreshold) {
     if (vulnerabilityThreshold == Severity.LOW) {
       if (!testResult.issues.vulnerabilities.isEmpty()) {
         throw new CancelException(format("Artifact '%s' has vulnerabilities", repoPath), 403);
       }
     } else if (vulnerabilityThreshold == Severity.MEDIUM) {
       long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
-                                                    .count();
+                                                  //  .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
+                                                  .filter(vulnerability -> vulnerability.severity.isAtLeastAsSevereAs(vulnerabilityThreshold))
+                                                  .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity medium or high", repoPath), 403);
+        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity medium or high or critical", repoPath), 403);
       }
-    } else if (vulnerabilityThreshold == Severity.HIGH) {
+    } else if (vulnerabilityThreshold == Severity.HIGH ) {
       long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
+                                                    .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
                                                     .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity high", repoPath), 403);
+        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity high or critical", repoPath), 403);
+      }
+    } else if (vulnerabilityThreshold == Severity.CRITICAL) {
+      long count = testResult.issues.vulnerabilities.stream()
+                                                    .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
+                                                    .count();
+      if (count > 0) {
+        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity critical", repoPath), 403);
       }
     }
   }
@@ -179,7 +194,7 @@ public class ScannerModule {
       LOG.info("Property '{}' is true, so we allow to download artifact: {}", licensesForceDownloadProperty, repoPath);
       return;
     }
-
+    // future flexibility to not totally break when licenses add critical
     Severity licensesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));
     if (licensesThreshold == Severity.LOW) {
       if (!testResult.issues.licenses.isEmpty()) {

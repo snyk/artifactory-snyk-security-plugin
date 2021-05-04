@@ -124,6 +124,10 @@ public class ScannerModule {
   }
 
   private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
+     long countCriticalSeverities = issues.stream()
+                                     .filter(issue -> issue.severity == Severity.CRITICAL)
+                                     .filter(distinctByKey(issue -> issue.id))
+                                     .count();
     long countHighSeverities = issues.stream()
                                      .filter(issue -> issue.severity == Severity.HIGH)
                                      .filter(distinctByKey(issue -> issue.id))
@@ -137,7 +141,7 @@ public class ScannerModule {
                                     .filter(distinctByKey(issue -> issue.id))
                                     .count();
 
-    return format("%d high, %d medium, %d low", countHighSeverities, countMediumSeverities, countLowSeverities);
+    return format("%d critical, %d high, %d medium, %d low", countCriticalSeverities, countHighSeverities, countMediumSeverities, countLowSeverities);
   }
 
   private void validateVulnerabilityIssues(TestResult testResult, RepoPath repoPath) {
@@ -148,7 +152,7 @@ public class ScannerModule {
       LOG.info("Property '{}' is true, so we allow to download artifact: {}", vulnerabilitiesForceDownloadProperty, repoPath);
       return;
     }
-
+    
     Severity vulnerabilityThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
     if (vulnerabilityThreshold == Severity.LOW) {
       if (!testResult.issues.vulnerabilities.isEmpty()) {
@@ -156,17 +160,24 @@ public class ScannerModule {
       }
     } else if (vulnerabilityThreshold == Severity.MEDIUM) {
       long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
+                                                    .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
                                                     .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity medium or high", repoPath), 403);
+        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity medium or high or critical", repoPath), 403);
       }
     } else if (vulnerabilityThreshold == Severity.HIGH) {
       long count = testResult.issues.vulnerabilities.stream()
-                                                    .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
+                                                    .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
                                                     .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity high", repoPath), 403);
+        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity high or critical", repoPath), 403);
+      }
+    } else if (vulnerabilityThreshold == Severity.CRITICAL) {
+      long count = testResult.issues.vulnerabilities.stream()
+                                                    .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
+                                                    .count();
+      if (count > 0) {
+        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity critical", repoPath), 403);
       }
     }
   }

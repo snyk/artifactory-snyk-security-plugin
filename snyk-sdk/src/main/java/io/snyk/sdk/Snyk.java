@@ -19,7 +19,6 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class Snyk {
-
   private static final String DEFAULT_BASE_URL = "https://snyk.io/api/v1/";
   private static final String DEFAULT_USER_AGENT = "snyk-sdk-java";
   private static final long DEFAULT_CONNECTION_TIMEOUT = 30_000L;
@@ -66,15 +65,16 @@ public class Snyk {
   }
 
   public SnykClient buildSync() {
+    // this is the magic that creates the actual instance of SnykClient
     return retrofit.create(SnykClient.class);
   }
 
   public static final class Config {
-    String baseUrl;
-    String token;
-    String userAgent;
-    boolean trustAllCertificates;
-    String sslCertificatePath;
+    public String baseUrl;
+    public String token;
+    public String userAgent;
+    public boolean trustAllCertificates;
+    public String sslCertificatePath;
 
     public Config(String token) {
       this(DEFAULT_BASE_URL, token);

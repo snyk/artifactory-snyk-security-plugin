@@ -29,3 +29,6 @@ jobs:
 
       - name: Run unit tests
         run: ./mvnw clean verify --show-version --batch-mode --errors --no-transfer-progress
+        env:
+          TEST_SNYK_TOKEN: ${{ secrets.TEST_SNYK_TOKEN }}
+          TEST_SNYK_ORG: ${{ secrets.TEST_SNYK_ORG }}

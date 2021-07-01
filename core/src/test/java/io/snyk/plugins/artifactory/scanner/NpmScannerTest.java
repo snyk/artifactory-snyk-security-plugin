@@ -2,7 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.sdk.Snyk;
-import io.snyk.sdk.api.v1.NewSnykClient;
+import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +29,7 @@ public class NpmScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    NewSnykClient snykClient = new NewSnykClient(config);
+    SnykClient snykClient = new SnykClient(config);
     NpmScanner scanner = new NpmScanner(configurationModule, snykClient);
 
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);

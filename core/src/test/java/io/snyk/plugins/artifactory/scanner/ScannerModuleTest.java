@@ -2,7 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.sdk.Snyk;
-import io.snyk.sdk.api.v1.NewSnykClient;
+import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
@@ -30,7 +30,7 @@ public class ScannerModuleTest {
     ScannerModule sm = new ScannerModule(
       configurationModule,
       mock(Repositories.class),
-      mock(NewSnykClient.class));
+      mock(SnykClient.class));
 
     assertTrue(
       sm.getScannerForPackageType("jar").get()
@@ -69,7 +69,7 @@ public class ScannerModuleTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    NewSnykClient snykClient = new NewSnykClient(config);
+    SnykClient snykClient = new SnykClient(config);
 
     RepoPath repoPath = mock(RepoPath.class);
 

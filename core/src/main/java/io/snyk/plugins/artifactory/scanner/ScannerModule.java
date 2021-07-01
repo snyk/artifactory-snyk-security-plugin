@@ -2,7 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
-import io.snyk.sdk.api.v1.NewSnykClient;
+import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
@@ -33,7 +33,7 @@ public class ScannerModule {
   private final NpmScanner npmScanner;
   private final PythonScanner pythonScanner;
 
-  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull NewSnykClient snykClient) {
+  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykClient snykClient) {
     this.configurationModule = requireNonNull(configurationModule);
     this.repositories = requireNonNull(repositories);
 

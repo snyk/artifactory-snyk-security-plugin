@@ -1,7 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
-import io.snyk.sdk.api.v1.NewSnykClient;
+import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
@@ -17,9 +17,9 @@ class PythonScanner implements PackageScanner {
   private static final Logger LOG = getLogger(PythonScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final NewSnykClient snykClient;
+  private final SnykClient snykClient;
 
-  PythonScanner(ConfigurationModule configurationModule, NewSnykClient snykClient) {
+  PythonScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
     this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }

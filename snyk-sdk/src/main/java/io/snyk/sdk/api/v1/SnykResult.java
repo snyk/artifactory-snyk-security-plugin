@@ -3,6 +3,7 @@ package io.snyk.sdk.api.v1;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ public class SnykResult<T> {
     }
   }
 
-  public static <ResType> SnykResult<ResType> createResult(HttpResponse<String> response, Class<ResType> resultType) throws com.fasterxml.jackson.core.JsonProcessingException {
+  public static <ResType> SnykResult<ResType> createResult(HttpResponse<String> response, Class<ResType> resultType) throws IOException {
     int status = response.statusCode();
     if (status == 200) {
       String responseBody = response.body();

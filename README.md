@@ -1,5 +1,7 @@
 # Artifactory Snyk Security Plugin
 
+See the official documentation: https://support.snyk.io/hc/en-us/articles/360004032417-Artifactory-Gatekeeper-plugin-overview
+
 ## Building Locally
 ```
 ./mvnw package

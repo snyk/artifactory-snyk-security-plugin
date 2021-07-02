@@ -31,6 +31,9 @@ jobs:
         run: echo ::set-output name=tag::${GITHUB_REF/refs\/tags\//}
 
       - name: Build plugin
+        env:
+          TEST_SNYK_TOKEN: ${{ secrets.TEST_SNYK_TOKEN }}
+          TEST_SNYK_ORG: ${{ secrets.TEST_SNYK_ORG }}
         run: |
           ./mvnw clean verify --show-version --batch-mode --no-transfer-progress --errors -Drevision=${{ steps.metadata.outputs.tag }}
           cd ${GITHUB_WORKSPACE}/distribution/target

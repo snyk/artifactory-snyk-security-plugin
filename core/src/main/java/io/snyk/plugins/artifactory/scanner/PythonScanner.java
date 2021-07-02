@@ -1,19 +1,18 @@
 package io.snyk.plugins.artifactory.scanner;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.slf4j.Logger;
-import retrofit2.Response;
+
+import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static org.slf4j.LoggerFactory.getLogger;
 
-class PythonScanner {
+class PythonScanner implements PackageScanner {
 
   private static final Logger LOG = getLogger(PythonScanner.class);
 
@@ -25,24 +24,19 @@ class PythonScanner {
     this.snykClient = snykClient;
   }
 
-  TestResult scan(FileLayoutInfo fileLayoutInfo) {
+  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
     String organization = configurationModule.getProperty(API_ORGANIZATION);
-
-    TestResult testResult = null;
     try {
-      Response<TestResult> response = snykClient.testPip(fileLayoutInfo.getModule(),
-                                                         fileLayoutInfo.getBaseRevision(),
-                                                         organization).execute();
-      if (response.isSuccessful() && response.body() != null) {
-        testResult = response.body();
-        String responseAsText = new ObjectMapper().writeValueAsString(response.body());
-        LOG.debug("testPip response: {}", responseAsText);
+      SnykResult<TestResult> result = snykClient.testPip(fileLayoutInfo.getModule(),
+        fileLayoutInfo.getBaseRevision(),
+        Optional.of(organization));
+      if (result.isSuccessful()) {
+        LOG.debug("testPip response: {}", result.responseAsText.get());
+        return result.get();
       }
-
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       LOG.error("Could not test python artifact: {}", fileLayoutInfo, ex);
     }
-
-    return testResult;
+    return Optional.empty();
   }
 }

@@ -35,11 +35,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.squareup.retrofit2</groupId>
-      <artifactId>retrofit-mock</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>io.snyk</groupId>
       <artifactId>sdk</artifactId>
       <version>${revision}</version>

@@ -1,109 +1,91 @@
 package io.snyk.sdk.api.v1;
 
-import javax.annotation.Nullable;
-
+import io.snyk.sdk.Snyk;
+import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;
-import retrofit2.Call;
-import retrofit2.http.GET;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
 
-public interface SnykClient {
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.util.Optional;
 
-  /**
-   * Get the user notification settings that will determine which emails are sent.
-   */
-  @GET("user/me/notification-settings")
-  Call<NotificationSettings> getNotificationSettings();
+public class SnykClient {
+  private Snyk.Config config;
 
-  /**
-   * Test Maven packages for issues according to their coordinates: group ID, artifact ID and version:
-   * <ul>
-   * <li><strong>groupId</strong></li>
-   * <li><strong>artifactId</strong></li>
-   * <li><strong>version</strong></li>
-   * <li>organisation (optional)</li>
-   * <li>repository (optional)</li>
-   * </ul>
-   */
-  @GET("test/maven/{groupId}/{artifactId}/{version}")
-  Call<TestResult> testMaven(@Path("groupId") String groupId,
-                             @Path("artifactId") String artifactId,
-                             @Path("version") String version,
-                             @Nullable @Query("org") String organisation,
-                             @Nullable @Query("repository") String repository);
+  private HttpClient httpClient;
 
-  /**
-   * Test NPM packages for issues according to their name and version:
-   * <ul>
-   * <li><strong>packageName</strong></li>
-   * <li><strong>version</strong></li>
-   * <li>organisation (optional)</li>
-   * </ul>
-   */
-  @GET("test/npm/{packageName}/{version}")
-  Call<TestResult> testNpm(@Path("packageName") String packageName,
-                           @Path("version") String version,
-                           @Nullable @Query("org") String organisation);
+  public SnykClient(Snyk.Config config) throws Exception {
+    this.config = config;
 
-  /**
-   * Test RubyGems packages for issues according to their name and version:
-   * <ul>
-   * <li><strong>gemName</strong></li>
-   * <li><strong>version</strong></li>
-   * <li>organisation (optional)</li>
-   * </ul>
-   */
-  @GET("test/rubygems/{gemName}/{version}")
-  Call<TestResult> testRubyGems(@Path("gemName") String gemName,
-                                @Path("version") String version,
-                                @Nullable @Query("org") String organisation);
+    var builder = HttpClient.newBuilder()
+      .version(HttpClient.Version.HTTP_1_1)
+      .connectTimeout(Duration.ofSeconds(10));
 
-  /**
-   * Test Gradle packages for issues according to their group, name and version:
-   * <ul>
-   * <li><strong>group</strong></li>
-   * <li><strong>name</strong></li>
-   * <li><strong>version</strong></li>
-   * <li>organisation (optional)</li>
-   * <li>repository (optional)</li>
-   * </ul>
-   */
-  @GET("test/gradle/{group}/{name}/{version}")
-  Call<TestResult> testGradle(@Path("group") String group,
-                              @Path("name") String name,
-                              @Path("version") String version,
-                              @Nullable @Query("org") String organisation,
-                              @Nullable @Query("repository") String repository);
+    if (config.trustAllCertificates) {
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      TrustManager[] trustManagers = SSLConfiguration.buildUnsafeTrustManager();
+      sslContext.init(null, trustManagers, new SecureRandom());
+      builder.sslContext(sslContext);
+    } else if (config.sslCertificatePath != null && !config.sslCertificatePath.isEmpty()) {
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      X509TrustManager trustManager = SSLConfiguration.buildCustomTrustManager(config.sslCertificatePath);
+      sslContext.init(null, new TrustManager[]{trustManager}, null);
+      builder.sslContext(sslContext);
+    }
 
-  /**
-   * Test SBT packages for issues according to their coordinates: group ID, artifact ID and version:
-   * <ul>
-   * <li><strong>groupId</strong></li>
-   * <li><strong>artifactId</strong></li>
-   * <li><strong>version</strong></li>
-   * <li>organisation (optional)</li>
-   * <li>repository (optional)</li>
-   * </ul>
-   */
-  @GET("test/sbt/{groupId}/{artifactId}/{version}")
-  Call<TestResult> testSbt(@Path("groupId") String groupId,
-                           @Path("artifactId") String artifactId,
-                           @Path("version") String version,
-                           @Nullable @Query("org") String organisation,
-                           @Nullable @Query("repository") String repository);
+    httpClient = builder.build();
+  }
 
-  /**
-   * Test PIP packages for issues according to their name and version:
-   * <ul>
-   * <li><strong>packageName</strong></li>
-   * <li><strong>version</strong></li>
-   * <li>organisation (optional)</li>
-   * </ul>
-   */
-  @GET("test/pip/{packageName}/{version}")
-  Call<TestResult> testPip(@Path("packageName") String packageName,
-                           @Path("version") String version,
-                           @Nullable @Query("org") String organisation);
+
+  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
+    HttpRequest request = SnykHttpRequestBuilder.create(config)
+      .withPath(String.format("user/me/notification-settings/org/%s", org))
+      .build();
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    return SnykResult.createResult(response, NotificationSettings.class);
+  }
+
+  public SnykResult<TestResult> testMaven(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
+    HttpRequest request = SnykHttpRequestBuilder.create(config)
+      .withPath(String.format("test/maven/%s/%s/%s", groupId, artifactId, version))
+      .withOptionalQueryParam("org", organisation)
+      .withOptionalQueryParam("repository", repository)
+      .build();
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    return SnykResult.createResult(response, TestResult.class);
+  }
+
+  public SnykResult<TestResult> testNpm(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+    HttpRequest request = SnykHttpRequestBuilder.create(config)
+      .withPath(String.format("test/npm/%s/%s", packageName, version))
+      .withOptionalQueryParam("org", organisation)
+      .build();
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    return SnykResult.createResult(response, TestResult.class);
+  }
+
+  public SnykResult<TestResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+    HttpRequest request = SnykHttpRequestBuilder.create(config)
+      .withPath(String.format("test/rubygems/%s/%s", gemName, version))
+      .withOptionalQueryParam("org", organisation)
+      .build();
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    return SnykResult.createResult(response, TestResult.class);
+  }
+
+  public SnykResult<TestResult> testPip(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+    HttpRequest request = SnykHttpRequestBuilder.create(config)
+      .withPath(String.format("test/pip/%s/%s", packageName, version))
+      .withOptionalQueryParam("org", organisation)
+      .build();
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    return SnykResult.createResult(response, TestResult.class);
+  }
 }

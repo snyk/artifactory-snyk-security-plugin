@@ -1,9 +1,5 @@
 package io.snyk.plugins.artifactory;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.Properties;
-
 import io.snyk.plugins.artifactory.audit.AuditModule;
 import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
@@ -11,20 +7,18 @@ import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.NotificationSettings;
 import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.artifactory.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit2.Response;
 
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_SSL_CERTIFICATE_PATH;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TRUST_ALL_CERTIFICATES;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.Properties;
+
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
 
 public class SnykPlugin {
 
@@ -44,7 +38,9 @@ public class SnykPlugin {
       validateConfiguration();
 
       LOG.info("Creating api client and modules...");
+
       final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
+
       auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
 
@@ -96,9 +92,7 @@ public class SnykPlugin {
                        .forEach(LOG::debug);
   }
 
-  @Nonnull
   private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
-    final SnykClient snykClient;
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
     boolean trustAllCertificates = false;
@@ -115,12 +109,21 @@ public class SnykPlugin {
     }
 
     String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
-    snykClient = Snyk.newBuilder(new Snyk.Config(baseUrl, token, API_USER_AGENT + pluginVersion, trustAllCertificates, sslCertificatePath)).buildSync();
 
-    // get notification settings to check whether api token is valid
-    Response<NotificationSettings> response = snykClient.getNotificationSettings().execute();
-    if (response.code() == 401) {
-      throw new SnykRuntimeException("Invalid 'snyk.api.token' provided");
+    var config = new Snyk.Config(baseUrl, token, API_USER_AGENT + pluginVersion, trustAllCertificates, sslCertificatePath);
+    final SnykClient snykClient = new SnykClient(config);
+
+    String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
+    var res = snykClient.getNotificationSettings(org);
+    if (res.isSuccessful()) {
+      LOG.info("Snyk token check successful - response status code {}", res.statusCode);
+    } else {
+      LOG.warn("Snyk token check unsuccessful - response status code {}", res.statusCode);
+      if (res.statusCode == 401) {
+        throw new SnykRuntimeException("Invalid 'snyk.api.token' provided");
+      } else {
+        throw new SnykRuntimeException("Error verifying Snyk token");
+      }
     }
 
     return snykClient;

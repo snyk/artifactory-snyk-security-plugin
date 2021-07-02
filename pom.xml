@@ -36,7 +36,8 @@
     <version.maven.resources.plugin>3.1.0</version.maven.resources.plugin>
     <version.maven.site.plugin>3.7.1</version.maven.site.plugin>
     <version.maven.surefire.plugin>3.0.0-M3</version.maven.surefire.plugin>
-    <version.retrofit2>2.9.0</version.retrofit2>
+    <jackson-annotations.version>2.12.3</jackson-annotations.version>
+    <jackson-databind.version>2.12.3</jackson-databind.version>
   </properties>
 
   <build>
@@ -117,16 +118,6 @@
         <version>${version.jsr305.annotations}</version>
       </dependency>
       <dependency>
-        <groupId>com.squareup.retrofit2</groupId>
-        <artifactId>converter-jackson</artifactId>
-        <version>${version.retrofit2}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.squareup.retrofit2</groupId>
-        <artifactId>retrofit</artifactId>
-        <version>${version.retrofit2}</version>
-      </dependency>
-      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
         <version>${version.junit5}</version>
@@ -135,6 +126,16 @@
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>${version.junit5}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson-databind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson-annotations.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

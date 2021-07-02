@@ -6,7 +6,6 @@ import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -29,18 +28,15 @@ public class SnykClient {
       .version(HttpClient.Version.HTTP_1_1)
       .connectTimeout(Duration.ofSeconds(10));
 
-    // mostly from Snyk.java
     if (config.trustAllCertificates) {
       SSLContext sslContext = SSLContext.getInstance("TLS");
       TrustManager[] trustManagers = SSLConfiguration.buildUnsafeTrustManager();
       sslContext.init(null, trustManagers, new SecureRandom());
-      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
       builder.sslContext(sslContext);
     } else if (config.sslCertificatePath != null && !config.sslCertificatePath.isEmpty()) {
       SSLContext sslContext = SSLContext.getInstance("TLS");
       X509TrustManager trustManager = SSLConfiguration.buildCustomTrustManager(config.sslCertificatePath);
       sslContext.init(null, new TrustManager[]{trustManager}, null);
-      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
       builder.sslContext(sslContext);
     }
 
@@ -48,7 +44,7 @@ public class SnykClient {
   }
 
 
-  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, com.fasterxml.jackson.core.JsonProcessingException, java.lang.InterruptedException {
+  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
       .withPath(String.format("user/me/notification-settings/org/%s", org))
       .build();
@@ -79,26 +75,6 @@ public class SnykClient {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
       .withPath(String.format("test/rubygems/%s/%s", gemName, version))
       .withOptionalQueryParam("org", organisation)
-      .build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, TestResult.class);
-  }
-
-  public SnykResult<TestResult> testGradle(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
-    HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("test/gradle/%s/%s/%s", groupId, artifactId, version))
-      .withOptionalQueryParam("org", organisation)
-      .withOptionalQueryParam("repository", repository)
-      .build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, TestResult.class);
-  }
-
-  public SnykResult<TestResult> testSbt(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
-    HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("test/sbt/%s/%s/%s", groupId, artifactId, version))
-      .withOptionalQueryParam("org", organisation)
-      .withOptionalQueryParam("repository", repository)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);

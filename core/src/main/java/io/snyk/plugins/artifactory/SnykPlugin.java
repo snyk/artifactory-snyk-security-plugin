@@ -115,10 +115,16 @@ public class SnykPlugin {
 
     String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
     var res = snykClient.getNotificationSettings(org);
-    if (res.statusCode == 401) {
-      throw new SnykRuntimeException("Invalid 'snyk.api.token' provided");
+    if (res.isSuccessful()) {
+      LOG.info("Snyk token check successful - response status code {}", res.statusCode);
+    } else {
+      LOG.warn("Snyk token check unsuccessful - response status code {}", res.statusCode);
+      if (res.statusCode == 401) {
+        throw new SnykRuntimeException("Invalid 'snyk.api.token' provided");
+      } else {
+        throw new SnykRuntimeException("Error verifying Snyk token");
+      }
     }
-    // todo - deal with other non-ok response codes?
 
     return snykClient;
   }

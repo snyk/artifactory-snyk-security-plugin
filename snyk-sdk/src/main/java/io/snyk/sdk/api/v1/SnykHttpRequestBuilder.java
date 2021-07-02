@@ -1,6 +1,7 @@
 package io.snyk.sdk.api.v1;
 
-import javax.annotation.Nonnull;
+import io.snyk.sdk.Snyk;
+
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.HashMap;
@@ -11,25 +12,15 @@ import java.util.stream.Collectors;
 
 public class SnykHttpRequestBuilder {
   HashMap<String, String> queryParams = new HashMap<>();
-  Optional<String> baseUrl = Optional.empty();
-  Optional<String> token = Optional.empty();
   Optional<String> path = Optional.empty();
+  Optional<Snyk.Config> config = Optional.empty();
 
-  private SnykHttpRequestBuilder() {
+  private SnykHttpRequestBuilder(Snyk.Config config) {
+    this.config = Optional.of(config);
   }
 
-  public static SnykHttpRequestBuilder create() {
-    return new SnykHttpRequestBuilder();
-  }
-
-  public SnykHttpRequestBuilder withToken(String token) {
-    this.token = Optional.of(token);
-    return this;
-  }
-
-  public SnykHttpRequestBuilder withBaseUrl(@Nonnull String baseUrl) {
-    this.baseUrl = Optional.of(baseUrl);
-    return this;
+  public static SnykHttpRequestBuilder create(Snyk.Config config) {
+    return new SnykHttpRequestBuilder(config);
   }
 
   public SnykHttpRequestBuilder withPath(String path) {
@@ -50,8 +41,9 @@ public class SnykHttpRequestBuilder {
   }
 
   public HttpRequest build() {
+    var definedConfig = config.orElseThrow(() -> new NoSuchElementException("config is not set"));
     String apiUrl = String.format("%s%s",
-      baseUrl.orElseThrow(() -> new NoSuchElementException("baseUrl is not set")),
+      definedConfig.baseUrl,
       path.orElse(""));
 
     String queryString = this.queryParams
@@ -68,10 +60,9 @@ public class SnykHttpRequestBuilder {
       .GET()
       .uri(URI.create(apiUrl));
 
-    if (token.isPresent()) {
-      String authHeaderValue = String.format("token %s", token.get());
-      reqBuilder.setHeader("Authorization", authHeaderValue);
-    }
+    String authHeaderValue = String.format("token %s", definedConfig.token);
+    reqBuilder.setHeader("Authorization", authHeaderValue);
+    reqBuilder.setHeader("User-Agent", definedConfig.userAgent);
 
     return reqBuilder.build();
   }

@@ -44,11 +44,11 @@ public class ScannerModule {
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
-    if (fileLayoutInfo == null) {
-      LOG.warn("Artifact '{}' will not be scanned, because the FileLayoutInfo is null", repoPath);
+    String path = repoPath.getPath();
+    if (path == null) {
+      LOG.warn("Artifact '{}' will not be scanned, because the path is null", repoPath);
     }
-
-    Optional<PackageScanner> maybeScanner = getScannerForPackageType(fileLayoutInfo.getExt());
+    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
     if (maybeScanner.isPresent()) {
       var scanner = maybeScanner.get();
       var maybeTestResult = scanner.scan(fileLayoutInfo);
@@ -74,12 +74,12 @@ public class ScannerModule {
     }
   }
 
-  protected Optional<PackageScanner> getScannerForPackageType(String extension) {
-    if ("jar".equals(extension)) {
+  protected Optional<PackageScanner> getScannerForPackageType(String path) {
+    if (path.endsWith(".jar")) {
       return Optional.of(mavenScanner);
-    } else if ("tgz".equals(extension)) {
+    } else if (path.endsWith(".tgz")) {
       return Optional.of(npmScanner);
-    } else if ("whl".equals(extension) || "tar.gz".equals(extension) || "zip".equals(extension) || "egg".equals(extension)) {
+    } else if (path.endsWith(".whl") || path.endsWith(".tar.gz") || path.endsWith(".zip") || path.endsWith(".egg")) {
       return Optional.of(pythonScanner);
     } else {
       return Optional.empty();

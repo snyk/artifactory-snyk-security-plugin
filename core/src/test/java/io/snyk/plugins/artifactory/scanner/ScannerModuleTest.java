@@ -33,27 +33,27 @@ public class ScannerModuleTest {
       mock(SnykClient.class));
 
     assertTrue(
-      sm.getScannerForPackageType("jar").get()
+      sm.getScannerForPackageType("myArtifact.jar").get()
         instanceof MavenScanner);
 
     assertTrue(
-      sm.getScannerForPackageType("tgz").get()
+      sm.getScannerForPackageType("myArtifact.tgz").get()
         instanceof NpmScanner);
 
     assertTrue(
-      sm.getScannerForPackageType("whl").get()
+      sm.getScannerForPackageType("myArtifact.whl").get()
         instanceof PythonScanner);
 
     assertTrue(
-      sm.getScannerForPackageType("tar.gz").get()
+      sm.getScannerForPackageType("myArtifact.tar.gz").get()
         instanceof PythonScanner);
 
     assertTrue(
-      sm.getScannerForPackageType("zip").get()
+      sm.getScannerForPackageType("myArtifact.zip").get()
         instanceof PythonScanner);
 
     assertTrue(
-      sm.getScannerForPackageType("egg").get()
+      sm.getScannerForPackageType("myArtifact.egg").get()
         instanceof PythonScanner);
 
     assertTrue(sm.getScannerForPackageType("unknown").isEmpty());
@@ -102,11 +102,11 @@ public class ScannerModuleTest {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("minimist");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.5");
-    when(fileLayoutInfo.getExt()).thenReturn("tgz");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.tgz");
 
     spyScanner.scanArtifact(repoPath);
 
@@ -141,11 +141,11 @@ public class ScannerModuleTest {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("lodash");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("4.17.15");
-    when(fileLayoutInfo.getExt()).thenReturn("tgz");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.tgz");
 
 
     Assertions.assertThrows(CancelException.class, () -> {
@@ -184,11 +184,11 @@ public class ScannerModuleTest {
     when(fileLayoutInfo.getOrganization()).thenReturn("org.apache.commons"); // corresponds to groupId
     when(fileLayoutInfo.getModule()).thenReturn("commons-lang3"); // corresponds to artifactId
     when(fileLayoutInfo.getBaseRevision()).thenReturn("3.12.0");
-    when(fileLayoutInfo.getExt()).thenReturn("jar");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
     spyScanner.scanArtifact(repoPath);
 
@@ -224,11 +224,11 @@ public class ScannerModuleTest {
     when(fileLayoutInfo.getOrganization()).thenReturn("com.fasterxml.jackson.core"); // corresponds to groupId
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind"); // corresponds to artifactId
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
-    when(fileLayoutInfo.getExt()).thenReturn("jar");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
     Assertions.assertThrows(CancelException.class, () -> {
       spyScanner.scanArtifact(repoPath);
@@ -265,11 +265,11 @@ public class ScannerModuleTest {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("numpy");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.21.0");
-    when(fileLayoutInfo.getExt()).thenReturn("whl");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
     spyScanner.scanArtifact(repoPath);
 
@@ -304,11 +304,11 @@ public class ScannerModuleTest {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("urllib3");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
-    when(fileLayoutInfo.getExt()).thenReturn("whl");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
 
     Assertions.assertThrows(CancelException.class, () -> {

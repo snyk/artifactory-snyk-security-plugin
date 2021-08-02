@@ -24,13 +24,14 @@ class MavenScanner implements PackageScanner {
   }
 
   public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
-    String organization = configurationModule.getProperty(API_ORGANIZATION);
     try {
-      var result = snykClient.testMaven(fileLayoutInfo.getOrganization(),
-        fileLayoutInfo.getModule(),
-        fileLayoutInfo.getBaseRevision(),
-        Optional.of(organization),
-        Optional.empty());
+      var result = snykClient.testMaven(
+        Optional.ofNullable(fileLayoutInfo.getOrganization()).orElseThrow(() -> new RuntimeException("Group ID not provided.")),
+        Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Artifact ID not provided.")),
+        Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Artifact Version not provided.")),
+        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION)),
+        Optional.empty()
+      );
       if (result.isSuccessful()) {
         LOG.debug("testMaven response: {}", result.responseAsText.get());
         return result.get();

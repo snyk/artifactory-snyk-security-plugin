@@ -25,11 +25,12 @@ class PythonScanner implements PackageScanner {
   }
 
   public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
-    String organization = configurationModule.getProperty(API_ORGANIZATION);
     try {
-      SnykResult<TestResult> result = snykClient.testPip(fileLayoutInfo.getModule(),
-        fileLayoutInfo.getBaseRevision(),
-        Optional.of(organization));
+      SnykResult<TestResult> result = snykClient.testPip(
+        Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Module name not provided.")),
+        Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Module version not provided.")),
+        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
+      );
       if (result.isSuccessful()) {
         LOG.debug("testPip response: {}", result.responseAsText.get());
         return result.get();

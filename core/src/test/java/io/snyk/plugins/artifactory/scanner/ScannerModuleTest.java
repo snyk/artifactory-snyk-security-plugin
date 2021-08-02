@@ -23,38 +23,57 @@ import static org.mockito.Mockito.*;
 public class ScannerModuleTest {
 
   @Test
-  void testGetScannerForPackageType() {
+  void getScannerForPackageType_shouldReturnMavenScanner() {
     Properties properties = new Properties();
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
     ScannerModule sm = new ScannerModule(
       configurationModule,
       mock(Repositories.class),
-      mock(SnykClient.class));
+      mock(SnykClient.class)
+    );
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.jar").get()
-        instanceof MavenScanner);
+    assertTrue(sm.getScannerForPackageType("maven").get() instanceof MavenScanner);
+  }
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.tgz").get()
-        instanceof NpmScanner);
+  @Test
+  void getScannerForPackageType_shouldReturnNPMScanner() {
+    Properties properties = new Properties();
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.whl").get()
-        instanceof PythonScanner);
+    ScannerModule sm = new ScannerModule(
+      configurationModule,
+      mock(Repositories.class),
+      mock(SnykClient.class)
+    );
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.tar.gz").get()
-        instanceof PythonScanner);
+    assertTrue(sm.getScannerForPackageType("npm").get() instanceof NpmScanner);
+  }
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.zip").get()
-        instanceof PythonScanner);
+  @Test
+  void getScannerForPackageType_shouldReturnPythonScanner() {
+    Properties properties = new Properties();
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.egg").get()
-        instanceof PythonScanner);
+    ScannerModule sm = new ScannerModule(
+      configurationModule,
+      mock(Repositories.class),
+      mock(SnykClient.class)
+    );
+
+    assertTrue(sm.getScannerForPackageType("pypi").get() instanceof PythonScanner);
+  }
+
+  @Test
+  void getScannerForPackageType_shouldHaveNoScannerForUnknownPackageType() {
+    Properties properties = new Properties();
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
+
+    ScannerModule sm = new ScannerModule(
+      configurationModule,
+      mock(Repositories.class),
+      mock(SnykClient.class)
+    );
 
     assertTrue(sm.getScannerForPackageType("unknown").isEmpty());
   }

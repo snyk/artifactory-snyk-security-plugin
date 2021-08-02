@@ -10,6 +10,7 @@ import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
+import org.artifactory.repo.RepositoryConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,9 @@ public class ScannerModule {
     if (path == null) {
       LOG.warn("Artifact '{}' will not be scanned, because the path is null", repoPath);
     }
-    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
+    RepositoryConfiguration repoConfig = repositories.getRepositoryConfiguration(repoPath.getRepoKey());
+    String packageType = repoConfig.getPackageType();
+    Optional<PackageScanner> maybeScanner = getScannerForPackageType(packageType);
     if (maybeScanner.isPresent()) {
       var scanner = maybeScanner.get();
       var maybeTestResult = scanner.scan(fileLayoutInfo);
@@ -72,20 +75,25 @@ public class ScannerModule {
         }
       }
     } else {
-      LOG.warn("Artifact '{}' will not be scanned, because the extension `{}` is not supported", repoPath, fileLayoutInfo.getExt());
+      LOG.warn("Artifact '{}' will not be scanned, because the package type `{}` is not supported", repoPath, packageType);
       LOG.warn("Full FileLayoutInfo: {}", fileLayoutInfo.toString());
     }
   }
 
-  protected Optional<PackageScanner> getScannerForPackageType(String path) {
-    if (path.endsWith(".jar")) {
-      return Optional.of(mavenScanner);
-    } else if (path.endsWith(".tgz")) {
-      return Optional.of(npmScanner);
-    } else if (path.endsWith(".whl") || path.endsWith(".tar.gz") || path.endsWith(".zip") || path.endsWith(".egg")) {
-      return Optional.of(pythonScanner);
-    } else {
-      return Optional.empty();
+  protected Optional<PackageScanner> getScannerForPackageType(String packageType) {
+    switch (packageType) {
+      case "maven": {
+        return Optional.of(mavenScanner);
+      }
+      case "npm": {
+        return Optional.of(npmScanner);
+      }
+      case "pypi": {
+        return Optional.of(pythonScanner);
+      }
+      default: {
+        return Optional.empty();
+      }
     }
   }
 

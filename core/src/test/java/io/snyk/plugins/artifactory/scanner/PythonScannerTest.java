@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 public class PythonScannerTest {
   @Test
-  void canTestPipPackage() throws Exception {
+  void shouldTestPipPackage() throws Exception {
     Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
@@ -41,8 +41,51 @@ public class PythonScannerTest {
     TestResult actualResult = result.get();
     assertFalse(actualResult.success);
     assertEquals(1, actualResult.dependencyCount);
-    assertEquals(2, actualResult.issues.vulnerabilities.size());
+    assertEquals(3, actualResult.issues.vulnerabilities.size());
     assertEquals("pip", actualResult.packageManager);
     assertEquals(org, actualResult.organisation.id);
   }
+
+  @Test
+  void shouldNotTestPipPackage_WhenModuleNameNotProvided() throws Exception {
+    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    Properties properties = new Properties();
+    @Nonnull String org = System.getenv("TEST_SNYK_ORG");
+    Assertions.assertNotNull(org, "must not be null for test");
+
+    properties.put(API_ORGANIZATION.propertyKey(), org);
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
+
+    SnykClient snykClient = new SnykClient(config);
+    PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
+
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn(null);
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
+
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Assertions.assertFalse(result.isPresent());
+  }
+
+  @Test
+  void shouldNotTestPipPackage_WhenModuleVersionNotProvided() throws Exception {
+    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    Properties properties = new Properties();
+    @Nonnull String org = System.getenv("TEST_SNYK_ORG");
+    Assertions.assertNotNull(org, "must not be null for test");
+
+    properties.put(API_ORGANIZATION.propertyKey(), org);
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
+
+    SnykClient snykClient = new SnykClient(config);
+    PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
+
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn("urllib3");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
+
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Assertions.assertFalse(result.isPresent());
+  }
+
 }

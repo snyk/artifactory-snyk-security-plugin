@@ -44,6 +44,9 @@ public class ScannerModule {
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
+    if (!fileLayoutInfo.isValid()) {
+      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
+    }
     String path = repoPath.getPath();
     if (path == null) {
       LOG.warn("Artifact '{}' will not be scanned, because the path is null", repoPath);

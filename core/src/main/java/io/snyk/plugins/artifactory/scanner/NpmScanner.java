@@ -24,11 +24,12 @@ class NpmScanner implements PackageScanner {
   }
 
   public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
-    String organization = configurationModule.getProperty(API_ORGANIZATION);
     try {
-      var result = snykClient.testNpm(fileLayoutInfo.getModule(),
-        fileLayoutInfo.getBaseRevision(),
-        Optional.of(organization));
+      var result = snykClient.testNpm(
+        Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Package name not provided.")),
+        Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Package version not provided.")),
+        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
+      );
       if (result.isSuccessful()) {
         LOG.debug("testNpm response: {}", result.responseAsText.get());
         return result.get();

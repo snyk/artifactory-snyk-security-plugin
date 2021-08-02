@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 public class NpmScannerTest {
   @Test
-  void canTestNpmPackage() throws Exception {
+  void shouldTestNpmPackage() throws Exception {
     Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
@@ -44,5 +44,47 @@ public class NpmScannerTest {
     assertEquals(5, actualResult.issues.vulnerabilities.size());
     assertEquals("npm", actualResult.packageManager);
     assertEquals(org, actualResult.organisation.id);
+  }
+
+  @Test
+  void shouldNotTestNpmPackage_WhenPackageNameNotProvided() throws Exception {
+    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    Properties properties = new Properties();
+    @Nonnull String org = System.getenv("TEST_SNYK_ORG");
+    Assertions.assertNotNull(org, "must not be null for test");
+
+    properties.put(API_ORGANIZATION.propertyKey(), org);
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
+
+    SnykClient snykClient = new SnykClient(config);
+    NpmScanner scanner = new NpmScanner(configurationModule, snykClient);
+
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn(null);
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("4.17.15");
+
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Assertions.assertFalse(result.isPresent());
+  }
+
+  @Test
+  void shouldNotTestNpmPackage_WhenPackageVersionNotProvided() throws Exception {
+    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    Properties properties = new Properties();
+    @Nonnull String org = System.getenv("TEST_SNYK_ORG");
+    Assertions.assertNotNull(org, "must not be null for test");
+
+    properties.put(API_ORGANIZATION.propertyKey(), org);
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
+
+    SnykClient snykClient = new SnykClient(config);
+    NpmScanner scanner = new NpmScanner(configurationModule, snykClient);
+
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn("lodash");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
+
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Assertions.assertFalse(result.isPresent());
   }
 }

@@ -44,34 +44,38 @@ public class ScannerModule {
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
+
     String path = repoPath.getPath();
     if (path == null) {
       LOG.warn("Artifact '{}' will not be scanned, because the path is null", repoPath);
+      return;
     }
-    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
-    if (maybeScanner.isPresent()) {
-      var scanner = maybeScanner.get();
-      var maybeTestResult = scanner.scan(fileLayoutInfo, repoPath);
 
-      if (maybeTestResult.isPresent()) {
-        TestResult testResult = maybeTestResult.get();
-        updateProperties(repoPath, testResult);
-        validateVulnerabilityIssues(testResult, repoPath);
-        validateLicenseIssues(testResult, repoPath);
-      } else {
-        final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
-        final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-        if ("true".equals(blockOnApiFailure)) {
-          throw new CancelException(format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath), 500);
-        } else {
-          LOG.warn("Property '{}' is false, so we allow to download the artifact '{}'", blockOnApiFailurePropertyKey, repoPath);
-          return;
-        }
-      }
-    } else {
+    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
+    if (maybeScanner.isEmpty()) {
       LOG.warn("Artifact '{}' will not be scanned, because the extension `{}` is not supported", repoPath, fileLayoutInfo.getExt());
-      LOG.warn("Full FileLayoutInfo: {}", fileLayoutInfo.toString());
+      LOG.warn("Full FileLayoutInfo: {}", fileLayoutInfo);
+      return;
     }
+
+    var scanner = maybeScanner.get();
+    var maybeTestResult = scanner.scan(fileLayoutInfo, repoPath);
+    if (maybeTestResult.isEmpty()) {
+      final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
+      final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
+      String message = format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath);
+      if ("true".equals(blockOnApiFailure)) {
+        throw new CancelException(message, 500);
+      }
+      LOG.warn(message);
+      LOG.warn("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
+      return;
+    }
+
+    TestResult testResult = maybeTestResult.get();
+    updateProperties(repoPath, testResult);
+    validateVulnerabilityIssues(testResult, repoPath);
+    validateLicenseIssues(testResult, repoPath);
   }
 
   protected Optional<PackageScanner> getScannerForPackageType(String path) {

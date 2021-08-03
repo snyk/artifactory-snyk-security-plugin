@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
@@ -59,11 +60,12 @@ class PythonScanner implements PackageScanner {
     if (!fileLayoutInfo.isValid()) {
       LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
     }
-    try {
-      ModuleURLDetails details = getModuleDetailsFromFileLayoutInfo(fileLayoutInfo)
-        .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
-          .orElseThrow(() -> new RuntimeException("Module details not provided.")));
 
+    ModuleURLDetails details = getModuleDetailsFromFileLayoutInfo(fileLayoutInfo)
+      .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
+        .orElseThrow(() -> new CannotScanException("Module details not provided.")));
+
+    try {
       SnykResult<TestResult> result = snykClient.testPip(
         details.name,
         details.version,

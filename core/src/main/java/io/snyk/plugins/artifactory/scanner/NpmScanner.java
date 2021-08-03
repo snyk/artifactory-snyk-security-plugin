@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
@@ -43,10 +44,10 @@ class NpmScanner implements PackageScanner {
   }
 
   public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
-    try {
-      PackageURLDetails details = getPackageDetailsFromUrl(repoPath.toString())
-        .orElseThrow(() -> new RuntimeException("Package details not provided."));
+    PackageURLDetails details = getPackageDetailsFromUrl(repoPath.toString())
+      .orElseThrow(() -> new CannotScanException("Package details not provided."));
 
+    try {
       var result = snykClient.testNpm(
         details.name,
         details.version,

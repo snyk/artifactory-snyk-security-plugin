@@ -2,6 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
@@ -47,15 +48,12 @@ public class ScannerModule {
 
     String path = repoPath.getPath();
     if (path == null) {
-      LOG.warn("Artifact '{}' will not be scanned, because the path is null", repoPath);
-      return;
+      throw new CannotScanException("Artifact path is not available");
     }
 
     Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
     if (maybeScanner.isEmpty()) {
-      LOG.warn("Artifact '{}' will not be scanned, because the extension `{}` is not supported", repoPath, fileLayoutInfo.getExt());
-      LOG.warn("Full FileLayoutInfo: {}", fileLayoutInfo);
-      return;
+      throw new CannotScanException("Artifact not supported.");
     }
 
     var scanner = maybeScanner.get();
@@ -69,7 +67,7 @@ public class ScannerModule {
       }
       LOG.warn(message);
       LOG.warn("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
-      return;
+      throw new CannotScanException("Snyk API request failed.");
     }
 
     TestResult testResult = maybeTestResult.get();

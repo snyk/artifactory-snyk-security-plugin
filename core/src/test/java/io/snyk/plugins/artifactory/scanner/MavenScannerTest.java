@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
@@ -14,8 +15,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,8 +71,7 @@ public class MavenScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    assertFalse(result.isPresent());
+    assertThrows(CannotScanException.class, () -> scanner.scan(fileLayoutInfo, repoPath));
   }
 
   @Test
@@ -94,8 +93,7 @@ public class MavenScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn(null);
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    assertFalse(result.isPresent());
+    assertThrows(CannotScanException.class, () -> scanner.scan(fileLayoutInfo, repoPath));
   }
 
   @Test
@@ -117,7 +115,6 @@ public class MavenScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind");
     when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    assertFalse(result.isPresent());
+    assertThrows(CannotScanException.class, () -> scanner.scan(fileLayoutInfo, repoPath));
   }
 }

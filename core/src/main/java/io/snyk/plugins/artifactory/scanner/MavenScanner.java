@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
@@ -32,10 +33,15 @@ class MavenScanner implements PackageScanner {
     if (!fileLayoutInfo.isValid()) {
       LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
     }
+
+    String groupID = Optional.ofNullable(fileLayoutInfo.getOrganization())
+      .orElseThrow(() -> new CannotScanException("Group ID not provided."));
+    String artifactID = Optional.ofNullable(fileLayoutInfo.getModule())
+      .orElseThrow(() -> new CannotScanException("Artifact ID not provided."));
+    String artifactVersion = Optional.ofNullable(fileLayoutInfo.getBaseRevision())
+      .orElseThrow(() -> new CannotScanException("Artifact Version not provided."));
+
     try {
-      String groupID = Optional.ofNullable(fileLayoutInfo.getOrganization()).orElseThrow(() -> new RuntimeException("Group ID not provided."));
-      String artifactID = Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Artifact ID not provided."));
-      String artifactVersion = Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Artifact Version not provided."));
       var result = snykClient.testMaven(
         groupID,
         artifactID,

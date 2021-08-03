@@ -7,6 +7,7 @@ import java.util.Properties;
 import io.snyk.plugins.artifactory.audit.AuditModule;
 import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.Snyk;
@@ -79,7 +80,11 @@ public class SnykPlugin {
    */
   public void handleBeforeDownloadEvent(RepoPath repoPath) {
     LOG.debug("Handle 'beforeDownload' event for: {}", repoPath);
-    scannerModule.scanArtifact(repoPath);
+    try {
+      scannerModule.scanArtifact(repoPath);
+    } catch (CannotScanException e) {
+      LOG.warn("Artifact cannot be scanned {}. {}", repoPath, e.getMessage());
+    }
   }
 
   private void validateConfiguration() {

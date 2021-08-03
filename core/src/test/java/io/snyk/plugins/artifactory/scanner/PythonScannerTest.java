@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
@@ -66,8 +67,7 @@ public class PythonScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn(null);
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    Assertions.assertFalse(result.isPresent());
+    assertThrows(CannotScanException.class, () -> scanner.scan(fileLayoutInfo, repoPath));
   }
 
   @Test
@@ -88,8 +88,7 @@ public class PythonScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn("urllib3");
     when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    Assertions.assertFalse(result.isPresent());
+    assertThrows(CannotScanException.class, () -> scanner.scan(fileLayoutInfo, repoPath));
   }
 
   @Test

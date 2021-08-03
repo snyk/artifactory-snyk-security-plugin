@@ -44,21 +44,13 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
+    PackageScanner scanner = Optional.ofNullable(repoPath.getPath())
+      .flatMap(this::getScannerForPackageType)
+      .orElseThrow(() -> new CannotScanException("Artifact not supported."));
+
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
 
-    String path = repoPath.getPath();
-    if (path == null) {
-      throw new CannotScanException("Artifact path is not available");
-    }
-
-    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
-    if (maybeScanner.isEmpty()) {
-      throw new CannotScanException("Artifact not supported.");
-    }
-
-    var scanner = maybeScanner.get();
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
-
     updateProperties(repoPath, testResult);
     validateVulnerabilityIssues(testResult, repoPath);
     validateLicenseIssues(testResult, repoPath);

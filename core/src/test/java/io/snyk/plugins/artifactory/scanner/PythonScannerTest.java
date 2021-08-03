@@ -46,6 +46,7 @@ public class PythonScannerTest {
     assertEquals(3, actualResult.issues.vulnerabilities.size());
     assertEquals("pip", actualResult.packageManager);
     assertEquals(org, actualResult.organisation.id);
+    assertEquals("https://snyk.io/vuln/pip:urllib3@1.25.7", actualResult.packageDetailsURL);
   }
 
   @Test

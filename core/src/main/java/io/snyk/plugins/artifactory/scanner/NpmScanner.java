@@ -26,6 +26,10 @@ class NpmScanner implements PackageScanner {
     this.snykClient = snykClient;
   }
 
+  private String getPackageDetailsURL(String packageName, String packageVersion) {
+    return "https://snyk.io/vuln/" + "npm:" + packageName + "@" + packageVersion;
+  }
+
   public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     try {
       Pattern packageRepoPathPattern = Pattern.compile("^(?:.*:)?(?<packageName>.*)\\/-\\/.*-(?<packageVersion>\\d+\\.\\d+\\.\\d+.*)\\.tgz$");
@@ -34,14 +38,22 @@ class NpmScanner implements PackageScanner {
         LOG.error("Unexpected artifact filename. Could not test npm artifact: {}", repoPath.toString());
         return Optional.empty();
       }
+      String packageName = Optional.ofNullable(packageRepoPathMatcher.group("packageName"))
+        .orElseThrow(() -> new RuntimeException("Package name not provided."));
+      String packageVersion = Optional.ofNullable(packageRepoPathMatcher.group("packageVersion"))
+        .orElseThrow(() -> new RuntimeException("Package version not provided."));
       var result = snykClient.testNpm(
-        Optional.ofNullable(packageRepoPathMatcher.group("packageName")).orElseThrow(() -> new RuntimeException("Package name not provided.")),
-        Optional.ofNullable(packageRepoPathMatcher.group("packageVersion")).orElseThrow(() -> new RuntimeException("Package version not provided.")),
+        packageName,
+        packageVersion,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
       );
       if (result.isSuccessful()) {
         LOG.debug("testNpm response: {}", result.responseAsText.get());
-        return result.get();
+        var testResult = result.get();
+        testResult.ifPresent(testResultSnykResult -> {
+          testResultSnykResult.packageDetailsURL = getPackageDetailsURL(packageName, packageVersion);
+        });
+        return testResult;
       }
     } catch (Exception ex) {
       LOG.error("Could not test npm artifact: {}", fileLayoutInfo, ex);

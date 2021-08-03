@@ -47,6 +47,9 @@ public class MavenScannerTest {
     assertEquals(47, actualResult.issues.vulnerabilities.size());
     assertEquals("maven", actualResult.packageManager);
     assertEquals(org, actualResult.organisation.id);
+    assertEquals("https://snyk.io/vuln/maven:com.fasterxml.jackson.core%3Ajackson-databind@2.9.8",
+      actualResult.packageDetailsURL
+    );
   }
 
   @Test

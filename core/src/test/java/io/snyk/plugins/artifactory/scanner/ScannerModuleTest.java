@@ -115,7 +115,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -157,7 +156,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -197,7 +195,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -239,7 +236,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -278,7 +274,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -320,7 +315,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 

@@ -55,7 +55,7 @@ public class ScannerModule {
 
       if (maybeTestResult.isPresent()) {
         TestResult testResult = maybeTestResult.get();
-        updateProperties(repoPath, fileLayoutInfo, testResult);
+        updateProperties(repoPath, testResult);
         validateVulnerabilityIssues(testResult, repoPath);
         validateLicenseIssues(testResult, repoPath);
       } else {
@@ -86,27 +86,11 @@ public class ScannerModule {
     }
   }
 
-  protected void updateProperties(RepoPath repoPath, FileLayoutInfo fileLayoutInfo, TestResult testResult) {
+  protected void updateProperties(RepoPath repoPath, TestResult testResult) {
     String issueVulnerabilitiesProperty = repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey());
     if (issueVulnerabilitiesProperty != null && !issueVulnerabilitiesProperty.isEmpty()) {
       LOG.debug("Skip updating properties for already scanned artifact: {}", repoPath);
       return;
-    }
-
-    StringBuilder snykIssueUrl = new StringBuilder("https://snyk.io/vuln/");
-    if ("maven".equals(testResult.packageManager)) {
-      snykIssueUrl.append("maven:")
-        .append(fileLayoutInfo.getOrganization()).append("%3A")
-        .append(fileLayoutInfo.getModule()).append("@")
-        .append(fileLayoutInfo.getBaseRevision());
-    } else if ("npm".equals(testResult.packageManager)) {
-      snykIssueUrl.append("npm:")
-        .append(fileLayoutInfo.getModule()).append("@")
-        .append(fileLayoutInfo.getBaseRevision());
-    } else if ("pip".equals(testResult.packageManager)) {
-      snykIssueUrl.append("pip:")
-        .append(fileLayoutInfo.getModule()).append("@")
-        .append(fileLayoutInfo.getBaseRevision());
     }
 
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
@@ -115,7 +99,7 @@ public class ScannerModule {
     repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
     repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey(), "false");
     repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
-    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), snykIssueUrl.toString());
+    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
   }
 
   private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {

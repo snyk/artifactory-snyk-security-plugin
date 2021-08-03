@@ -24,21 +24,32 @@ class MavenScanner implements PackageScanner {
     this.snykClient = snykClient;
   }
 
+  private String getPackageDetailsURL(String groupID, String artifactID, String artifactVersion) {
+    return "https://snyk.io/vuln/" + "maven:" + groupID + "%3A" + artifactID + "@" + artifactVersion;
+  }
+
   public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     if (!fileLayoutInfo.isValid()) {
       LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
     }
     try {
+      String groupID = Optional.ofNullable(fileLayoutInfo.getOrganization()).orElseThrow(() -> new RuntimeException("Group ID not provided."));
+      String artifactID = Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Artifact ID not provided."));
+      String artifactVersion = Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Artifact Version not provided."));
       var result = snykClient.testMaven(
-        Optional.ofNullable(fileLayoutInfo.getOrganization()).orElseThrow(() -> new RuntimeException("Group ID not provided.")),
-        Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Artifact ID not provided.")),
-        Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Artifact Version not provided.")),
+        groupID,
+        artifactID,
+        artifactVersion,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION)),
         Optional.empty()
       );
       if (result.isSuccessful()) {
         LOG.debug("testMaven response: {}", result.responseAsText.get());
-        return result.get();
+        var testResult = result.get();
+        testResult.ifPresent(testResultSnykResult -> {
+          testResultSnykResult.packageDetailsURL = getPackageDetailsURL(groupID, artifactID, artifactVersion);
+        });
+        return testResult;
       }
     } catch (Exception ex) {
       LOG.error("Could not test maven artifact: {}", fileLayoutInfo, ex);

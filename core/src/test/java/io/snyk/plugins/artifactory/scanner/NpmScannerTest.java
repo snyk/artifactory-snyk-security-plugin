@@ -45,6 +45,7 @@ public class NpmScannerTest {
     assertEquals(5, actualResult.issues.vulnerabilities.size());
     assertEquals("npm", actualResult.packageManager);
     assertEquals(org, actualResult.organisation.id);
+    assertEquals("https://snyk.io/vuln/npm:lodash@4.17.15", actualResult.packageDetailsURL);
   }
 
   // TODO: test a case where repoPath is not matching the regex

@@ -9,12 +9,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Optional;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class SnykClient {
   private Snyk.Config config;
@@ -46,7 +49,10 @@ public class SnykClient {
 
   public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("user/me/notification-settings/org/%s", org))
+      .withPath(String.format(
+        "user/me/notification-settings/org/%s",
+        URLEncoder.encode(org, UTF_8)
+      ))
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, NotificationSettings.class);
@@ -54,7 +60,12 @@ public class SnykClient {
 
   public SnykResult<TestResult> testMaven(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("test/maven/%s/%s/%s", groupId, artifactId, version))
+      .withPath(String.format(
+        "test/maven/%s/%s/%s",
+        URLEncoder.encode(groupId, UTF_8),
+        URLEncoder.encode(artifactId, UTF_8),
+        URLEncoder.encode(version, UTF_8)
+      ))
       .withOptionalQueryParam("org", organisation)
       .withOptionalQueryParam("repository", repository)
       .build();
@@ -64,7 +75,11 @@ public class SnykClient {
 
   public SnykResult<TestResult> testNpm(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("test/npm/%s/%s", packageName, version))
+      .withPath(String.format(
+        "test/npm/%s/%s",
+        URLEncoder.encode(packageName, UTF_8),
+        URLEncoder.encode(version, UTF_8)
+      ))
       .withOptionalQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -73,7 +88,11 @@ public class SnykClient {
 
   public SnykResult<TestResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("test/rubygems/%s/%s", gemName, version))
+      .withPath(String.format(
+        "test/rubygems/%s/%s",
+        URLEncoder.encode(gemName, UTF_8),
+        URLEncoder.encode(version, UTF_8)
+      ))
       .withOptionalQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -82,7 +101,11 @@ public class SnykClient {
 
   public SnykResult<TestResult> testPip(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format("test/pip/%s/%s", packageName, version))
+      .withPath(String.format(
+        "test/pip/%s/%s",
+        URLEncoder.encode(packageName, UTF_8),
+        URLEncoder.encode(version, UTF_8)
+      ))
       .withOptionalQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

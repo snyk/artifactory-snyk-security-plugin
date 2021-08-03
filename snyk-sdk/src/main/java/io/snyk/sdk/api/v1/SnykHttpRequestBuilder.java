@@ -3,11 +3,14 @@ package io.snyk.sdk.api.v1;
 import io.snyk.sdk.Snyk;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class SnykHttpRequestBuilder {
@@ -34,9 +37,7 @@ public class SnykHttpRequestBuilder {
   }
 
   public SnykHttpRequestBuilder withOptionalQueryParam(String key, Optional<String> value) {
-    if (value.isPresent()) {
-      this.queryParams.put(key, value.get());
-    }
+    value.ifPresent(v -> this.queryParams.put(key, v));
     return this;
   }
 
@@ -49,7 +50,10 @@ public class SnykHttpRequestBuilder {
     String queryString = this.queryParams
       .entrySet()
       .stream()
-      .map((entry) -> String.format("%s=%s", entry.getKey(), entry.getValue()))
+      .map((entry) -> String.format(
+        "%s=%s",
+        URLEncoder.encode(entry.getKey(), UTF_8),
+        URLEncoder.encode(entry.getValue(), UTF_8)))
       .collect(Collectors.joining("&"));
 
     if (!queryString.isBlank()) {

@@ -14,8 +14,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +38,7 @@ public class PythonScannerTest {
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
 
     Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    Assertions.assertTrue(result.isPresent());
+    assertTrue(result.isPresent());
     TestResult actualResult = result.get();
     assertFalse(actualResult.success);
     assertEquals(1, actualResult.dependencyCount);
@@ -91,6 +90,61 @@ public class PythonScannerTest {
 
     Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     Assertions.assertFalse(result.isPresent());
+  }
+
+  @Test
+  void getModuleDetailsFromUrl_shouldExtractDetailsFromWheelURL() {
+    var result = PythonScanner.getModuleDetailsFromUrl(
+      "jahed-pypi-remote-cache:73/d1/8891d9f1813257b2ea06261cfb23abbd660fa344d7067a1283fb9195d9cd/pandas-1.3.1-cp39-cp39-macosx_10_9_x86_64.whl"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("pandas", details.name);
+    assertEquals("1.3.1", details.version);
+  }
+
+  @Test
+  void getModuleDetailsFromUrl_shouldExtractDetailsFromWheelURL_WithCustomPostFix() {
+    var result = PythonScanner.getModuleDetailsFromUrl(
+      "jahed-pypi-remote-cache:f9/1a/312d3cc9d29ac72a53d2a85144f5dce1e97b4ad513008394cfed5e27ffa2/ws3-0.0.1.post3-py3-none-any.whl"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("ws3", details.name);
+    assertEquals("0.0.1.post3", details.version);
+  }
+
+  @Test
+  void getModuleDetailsFromUrl_shouldExtractDetailsFromEggURL() {
+    var result = PythonScanner.getModuleDetailsFromUrl(
+      "jahed-pypi-remote-cache:73/d1/8891d9f1813257b2ea06261cfb23abbd660fa344d7067a1283fb9195d9cd/pandas-1.3.1-cp39-cp39-macosx_10_9_x86_64.egg"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("pandas", details.name);
+    assertEquals("1.3.1", details.version);
+  }
+
+  @Test
+  void getModuleDetailsFromUrl_shouldExtractDetailsFromWheelTarGzURL() {
+    var result = PythonScanner.getModuleDetailsFromUrl(
+      "jahed-pypi-remote-cache:8c/15/3298c4ee5d187a462883a7f80d7621a05e8b880a8234729e733769a3476f/QSTK-0.2.8.tar.gz"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("QSTK", details.name);
+    assertEquals("0.2.8", details.version);
+  }
+
+  @Test
+  void getModuleDetailsFromUrl_shouldExtractDetailsFromZipURL() {
+    var result = PythonScanner.getModuleDetailsFromUrl(
+      "jahed-pypi-remote-cache:8c/15/3298c4ee5d187a462883a7f80d7621a05e8b880a8234729e733769a3476f/QSTK-0.2.8.zip"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("QSTK", details.name);
+    assertEquals("0.2.8", details.version);
   }
 
 }

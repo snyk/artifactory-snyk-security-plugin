@@ -5,6 +5,7 @@ import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -24,7 +25,10 @@ class PythonScanner implements PackageScanner {
     this.snykClient = snykClient;
   }
 
-  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
+  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+    if (!fileLayoutInfo.isValid()) {
+      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
+    }
     try {
       SnykResult<TestResult> result = snykClient.testPip(
         Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Module name not provided.")),

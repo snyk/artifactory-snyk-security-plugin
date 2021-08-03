@@ -4,6 +4,7 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -23,7 +24,10 @@ class MavenScanner implements PackageScanner {
     this.snykClient = snykClient;
   }
 
-  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
+  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+    if (!fileLayoutInfo.isValid()) {
+      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
+    }
     try {
       var result = snykClient.testMaven(
         Optional.ofNullable(fileLayoutInfo.getOrganization()).orElseThrow(() -> new RuntimeException("Group ID not provided.")),

@@ -5,6 +5,7 @@ import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,11 +33,12 @@ public class PythonScannerTest {
     SnykClient snykClient = new SnykClient(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("urllib3");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     Assertions.assertTrue(result.isPresent());
     TestResult actualResult = result.get();
     assertFalse(actualResult.success);
@@ -59,11 +61,12 @@ public class PythonScannerTest {
     SnykClient snykClient = new SnykClient(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn(null);
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     Assertions.assertFalse(result.isPresent());
   }
 
@@ -80,11 +83,12 @@ public class PythonScannerTest {
     SnykClient snykClient = new SnykClient(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("urllib3");
     when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     Assertions.assertFalse(result.isPresent());
   }
 

@@ -5,6 +5,7 @@ import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,12 +33,13 @@ public class MavenScannerTest {
     SnykClient snykClient = new SnykClient(config);
     MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getOrganization()).thenReturn("com.fasterxml.jackson.core");
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     Assertions.assertTrue(result.isPresent());
     TestResult actualResult = result.get();
     assertFalse(actualResult.success); // false because it has vulns
@@ -60,12 +62,13 @@ public class MavenScannerTest {
     SnykClient snykClient = new SnykClient(config);
     MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getOrganization()).thenReturn(null);
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     assertFalse(result.isPresent());
   }
 
@@ -82,12 +85,13 @@ public class MavenScannerTest {
     SnykClient snykClient = new SnykClient(config);
     MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getOrganization()).thenReturn("com.fasterxml.jackson.core");
     when(fileLayoutInfo.getModule()).thenReturn(null);
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     assertFalse(result.isPresent());
   }
 
@@ -104,12 +108,13 @@ public class MavenScannerTest {
     SnykClient snykClient = new SnykClient(config);
     MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
 
+    RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getOrganization()).thenReturn("com.fasterxml.jackson.core");
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind");
     when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo);
+    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
     assertFalse(result.isPresent());
   }
 }

@@ -14,8 +14,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,5 +47,36 @@ public class NpmScannerTest {
     assertEquals("https://snyk.io/vuln/npm:lodash@4.17.15", actualResult.packageDetailsURL);
   }
 
-  // TODO: test a case where repoPath is not matching the regex
+  @Test
+  void getPackageDetailsFromUrl_shouldExtractDetailsFromTgzURL() {
+    var result = NpmScanner.getPackageDetailsFromUrl(
+      "snyk-npm-remote:lodash/-/lodash-4.17.15.tgz"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("lodash", details.name);
+    assertEquals("4.17.15", details.version);
+  }
+
+  @Test
+  void getPackageDetailsFromUrl_shouldExtractDetailsFromTgzURL_WithScope() {
+    var result = NpmScanner.getPackageDetailsFromUrl(
+      "snyk-npm-remote:@snyk/protect/-/protect-1.675.0.tgz"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("@snyk/protect", details.name);
+    assertEquals("1.675.0", details.version);
+  }
+
+  @Test
+  void getPackageDetailsFromUrl_shouldExtractDetailsFromTgzURL_WithPostfix() {
+    var result = NpmScanner.getPackageDetailsFromUrl(
+      "snyk-npm-remote:@babel/core/-/core-7.0.0-rc.4.tgz"
+    );
+    assertTrue(result.isPresent());
+    var details = result.get();
+    assertEquals("@babel/core", details.name);
+    assertEquals("7.0.0-rc.4", details.version);
+  }
 }

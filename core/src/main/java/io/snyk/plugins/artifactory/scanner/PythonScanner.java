@@ -10,11 +10,13 @@ import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
+import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class PythonScanner implements PackageScanner {
@@ -53,8 +55,8 @@ class PythonScanner implements PackageScanner {
     return Optional.empty();
   }
 
-  private String getPackageDetailsURL(ModuleURLDetails details) {
-    return "https://snyk.io/vuln/" + "pip:" + details.name + "@" + details.version;
+  public static String getModuleDetailsURL(ModuleURLDetails details) {
+    return "https://snyk.io/vuln/" + URLEncoder.encode("pip:" + details.name + "@" + details.version, UTF_8);
   }
 
   public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
@@ -80,7 +82,7 @@ class PythonScanner implements PackageScanner {
     result.responseAsText.ifPresent(r -> LOG.debug("testPip response: {}", r));
 
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
-    testResult.packageDetailsURL = getPackageDetailsURL(details);
+    testResult.packageDetailsURL = getModuleDetailsURL(details);
     return testResult;
   }
 
@@ -88,7 +90,7 @@ class PythonScanner implements PackageScanner {
     public final String name;
     public final String version;
 
-    private ModuleURLDetails(String name, String version) {
+    public ModuleURLDetails(String name, String version) {
       this.name = name;
       this.version = version;
     }

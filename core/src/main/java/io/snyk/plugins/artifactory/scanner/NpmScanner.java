@@ -10,11 +10,13 @@ import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
+import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class NpmScanner implements PackageScanner {
@@ -41,8 +43,8 @@ class NpmScanner implements PackageScanner {
     return Optional.empty();
   }
 
-  private String getPackageDetailsURL(PackageURLDetails details) {
-    return "https://snyk.io/vuln/" + "npm:" + details.name + "@" + details.version;
+  public static String getPackageDetailsURL(PackageURLDetails details) {
+    return "https://snyk.io/test/npm/" + details.name + "/" + details.version;
   }
 
   public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
@@ -71,7 +73,7 @@ class NpmScanner implements PackageScanner {
     public final String name;
     public final String version;
 
-    private PackageURLDetails(String name, String version) {
+    public PackageURLDetails(String name, String version) {
       this.name = name;
       this.version = version;
     }

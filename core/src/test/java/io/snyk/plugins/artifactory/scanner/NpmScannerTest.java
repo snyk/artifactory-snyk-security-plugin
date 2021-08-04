@@ -41,7 +41,7 @@ public class NpmScannerTest {
     assertEquals(5, result.issues.vulnerabilities.size());
     assertEquals("npm", result.packageManager);
     assertEquals(org, result.organisation.id);
-    assertEquals("https://snyk.io/vuln/npm:lodash@4.17.15", result.packageDetailsURL);
+    assertEquals("https://snyk.io/test/npm/lodash/4.17.15", result.packageDetailsURL);
   }
 
   @Test
@@ -75,5 +75,12 @@ public class NpmScannerTest {
     var details = result.get();
     assertEquals("@babel/core", details.name);
     assertEquals("7.0.0-rc.4", details.version);
+  }
+
+  @Test
+  void getPackageDetailsURL_shouldUseTestPage() {
+    var details = new NpmScanner.PackageURLDetails("@babel/core", "7.0.0-rc.4");
+    var result = NpmScanner.getPackageDetailsURL(details);
+    assertEquals("https://snyk.io/test/npm/@babel/core/7.0.0-rc.4", result);
   }
 }

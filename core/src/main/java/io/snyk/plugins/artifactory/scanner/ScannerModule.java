@@ -1,5 +1,6 @@
 package io.snyk.plugins.artifactory.scanner;
 
+import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
@@ -69,19 +70,21 @@ public class ScannerModule {
   }
 
   protected void updateProperties(RepoPath repoPath, TestResult testResult) {
-    String issueVulnerabilitiesProperty = repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey());
-    if (issueVulnerabilitiesProperty != null && !issueVulnerabilitiesProperty.isEmpty()) {
-      LOG.debug("Skip updating properties for already scanned artifact: {}", repoPath);
-      return;
-    }
-
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), "false");
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
     repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
-    repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey(), "false");
-    repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
     repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
+
+    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
+    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");
+    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD, "false");
+    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO, "");
+  }
+
+  private void setDefaultArtifactProperty(RepoPath repoPath, ArtifactProperty property, String value) {
+    String key = property.propertyKey();
+    if (!repositories.hasProperty(repoPath, key)) {
+      repositories.setProperty(repoPath, key, value);
+    }
   }
 
   private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {

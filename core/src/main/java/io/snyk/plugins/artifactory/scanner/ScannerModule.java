@@ -44,33 +44,13 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
+    PackageScanner scanner = Optional.ofNullable(repoPath.getPath())
+      .flatMap(this::getScannerForPackageType)
+      .orElseThrow(() -> new CannotScanException("Artifact not supported."));
+
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
 
-    String path = repoPath.getPath();
-    if (path == null) {
-      throw new CannotScanException("Artifact path is not available");
-    }
-
-    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
-    if (maybeScanner.isEmpty()) {
-      throw new CannotScanException("Artifact not supported.");
-    }
-
-    var scanner = maybeScanner.get();
-    var maybeTestResult = scanner.scan(fileLayoutInfo, repoPath);
-    if (maybeTestResult.isEmpty()) {
-      final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
-      final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-      String message = format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath);
-      if ("true".equals(blockOnApiFailure)) {
-        throw new CancelException(message, 500);
-      }
-      LOG.warn(message);
-      LOG.warn("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
-      throw new CannotScanException("Snyk API request failed.");
-    }
-
-    TestResult testResult = maybeTestResult.get();
+    TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
     updateProperties(repoPath, testResult);
     validateVulnerabilityIssues(testResult, repoPath);
     validateLicenseIssues(testResult, repoPath);

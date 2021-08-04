@@ -2,6 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
@@ -56,7 +57,7 @@ class PythonScanner implements PackageScanner {
     return "https://snyk.io/vuln/" + "pip:" + details.name + "@" + details.version;
   }
 
-  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     if (!fileLayoutInfo.isValid()) {
       LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
     }
@@ -65,25 +66,22 @@ class PythonScanner implements PackageScanner {
       .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
         .orElseThrow(() -> new CannotScanException("Module details not provided.")));
 
+    SnykResult<TestResult> result;
     try {
-      SnykResult<TestResult> result = snykClient.testPip(
+      result = snykClient.testPip(
         details.name,
         details.version,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
       );
-
-      if (result.isSuccessful()) {
-        LOG.debug("testPip response: {}", result.responseAsText.get());
-        var testResult = result.get();
-        testResult.ifPresent(testResultSnykResult -> {
-          testResultSnykResult.packageDetailsURL = getPackageDetailsURL(details);
-        });
-        return testResult;
-      }
-    } catch (Exception ex) {
-      LOG.error("Could not test python artifact: {}", fileLayoutInfo, ex);
+    } catch (Exception e) {
+      throw new SnykAPIFailureException(e);
     }
-    return Optional.empty();
+
+    result.responseAsText.ifPresent(r -> LOG.debug("testPip response: {}", r));
+
+    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
+    testResult.packageDetailsURL = getPackageDetailsURL(details);
+    return testResult;
   }
 
   public static class ModuleURLDetails {

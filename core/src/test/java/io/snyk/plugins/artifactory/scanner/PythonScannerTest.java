@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
@@ -38,15 +37,13 @@ public class PythonScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn("urllib3");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    assertTrue(result.isPresent());
-    TestResult actualResult = result.get();
-    assertFalse(actualResult.success);
-    assertEquals(1, actualResult.dependencyCount);
-    assertEquals(3, actualResult.issues.vulnerabilities.size());
-    assertEquals("pip", actualResult.packageManager);
-    assertEquals(org, actualResult.organisation.id);
-    assertEquals("https://snyk.io/vuln/pip:urllib3@1.25.7", actualResult.packageDetailsURL);
+    TestResult result = scanner.scan(fileLayoutInfo, repoPath);
+    assertFalse(result.success);
+    assertEquals(1, result.dependencyCount);
+    assertEquals(3, result.issues.vulnerabilities.size());
+    assertEquals("pip", result.packageManager);
+    assertEquals(org, result.organisation.id);
+    assertEquals("https://snyk.io/vuln/pip:urllib3@1.25.7", result.packageDetailsURL);
   }
 
   @Test

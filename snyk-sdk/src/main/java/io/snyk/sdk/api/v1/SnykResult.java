@@ -42,6 +42,7 @@ public class SnykResult<T> {
       var res = objectMapper.readValue(responseBody, resultType);
       return new SnykResult<>(status, res, responseBody);
     } else {
+      // TODO: don't throw out the response body
       return new SnykResult<>(status);
     }
   }

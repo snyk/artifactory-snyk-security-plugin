@@ -44,7 +44,7 @@ public class MavenScannerTest {
     assertEquals(47, result.issues.vulnerabilities.size());
     assertEquals("maven", result.packageManager);
     assertEquals(org, result.organisation.id);
-    assertEquals("https://snyk.io/vuln/maven:com.fasterxml.jackson.core%3Ajackson-databind@2.9.8",
+    assertEquals("https://snyk.io/vuln/maven%3Acom.fasterxml.jackson.core%3Ajackson-databind%402.9.8",
       result.packageDetailsURL
     );
   }
@@ -113,5 +113,11 @@ public class MavenScannerTest {
     when(fileLayoutInfo.getBaseRevision()).thenReturn(null);
 
     assertThrows(CannotScanException.class, () -> scanner.scan(fileLayoutInfo, repoPath));
+  }
+
+  @Test
+  void getPackageDetailsURL_shouldEncodeNameAndVersion() {
+    var result = MavenScanner.getArtifactDetailsURL("com.fasterxml.jackson.core", "jackson-databind", "7.0.0-rc.4");
+    assertEquals("https://snyk.io/vuln/maven%3Acom.fasterxml.jackson.core%3Ajackson-databind%407.0.0-rc.4", result);
   }
 }

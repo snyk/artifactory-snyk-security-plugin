@@ -43,7 +43,7 @@ public class PythonScannerTest {
     assertEquals(3, result.issues.vulnerabilities.size());
     assertEquals("pip", result.packageManager);
     assertEquals(org, result.organisation.id);
-    assertEquals("https://snyk.io/vuln/pip:urllib3@1.25.7", result.packageDetailsURL);
+    assertEquals("https://snyk.io/vuln/pip%3Aurllib3%401.25.7", result.packageDetailsURL);
   }
 
   @Test
@@ -143,4 +143,10 @@ public class PythonScannerTest {
     assertEquals("0.2.8", details.version);
   }
 
+  @Test
+  void getModuleDetailsURL_shouldEncodeNameAndVersion() {
+    var details = new PythonScanner.ModuleURLDetails("ws3", "0.0.1.post3");
+    var result = PythonScanner.getModuleDetailsURL(details);
+    assertEquals("https://snyk.io/vuln/pip%3Aws3%400.0.1.post3", result);
+  }
 }

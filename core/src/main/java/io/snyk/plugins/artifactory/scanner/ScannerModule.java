@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_BLOCK_ON_API_FAILURE;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
 import static io.snyk.sdk.util.Predicates.distinctByKey;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -45,10 +45,10 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
-    PackageScanner scanner = Optional.ofNullable(repoPath.getPath())
-      .flatMap(this::getScannerForPackageType)
-      .orElseThrow(() -> new CannotScanException("Artifact not supported."));
+    String path = Optional.ofNullable(repoPath.getPath())
+      .orElseThrow(() -> new CannotScanException("Path not provided."));
 
+    PackageScanner scanner = getScannerForPackageType(path);
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
 
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
@@ -57,16 +57,29 @@ public class ScannerModule {
     validateLicenseIssues(testResult, repoPath);
   }
 
-  protected Optional<PackageScanner> getScannerForPackageType(String path) {
+  protected PackageScanner getScannerForPackageType(String path) {
     if (path.endsWith(".jar")) {
-      return Optional.of(mavenScanner);
-    } else if (path.endsWith(".tgz")) {
-      return Optional.of(npmScanner);
-    } else if (path.endsWith(".whl") || path.endsWith(".tar.gz") || path.endsWith(".zip") || path.endsWith(".egg")) {
-      return Optional.of(pythonScanner);
-    } else {
-      return Optional.empty();
+      if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_MAVEN).equals("true")) {
+        return mavenScanner;
+      }
+      throw new CannotScanException("Maven repository scanning is disabled by user configuration.");
     }
+
+    if (path.endsWith(".tgz")) {
+      if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_NPM).equals("true")) {
+        return npmScanner;
+      }
+      throw new CannotScanException("npm repository scanning is disabled by user configuration.");
+    }
+
+    if (path.endsWith(".whl") || path.endsWith(".tar.gz") || path.endsWith(".zip") || path.endsWith(".egg")) {
+      if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_PYPI).equals("true")) {
+        return pythonScanner;
+      }
+      throw new CannotScanException("PyPi repository scanning is disabled by user configuration.");
+    }
+
+    throw new CannotScanException("Artifact is not supported.");
   }
 
   protected void updateProperties(RepoPath repoPath, TestResult testResult) {

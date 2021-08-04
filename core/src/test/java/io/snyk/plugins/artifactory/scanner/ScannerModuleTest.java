@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
@@ -21,7 +22,8 @@ import java.time.Duration;
 import java.util.Properties;
 import java.util.function.Function;
 
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_PACKAGE_TYPE_PYPI;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -37,31 +39,32 @@ public class ScannerModuleTest {
       mock(Repositories.class),
       mock(SnykClient.class));
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.jar").get()
-        instanceof MavenScanner);
+    assertEquals(MavenScanner.class, sm.getScannerForPackageType("myArtifact.jar").getClass());
+    assertEquals(NpmScanner.class, sm.getScannerForPackageType("myArtifact.tgz").getClass());
+    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.whl").getClass());
+    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.tar.gz").getClass());
+    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.zip").getClass());
+    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.egg").getClass());
+    assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("unknown"));
+  }
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.tgz").get()
-        instanceof NpmScanner);
+  @Test
+  void testGetScannerForPackageType_cannotScanPathsWithDisabledScanners() {
+    Properties properties = new Properties();
+    properties.put(SCANNER_PACKAGE_TYPE_MAVEN.propertyKey(), "false");
+    properties.put(SCANNER_PACKAGE_TYPE_NPM.propertyKey(), "false");
+    properties.put(SCANNER_PACKAGE_TYPE_PYPI.propertyKey(), "false");
+    ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.whl").get()
-        instanceof PythonScanner);
+    ScannerModule sm = new ScannerModule(
+      configurationModule,
+      mock(Repositories.class),
+      mock(SnykClient.class)
+    );
 
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.tar.gz").get()
-        instanceof PythonScanner);
-
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.zip").get()
-        instanceof PythonScanner);
-
-    assertTrue(
-      sm.getScannerForPackageType("myArtifact.egg").get()
-        instanceof PythonScanner);
-
-    assertTrue(sm.getScannerForPackageType("unknown").isEmpty());
+    assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("myArtifact.jar"));
+    assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("myArtifact.tgz"));
+    assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("myArtifact.whl"));
   }
 
   ScanTestSetup createScannerSpyModuleForTest(FileLayoutInfo fileLayoutInfo) throws Exception {

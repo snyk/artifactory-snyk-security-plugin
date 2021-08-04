@@ -1,7 +1,9 @@
 package io.snyk.plugins.artifactory.scanner;
 
+import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
@@ -43,38 +45,16 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
-    FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
-    if (!fileLayoutInfo.isValid()) {
-      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
-    }
-    String path = repoPath.getPath();
-    if (path == null) {
-      LOG.warn("Artifact '{}' will not be scanned, because the path is null", repoPath);
-    }
-    Optional<PackageScanner> maybeScanner = getScannerForPackageType(path);
-    if (maybeScanner.isPresent()) {
-      var scanner = maybeScanner.get();
-      var maybeTestResult = scanner.scan(fileLayoutInfo);
+    PackageScanner scanner = Optional.ofNullable(repoPath.getPath())
+      .flatMap(this::getScannerForPackageType)
+      .orElseThrow(() -> new CannotScanException("Artifact not supported."));
 
-      if (maybeTestResult.isPresent()) {
-        TestResult testResult = maybeTestResult.get();
-        updateProperties(repoPath, fileLayoutInfo, testResult);
-        validateVulnerabilityIssues(testResult, repoPath);
-        validateLicenseIssues(testResult, repoPath);
-      } else {
-        final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
-        final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-        if ("true".equals(blockOnApiFailure)) {
-          throw new CancelException(format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath), 500);
-        } else {
-          LOG.warn("Property '{}' is false, so we allow to download the artifact '{}'", blockOnApiFailurePropertyKey, repoPath);
-          return;
-        }
-      }
-    } else {
-      LOG.warn("Artifact '{}' will not be scanned, because the extension `{}` is not supported", repoPath, fileLayoutInfo.getExt());
-      LOG.warn("Full FileLayoutInfo: {}", fileLayoutInfo.toString());
-    }
+    FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
+
+    TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
+    updateProperties(repoPath, testResult);
+    validateVulnerabilityIssues(testResult, repoPath);
+    validateLicenseIssues(testResult, repoPath);
   }
 
   protected Optional<PackageScanner> getScannerForPackageType(String path) {
@@ -89,36 +69,22 @@ public class ScannerModule {
     }
   }
 
-  protected void updateProperties(RepoPath repoPath, FileLayoutInfo fileLayoutInfo, TestResult testResult) {
-    String issueVulnerabilitiesProperty = repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey());
-    if (issueVulnerabilitiesProperty != null && !issueVulnerabilitiesProperty.isEmpty()) {
-      LOG.debug("Skip updating properties for already scanned artifact: {}", repoPath);
-      return;
-    }
-
-    StringBuilder snykIssueUrl = new StringBuilder("https://snyk.io/vuln/");
-    if ("maven".equals(testResult.packageManager)) {
-      snykIssueUrl.append("maven:")
-        .append(fileLayoutInfo.getOrganization()).append("%3A")
-        .append(fileLayoutInfo.getModule()).append("@")
-        .append(fileLayoutInfo.getBaseRevision());
-    } else if ("npm".equals(testResult.packageManager)) {
-      snykIssueUrl.append("npm:")
-        .append(fileLayoutInfo.getModule()).append("@")
-        .append(fileLayoutInfo.getBaseRevision());
-    } else if ("pip".equals(testResult.packageManager)) {
-      snykIssueUrl.append("pip:")
-        .append(fileLayoutInfo.getModule()).append("@")
-        .append(fileLayoutInfo.getBaseRevision());
-    }
-
+  protected void updateProperties(RepoPath repoPath, TestResult testResult) {
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey(), "false");
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
     repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
-    repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey(), "false");
-    repositories.setProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO.propertyKey(), "");
-    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), snykIssueUrl.toString());
+    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
+
+    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
+    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");
+    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD, "false");
+    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO, "");
+  }
+
+  private void setDefaultArtifactProperty(RepoPath repoPath, ArtifactProperty property, String value) {
+    String key = property.propertyKey();
+    if (!repositories.hasProperty(repoPath, key)) {
+      repositories.setProperty(repoPath, key, value);
+    }
   }
 
   private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {

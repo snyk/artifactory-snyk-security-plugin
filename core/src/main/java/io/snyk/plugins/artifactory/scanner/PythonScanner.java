@@ -1,13 +1,18 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -24,20 +29,68 @@ class PythonScanner implements PackageScanner {
     this.snykClient = snykClient;
   }
 
-  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo) {
-    try {
-      SnykResult<TestResult> result = snykClient.testPip(
-        Optional.ofNullable(fileLayoutInfo.getModule()).orElseThrow(() -> new RuntimeException("Module name not provided.")),
-        Optional.ofNullable(fileLayoutInfo.getBaseRevision()).orElseThrow(() -> new RuntimeException("Module version not provided.")),
-        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
-      );
-      if (result.isSuccessful()) {
-        LOG.debug("testPip response: {}", result.responseAsText.get());
-        return result.get();
-      }
-    } catch (Exception ex) {
-      LOG.error("Could not test python artifact: {}", fileLayoutInfo, ex);
+  public static Optional<ModuleURLDetails> getModuleDetailsFromFileLayoutInfo(FileLayoutInfo fileLayoutInfo) {
+    String module = fileLayoutInfo.getModule();
+    String baseRevision = fileLayoutInfo.getBaseRevision();
+    if (module == null || baseRevision == null) {
+      return Optional.empty();
+    }
+    return Optional.of(new ModuleURLDetails(
+      module,
+      baseRevision
+    ));
+  }
+
+  public static Optional<ModuleURLDetails> getModuleDetailsFromUrl(String repoPath) {
+    Pattern pattern = Pattern.compile("^.+:.+/.+/.+/(?<packageName>.+)-(?<packageVersion>\\d+(?:\\.[A-Za-z0-9]+)*).*\\.(?:whl|egg|zip|tar\\.gz)$");
+    Matcher matcher = pattern.matcher(repoPath);
+    if (matcher.matches()) {
+      return Optional.of(new ModuleURLDetails(
+        matcher.group("packageName"),
+        matcher.group("packageVersion")
+      ));
     }
     return Optional.empty();
+  }
+
+  private String getPackageDetailsURL(ModuleURLDetails details) {
+    return "https://snyk.io/vuln/" + "pip:" + details.name + "@" + details.version;
+  }
+
+  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+    if (!fileLayoutInfo.isValid()) {
+      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
+    }
+
+    ModuleURLDetails details = getModuleDetailsFromFileLayoutInfo(fileLayoutInfo)
+      .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
+        .orElseThrow(() -> new CannotScanException("Module details not provided.")));
+
+    SnykResult<TestResult> result;
+    try {
+      result = snykClient.testPip(
+        details.name,
+        details.version,
+        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
+      );
+    } catch (Exception e) {
+      throw new SnykAPIFailureException(e);
+    }
+
+    result.responseAsText.ifPresent(r -> LOG.debug("testPip response: {}", r));
+
+    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
+    testResult.packageDetailsURL = getPackageDetailsURL(details);
+    return testResult;
+  }
+
+  public static class ModuleURLDetails {
+    public final String name;
+    public final String version;
+
+    private ModuleURLDetails(String name, String version) {
+      this.name = name;
+      this.version = version;
+    }
   }
 }

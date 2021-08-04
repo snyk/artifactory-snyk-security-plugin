@@ -107,6 +107,7 @@ public class ScannerModuleTest {
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
+    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.5.tgz");
 
     spyScanner.scanArtifact(repoPath);
 
@@ -114,7 +115,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -146,7 +146,7 @@ public class ScannerModuleTest {
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
-
+    when(repoPath.toString()).thenReturn("npm:lodash/-/lodash-4.17.15.tgz");
 
     Assertions.assertThrows(CancelException.class, () -> {
       spyScanner.scanArtifact(repoPath);
@@ -156,7 +156,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -196,7 +195,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -238,7 +236,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -277,7 +274,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 
@@ -319,7 +315,6 @@ public class ScannerModuleTest {
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
-      eq(fileLayoutInfo),
       testResultCaptor.capture()
     );
 

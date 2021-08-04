@@ -22,4 +22,5 @@ public class TestResult implements Serializable {
   public Organisation organisation;
   @JsonProperty("packageManager")
   public String packageManager;
+  public String packageDetailsURL;
 }

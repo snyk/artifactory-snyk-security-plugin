@@ -44,7 +44,7 @@ class NpmScanner implements PackageScanner {
   }
 
   public static String getPackageDetailsURL(PackageURLDetails details) {
-    return "https://snyk.io/vuln/" + URLEncoder.encode("npm:" + details.name + "@" + details.version, UTF_8);
+    return "https://snyk.io/test/npm/" + details.name + "/" + details.version;
   }
 
   public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {

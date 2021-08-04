@@ -1,15 +1,12 @@
 package io.snyk.sdk.api.v1;
 
-import io.snyk.sdk.Snyk;
-import io.snyk.sdk.config.SSLConfiguration;
-import io.snyk.sdk.model.NotificationSettings;
-import io.snyk.sdk.model.TestResult;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -17,9 +14,18 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
+import io.snyk.sdk.Snyk;
+import io.snyk.sdk.config.SSLConfiguration;
+import io.snyk.sdk.model.NotificationSettings;
+import io.snyk.sdk.model.TestResult;
 
 public class SnykClient {
+  private static final Logger LOG = LoggerFactory.getLogger(SnykClient.class);
+
   private Snyk.Config config;
 
   private HttpClient httpClient;
@@ -43,9 +49,13 @@ public class SnykClient {
       builder.sslContext(sslContext);
     }
 
+    if (!config.httpProxyHost.isBlank()) {
+      builder.proxy(ProxySelector.of(new InetSocketAddress(config.httpProxyHost, config.httpProxyPort)));
+      LOG.info("added proxy with ", config.httpProxyHost, config.httpProxyPort);
+    }
+
     httpClient = builder.build();
   }
-
 
   public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)

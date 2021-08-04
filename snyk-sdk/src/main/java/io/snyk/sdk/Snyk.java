@@ -10,6 +10,8 @@ public class Snyk {
     public String userAgent;
     public boolean trustAllCertificates;
     public String sslCertificatePath;
+    public String httpProxyHost;
+    public Integer httpProxyPort;
 
     public Config(String token) {
       this(DEFAULT_BASE_URL, token);
@@ -28,11 +30,17 @@ public class Snyk {
     }
 
     public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates, String sslCertificatePath) {
+      this(baseUrl, token, userAgent, trustAllCertificates, sslCertificatePath, "", 8080);
+    }
+
+    public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates, String sslCertificatePath, String httpProxyHost, Integer httpProxyPort) {
       this.baseUrl = baseUrl;
       this.token = token;
       this.userAgent = userAgent;
       this.trustAllCertificates = trustAllCertificates;
       this.sslCertificatePath = sslCertificatePath;
+      this.httpProxyHost = httpProxyHost;
+      this.httpProxyPort = httpProxyPort;
     }
   }
 }

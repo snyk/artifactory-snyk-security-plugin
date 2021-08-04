@@ -57,20 +57,8 @@ public class ScannerModule {
     }
 
     var scanner = maybeScanner.get();
-    var maybeTestResult = scanner.scan(fileLayoutInfo, repoPath);
-    if (maybeTestResult.isEmpty()) {
-      final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
-      final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-      String message = format("Artifact '%s' could not be scanned because Snyk API is not available", repoPath);
-      if ("true".equals(blockOnApiFailure)) {
-        throw new CancelException(message, 500);
-      }
-      LOG.warn(message);
-      LOG.warn("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
-      throw new CannotScanException("Snyk API request failed.");
-    }
+    TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
 
-    TestResult testResult = maybeTestResult.get();
     updateProperties(repoPath, testResult);
     validateVulnerabilityIssues(testResult, repoPath);
     validateLicenseIssues(testResult, repoPath);

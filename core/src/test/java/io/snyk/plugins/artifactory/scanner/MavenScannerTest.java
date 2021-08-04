@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
@@ -39,16 +38,14 @@ public class MavenScannerTest {
     when(fileLayoutInfo.getModule()).thenReturn("jackson-databind");
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    Assertions.assertTrue(result.isPresent());
-    TestResult actualResult = result.get();
-    assertFalse(actualResult.success); // false because it has vulns
-    assertEquals(3, actualResult.dependencyCount);
-    assertEquals(47, actualResult.issues.vulnerabilities.size());
-    assertEquals("maven", actualResult.packageManager);
-    assertEquals(org, actualResult.organisation.id);
+    TestResult result = scanner.scan(fileLayoutInfo, repoPath);
+    assertFalse(result.success); // false because it has vulns
+    assertEquals(3, result.dependencyCount);
+    assertEquals(47, result.issues.vulnerabilities.size());
+    assertEquals("maven", result.packageManager);
+    assertEquals(org, result.organisation.id);
     assertEquals("https://snyk.io/vuln/maven:com.fasterxml.jackson.core%3Ajackson-databind@2.9.8",
-      actualResult.packageDetailsURL
+      result.packageDetailsURL
     );
   }
 

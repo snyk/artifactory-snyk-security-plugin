@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
@@ -36,15 +35,13 @@ public class NpmScannerTest {
     when(repoPath.toString()).thenReturn("npm:lodash/-/lodash-4.17.15.tgz");
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
 
-    Optional<TestResult> result = scanner.scan(fileLayoutInfo, repoPath);
-    Assertions.assertTrue(result.isPresent());
-    TestResult actualResult = result.get();
-    assertFalse(actualResult.success);
-    assertEquals(1, actualResult.dependencyCount);
-    assertEquals(5, actualResult.issues.vulnerabilities.size());
-    assertEquals("npm", actualResult.packageManager);
-    assertEquals(org, actualResult.organisation.id);
-    assertEquals("https://snyk.io/vuln/npm:lodash@4.17.15", actualResult.packageDetailsURL);
+    TestResult result = scanner.scan(fileLayoutInfo, repoPath);
+    assertFalse(result.success);
+    assertEquals(1, result.dependencyCount);
+    assertEquals(5, result.issues.vulnerabilities.size());
+    assertEquals("npm", result.packageManager);
+    assertEquals(org, result.organisation.id);
+    assertEquals("https://snyk.io/vuln/npm:lodash@4.17.15", result.packageDetailsURL);
   }
 
   @Test

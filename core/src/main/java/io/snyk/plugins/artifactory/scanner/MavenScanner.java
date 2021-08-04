@@ -2,7 +2,9 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -29,7 +31,7 @@ class MavenScanner implements PackageScanner {
     return "https://snyk.io/vuln/" + "maven:" + groupID + "%3A" + artifactID + "@" + artifactVersion;
   }
 
-  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     if (!fileLayoutInfo.isValid()) {
       LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
     }
@@ -41,25 +43,23 @@ class MavenScanner implements PackageScanner {
     String artifactVersion = Optional.ofNullable(fileLayoutInfo.getBaseRevision())
       .orElseThrow(() -> new CannotScanException("Artifact Version not provided."));
 
+    SnykResult<TestResult> result;
     try {
-      var result = snykClient.testMaven(
+      result = snykClient.testMaven(
         groupID,
         artifactID,
         artifactVersion,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION)),
         Optional.empty()
       );
-      if (result.isSuccessful()) {
-        LOG.debug("testMaven response: {}", result.responseAsText.get());
-        var testResult = result.get();
-        testResult.ifPresent(testResultSnykResult -> {
-          testResultSnykResult.packageDetailsURL = getPackageDetailsURL(groupID, artifactID, artifactVersion);
-        });
-        return testResult;
-      }
-    } catch (Exception ex) {
-      LOG.error("Could not test maven artifact: {}", fileLayoutInfo, ex);
+    } catch (Exception e) {
+      throw new SnykAPIFailureException(e);
     }
-    return Optional.empty();
+
+    result.responseAsText.ifPresent(r -> LOG.debug("testMaven response: {}", r));
+
+    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
+    testResult.packageDetailsURL = getPackageDetailsURL(groupID, artifactID, artifactVersion);
+    return testResult;
   }
 }

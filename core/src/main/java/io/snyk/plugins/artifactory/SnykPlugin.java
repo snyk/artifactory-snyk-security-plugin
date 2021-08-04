@@ -8,10 +8,12 @@ import io.snyk.plugins.artifactory.audit.AuditModule;
 import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
+import org.artifactory.exception.CancelException;
 import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
@@ -19,8 +21,14 @@ import org.artifactory.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.Properties;
+
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_SSL_CERTIFICATE_PATH;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
+import static java.lang.String.format;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TRUST_ALL_CERTIFICATES;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
@@ -84,6 +92,15 @@ public class SnykPlugin {
       scannerModule.scanArtifact(repoPath);
     } catch (CannotScanException e) {
       LOG.warn("Artifact cannot be scanned {}. {}", repoPath, e.getMessage());
+    } catch (SnykAPIFailureException e) {
+      final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
+      final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
+      String message = "Failed to scan artifact '" + repoPath + "'. " + e.getMessage();
+      if ("true".equals(blockOnApiFailure)) {
+        throw new CancelException(message, e, 500);
+      }
+      LOG.warn(message, e);
+      LOG.debug("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
     }
   }
 

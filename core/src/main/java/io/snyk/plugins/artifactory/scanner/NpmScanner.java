@@ -2,7 +2,9 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -43,28 +45,26 @@ class NpmScanner implements PackageScanner {
     return "https://snyk.io/vuln/" + "npm:" + details.name + "@" + details.version;
   }
 
-  public Optional<TestResult> scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     PackageURLDetails details = getPackageDetailsFromUrl(repoPath.toString())
       .orElseThrow(() -> new CannotScanException("Package details not provided."));
 
+    SnykResult<TestResult> result;
     try {
-      var result = snykClient.testNpm(
+      result = snykClient.testNpm(
         details.name,
         details.version,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
       );
-      if (result.isSuccessful()) {
-        LOG.debug("testNpm response: {}", result.responseAsText.get());
-        var testResult = result.get();
-        testResult.ifPresent(testResultSnykResult -> {
-          testResultSnykResult.packageDetailsURL = getPackageDetailsURL(details);
-        });
-        return testResult;
-      }
-    } catch (Exception ex) {
-      LOG.error("Could not test npm artifact: {}", fileLayoutInfo, ex);
+    } catch (Exception e) {
+      throw new SnykAPIFailureException(e);
     }
-    return Optional.empty();
+
+    result.responseAsText.ifPresent(r -> LOG.debug("testNpm response: {}", r));
+
+    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
+    testResult.packageDetailsURL = getPackageDetailsURL(details);
+    return testResult;
   }
 
   public static class PackageURLDetails {

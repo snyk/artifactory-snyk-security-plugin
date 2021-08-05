@@ -60,10 +60,6 @@ class PythonScanner implements PackageScanner {
   }
 
   public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
-    if (!fileLayoutInfo.isValid()) {
-      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
-    }
-
     ModuleURLDetails details = getModuleDetailsFromFileLayoutInfo(fileLayoutInfo)
       .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
         .orElseThrow(() -> new CannotScanException("Module details not provided.")));

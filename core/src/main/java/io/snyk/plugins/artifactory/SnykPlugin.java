@@ -1,11 +1,5 @@
 package io.snyk.plugins.artifactory;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.Properties;
-
-import io.snyk.plugins.artifactory.audit.AuditModule;
-import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
@@ -14,10 +8,8 @@ import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.Snyk;
 import io.snyk.sdk.api.v1.SnykClient;
 import org.artifactory.exception.CancelException;
-import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
-import org.artifactory.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +17,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Properties;
 
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_SSL_CERTIFICATE_PATH;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
-import static java.lang.String.format;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TRUST_ALL_CERTIFICATES;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.HTTP_PROXY_HOST;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.HTTP_PROXY_PORT;
 
 public class SnykPlugin {
 
@@ -41,7 +25,6 @@ public class SnykPlugin {
   private static final String API_USER_AGENT = "snyk-artifactory-plugin/";
 
   private final ConfigurationModule configurationModule;
-  private final AuditModule auditModule;
   private final ScannerModule scannerModule;
 
   public SnykPlugin(@Nonnull Repositories repositories, File pluginsDirectory) {
@@ -56,29 +39,12 @@ public class SnykPlugin {
 
       final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
 
-      auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
 
       LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {
       throw new SnykRuntimeException("Snyk plugin could not be initialized!", ex);
     }
-  }
-
-  /**
-   * Logs update event for following artifact properties:
-   * <ul>
-   * <li>{@link ArtifactProperty#ISSUE_LICENSES_FORCE_DOWNLOAD}</li>
-   * <li>{@link ArtifactProperty#ISSUE_LICENSES_FORCE_DOWNLOAD_INFO}</li>
-   * <li>{@link ArtifactProperty#ISSUE_VULNERABILITIES_FORCE_DOWNLOAD}</li>
-   * <li>{@link ArtifactProperty#ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO}</li>
-   * </ul>
-   * <p>
-   * Extension point: {@code storage.afterPropertyCreate}.
-   */
-  public void handleAfterPropertyCreateEvent(User user, ItemInfo itemInfo, String propertyName, String[] propertyValues) {
-    LOG.debug("Handle 'afterPropertyCreate' event for: {}", itemInfo);
-    auditModule.logPropertyUpdate(user, itemInfo, propertyName, propertyValues);
   }
 
   /**

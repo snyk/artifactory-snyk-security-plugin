@@ -34,10 +34,6 @@ class MavenScanner implements PackageScanner {
   }
 
   public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
-    if (!fileLayoutInfo.isValid()) {
-      LOG.warn("Artifact '{}' file layout info is not valid.", repoPath);
-    }
-
     String groupID = Optional.ofNullable(fileLayoutInfo.getOrganization())
       .orElseThrow(() -> new CannotScanException("Group ID not provided."));
     String artifactID = Optional.ofNullable(fileLayoutInfo.getModule())

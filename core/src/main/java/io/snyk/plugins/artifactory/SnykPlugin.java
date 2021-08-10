@@ -2,6 +2,7 @@ package io.snyk.plugins.artifactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Optional;
 import java.util.Properties;
 
 import io.snyk.plugins.artifactory.audit.AuditModule;
@@ -91,15 +92,20 @@ public class SnykPlugin {
     try {
       scannerModule.scanArtifact(repoPath);
     } catch (CannotScanException e) {
-      LOG.warn("Artifact cannot be scanned {}. {}", repoPath, e.getMessage());
+      LOG.debug("Artifact cannot be scanned {}. {}", repoPath, e.getMessage());
     } catch (SnykAPIFailureException e) {
       final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
       final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-      String message = "Failed to scan artifact '" + repoPath + "'. " + e.getMessage();
+      final String causeMessage = Optional.ofNullable(e.getCause())
+        .map(Throwable::getMessage)
+        .map(m -> " " + m)
+        .orElse("");
+
+      String message = "Failed to scan artifact '" + repoPath + "'. " + e.getMessage() + causeMessage;
       if ("true".equals(blockOnApiFailure)) {
-        throw new CancelException(message, e, 500);
+        throw new CancelException(message, 500);
       }
-      LOG.warn(message, e);
+      LOG.debug(message);
       LOG.debug("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
     }
   }

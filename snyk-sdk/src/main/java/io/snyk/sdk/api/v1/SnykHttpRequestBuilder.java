@@ -2,11 +2,11 @@ package io.snyk.sdk.api.v1;
 
 import io.snyk.sdk.SnykConfig;
 
+import javax.annotation.Nonnull;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,20 +14,20 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class SnykHttpRequestBuilder {
-  HashMap<String, String> queryParams = new HashMap<>();
-  Optional<String> path = Optional.empty();
-  Optional<SnykConfig> config = Optional.empty();
+  private final SnykConfig config;
+  private final HashMap<String, String> queryParams = new HashMap<>();
+  private String path = "";
 
-  private SnykHttpRequestBuilder(SnykConfig config) {
-    this.config = Optional.of(config);
+  private SnykHttpRequestBuilder(@Nonnull SnykConfig config) {
+    this.config = config;
   }
 
-  public static SnykHttpRequestBuilder create(SnykConfig config) {
+  public static SnykHttpRequestBuilder create(@Nonnull SnykConfig config) {
     return new SnykHttpRequestBuilder(config);
   }
 
-  public SnykHttpRequestBuilder withPath(String path) {
-    this.path = Optional.of(path);
+  public SnykHttpRequestBuilder withPath(@Nonnull String path) {
+    this.path = path;
     return this;
   }
 
@@ -42,10 +42,17 @@ public class SnykHttpRequestBuilder {
   }
 
   public HttpRequest build() {
-    var definedConfig = config.orElseThrow(() -> new NoSuchElementException("config is not set"));
-    String apiUrl = String.format("%s%s",
-      definedConfig.baseUrl,
-      path.orElse(""));
+    return HttpRequest.newBuilder()
+      .GET()
+      .uri(buildURI())
+      .timeout(config.timeout)
+      .setHeader("Authorization", String.format("token %s", config.token))
+      .setHeader("User-Agent", config.userAgent)
+      .build();
+  }
+
+  private URI buildURI() {
+    String apiUrl = config.baseUrl + path;
 
     String queryString = this.queryParams
       .entrySet()
@@ -60,15 +67,6 @@ public class SnykHttpRequestBuilder {
       apiUrl += "?" + queryString;
     }
 
-    var reqBuilder = HttpRequest.newBuilder()
-      .GET()
-      .uri(URI.create(apiUrl))
-      .timeout(definedConfig.timeout);
-
-    String authHeaderValue = String.format("token %s", definedConfig.token);
-    reqBuilder.setHeader("Authorization", authHeaderValue);
-    reqBuilder.setHeader("User-Agent", definedConfig.userAgent);
-
-    return reqBuilder.build();
+    return URI.create(apiUrl);
   }
 }

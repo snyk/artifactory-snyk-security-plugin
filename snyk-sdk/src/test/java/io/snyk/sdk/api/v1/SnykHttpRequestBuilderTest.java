@@ -38,27 +38,32 @@ public class SnykHttpRequestBuilderTest {
       SnykHttpRequestBuilder.create(config)
         .withPath("some/endpoint")
         .withQueryParam("org", "abc123")
+        .withQueryParam("shouldNotExist", (String) null)
         .build()
-        .uri().toString()
+        .uri()
+        .toString()
     );
 
     // optional param
     assertEquals("https://snyk.io/api/v1/some/endpoint?org=abc123",
       SnykHttpRequestBuilder.create(config)
         .withPath("some/endpoint")
-        .withOptionalQueryParam("org", Optional.of("abc123"))
+        .withQueryParam("org", Optional.of("abc123"))
+        .withQueryParam("shouldNotExist", Optional.empty())
         .build()
-        .uri().toString()
+        .uri()
+        .toString()
     );
 
     // multiple query string params
     assertEquals("https://snyk.io/api/v1/some/endpoint?org=abc123&foo=bar",
       SnykHttpRequestBuilder.create(config)
         .withPath("some/endpoint")
-        .withOptionalQueryParam("org", Optional.of("abc123"))
-        .withOptionalQueryParam("foo", Optional.of("bar"))
+        .withQueryParam("org", "abc123")
+        .withQueryParam("foo", "bar")
         .build()
-        .uri().toString()
+        .uri()
+        .toString()
     );
   }
 }

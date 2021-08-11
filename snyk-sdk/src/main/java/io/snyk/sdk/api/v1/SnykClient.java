@@ -74,8 +74,8 @@ public class SnykClient {
         URLEncoder.encode(artifactId, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
-      .withOptionalQueryParam("repository", repository)
+      .withQueryParam("org", organisation)
+      .withQueryParam("repository", repository)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -88,7 +88,7 @@ public class SnykClient {
         URLEncoder.encode(packageName, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
+      .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -101,7 +101,7 @@ public class SnykClient {
         URLEncoder.encode(gemName, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
+      .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -114,7 +114,7 @@ public class SnykClient {
         URLEncoder.encode(packageName, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
+      .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);

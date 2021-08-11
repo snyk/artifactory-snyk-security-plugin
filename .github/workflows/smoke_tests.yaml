@@ -38,7 +38,7 @@ jobs:
           TEST_SNYK_TOKEN: ${{ secrets.TEST_SNYK_TOKEN }}
           TEST_SNYK_ORG: ${{ secrets.TEST_SNYK_ORG }}
         run: |
-          ./mvnw clean verify --show-version --batch-mode --no-transfer-progress --errors -Drevision=${{ steps.metadata.outputs.tag }}
+          ./mvnw package -DskipTests --show-version --batch-mode --no-transfer-progress --errors -Drevision=${{ steps.metadata.outputs.tag }}
           cd ${GITHUB_WORKSPACE}/distribution/target
           sha256sum artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip > artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip.sha256
           unzip artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip

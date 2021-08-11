@@ -62,8 +62,6 @@ class NpmScanner implements PackageScanner {
       throw new SnykAPIFailureException(e);
     }
 
-    result.responseAsText.ifPresent(r -> LOG.debug("testNpm response: {}", r));
-
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
     testResult.packageDetailsURL = getPackageDetailsURL(details);
     return testResult;

@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import io.snyk.sdk.Snyk;
+import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;
@@ -25,11 +25,10 @@ import io.snyk.sdk.model.TestResult;
 public class SnykClient {
   private static final Logger LOG = LoggerFactory.getLogger(SnykClient.class);
 
-  private Snyk.Config config;
+  private final SnykConfig config;
+  private final HttpClient httpClient;
 
-  private HttpClient httpClient;
-
-  public SnykClient(Snyk.Config config) throws Exception {
+  public SnykClient(SnykConfig config) throws Exception {
     this.config = config;
 
     var builder = HttpClient.newBuilder()

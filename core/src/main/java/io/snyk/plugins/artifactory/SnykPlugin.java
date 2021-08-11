@@ -7,7 +7,7 @@ import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
-import io.snyk.sdk.Snyk;
+import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.ItemInfo;
@@ -136,7 +136,17 @@ public class SnykPlugin {
     Integer httpProxyPort = Integer.parseInt(configurationModule.getPropertyOrDefault(HTTP_PROXY_PORT));
     Duration timeout = Duration.ofMillis(Integer.parseInt(configurationModule.getPropertyOrDefault(API_TIMEOUT)));
 
-    var config = new Snyk.Config(baseUrl, token, API_USER_AGENT + pluginVersion, trustAllCertificates, sslCertificatePath, httpProxyHost, httpProxyPort, timeout);
+    var config = SnykConfig.newBuilder()
+      .setBaseUrl(baseUrl)
+      .setToken(token)
+      .setUserAgent(API_USER_AGENT + pluginVersion)
+      .setTrustAllCertificates(trustAllCertificates)
+      .setSslCertificatePath(sslCertificatePath)
+      .setHttpProxyHost(httpProxyHost)
+      .setHttpProxyPort(httpProxyPort)
+      .setTimeout(timeout)
+      .build();
+
     LOG.debug("about to log config...");
     LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
     LOG.debug("config.httpProxyPort: " + config.httpProxyPort);

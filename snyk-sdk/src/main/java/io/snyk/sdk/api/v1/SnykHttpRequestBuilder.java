@@ -1,6 +1,6 @@
 package io.snyk.sdk.api.v1;
 
-import io.snyk.sdk.Snyk;
+import io.snyk.sdk.SnykConfig;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -16,13 +16,13 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class SnykHttpRequestBuilder {
   HashMap<String, String> queryParams = new HashMap<>();
   Optional<String> path = Optional.empty();
-  Optional<Snyk.Config> config = Optional.empty();
+  Optional<SnykConfig> config = Optional.empty();
 
-  private SnykHttpRequestBuilder(Snyk.Config config) {
+  private SnykHttpRequestBuilder(SnykConfig config) {
     this.config = Optional.of(config);
   }
 
-  public static SnykHttpRequestBuilder create(Snyk.Config config) {
+  public static SnykHttpRequestBuilder create(SnykConfig config) {
     return new SnykHttpRequestBuilder(config);
   }
 

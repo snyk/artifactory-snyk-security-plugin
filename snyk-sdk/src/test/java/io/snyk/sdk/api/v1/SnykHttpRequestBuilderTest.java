@@ -1,6 +1,6 @@
 package io.snyk.sdk.api.v1;
 
-import io.snyk.sdk.Snyk;
+import io.snyk.sdk.SnykConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -8,13 +8,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SnykHttpRequestBuilderTest {
-  String defaultBaseUrl = "https://snyk.io/api/v1/";
-  String defaultToken = "123";
-  String defaultUserAgent = "Snyk SDK";
 
   @Test
   void testBaseUrlAndPath() {
-    Snyk.Config configWithDefaultBaseUrl = new Snyk.Config(defaultBaseUrl, defaultToken, defaultUserAgent, false, null);
+    SnykConfig configWithDefaultBaseUrl = SnykConfig.withDefaults();
 
     assertEquals(SnykHttpRequestBuilder.create(configWithDefaultBaseUrl)
         .build()
@@ -22,7 +19,7 @@ public class SnykHttpRequestBuilderTest {
       "https://snyk.io/api/v1/");
 
     String otherBaseUrl = "https://other-host/some-prefix/";
-    Snyk.Config configWithDifferentBaseUrl = new Snyk.Config(otherBaseUrl, defaultToken, defaultUserAgent, false, null);
+    SnykConfig configWithDifferentBaseUrl = SnykConfig.newBuilder().setBaseUrl(otherBaseUrl).build();
 
     assertEquals("https://other-host/some-prefix/some/endpoint",
       SnykHttpRequestBuilder.create(configWithDifferentBaseUrl)
@@ -35,7 +32,7 @@ public class SnykHttpRequestBuilderTest {
 
   @Test
   void testQueryStringParams() {
-    Snyk.Config config = new Snyk.Config(defaultBaseUrl, defaultToken, defaultUserAgent, false, null);
+    SnykConfig config = SnykConfig.withDefaults();
 
     assertEquals("https://snyk.io/api/v1/some/endpoint?org=abc123",
       SnykHttpRequestBuilder.create(config)

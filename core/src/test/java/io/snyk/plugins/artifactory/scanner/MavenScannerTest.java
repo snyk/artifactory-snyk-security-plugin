@@ -2,7 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
-import io.snyk.sdk.Snyk;
+import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 public class MavenScannerTest {
   @Test
   void shouldTestMavenPackage() throws Exception {
-    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -51,7 +51,7 @@ public class MavenScannerTest {
 
   @Test
   void shouldNotTestMavenPackage_WhenGroupIDNotProvided() throws Exception {
-    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -73,7 +73,7 @@ public class MavenScannerTest {
 
   @Test
   void shouldNotTestMavenPackage_WhenArtifactIDNotProvided() throws Exception {
-    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -95,7 +95,7 @@ public class MavenScannerTest {
 
   @Test
   void shouldNotTestMavenPackage_WhenArtifactVersionNotProvided() throws Exception {
-    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");

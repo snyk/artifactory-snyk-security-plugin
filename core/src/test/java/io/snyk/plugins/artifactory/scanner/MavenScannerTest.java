@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
@@ -21,7 +22,10 @@ import static org.mockito.Mockito.when;
 public class MavenScannerTest {
   @Test
   void shouldTestMavenPackage() throws Exception {
-    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
+    SnykConfig config = SnykConfig.newBuilder()
+      .setTimeout(Duration.ofMillis(60_000))
+      .setToken(System.getenv("TEST_SNYK_TOKEN"))
+      .build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -51,7 +55,10 @@ public class MavenScannerTest {
 
   @Test
   void shouldNotTestMavenPackage_WhenGroupIDNotProvided() throws Exception {
-    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
+    SnykConfig config = SnykConfig.newBuilder()
+      .setTimeout(Duration.ofMillis(60_000))
+      .setToken(System.getenv("TEST_SNYK_TOKEN"))
+      .build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -73,7 +80,10 @@ public class MavenScannerTest {
 
   @Test
   void shouldNotTestMavenPackage_WhenArtifactIDNotProvided() throws Exception {
-    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
+    SnykConfig config = SnykConfig.newBuilder()
+      .setTimeout(Duration.ofMillis(60_000))
+      .setToken(System.getenv("TEST_SNYK_TOKEN"))
+      .build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -95,7 +105,10 @@ public class MavenScannerTest {
 
   @Test
   void shouldNotTestMavenPackage_WhenArtifactVersionNotProvided() throws Exception {
-    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
+    SnykConfig config = SnykConfig.newBuilder()
+      .setTimeout(Duration.ofMillis(60_000))
+      .setToken(System.getenv("TEST_SNYK_TOKEN"))
+      .build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");

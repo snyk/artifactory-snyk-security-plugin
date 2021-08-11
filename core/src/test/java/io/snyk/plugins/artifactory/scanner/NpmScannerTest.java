@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
@@ -20,7 +21,10 @@ import static org.mockito.Mockito.when;
 public class NpmScannerTest {
   @Test
   void shouldTestNpmPackage() throws Exception {
-    SnykConfig config = SnykConfig.newBuilder().setToken(System.getenv("TEST_SNYK_TOKEN")).build();
+    SnykConfig config = SnykConfig.newBuilder()
+      .setToken(System.getenv("TEST_SNYK_TOKEN"))
+      .setTimeout(Duration.ofMillis(60_000))
+      .build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");

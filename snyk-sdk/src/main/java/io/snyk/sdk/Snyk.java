@@ -1,5 +1,7 @@
 package io.snyk.sdk;
 
+import java.time.Duration;
+
 public class Snyk {
   private static final String DEFAULT_BASE_URL = "https://snyk.io/api/v1/";
   private static final String DEFAULT_USER_AGENT = "snyk-sdk-java";
@@ -12,6 +14,7 @@ public class Snyk {
     public String sslCertificatePath;
     public String httpProxyHost;
     public Integer httpProxyPort;
+    public Duration timeout;
 
     public Config(String token) {
       this(DEFAULT_BASE_URL, token);
@@ -30,10 +33,10 @@ public class Snyk {
     }
 
     public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates, String sslCertificatePath) {
-      this(baseUrl, token, userAgent, trustAllCertificates, sslCertificatePath, "", 8080);
+      this(baseUrl, token, userAgent, trustAllCertificates, sslCertificatePath, "", 8080, Duration.ofMillis(60_000));
     }
 
-    public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates, String sslCertificatePath, String httpProxyHost, Integer httpProxyPort) {
+    public Config(String baseUrl, String token, String userAgent, boolean trustAllCertificates, String sslCertificatePath, String httpProxyHost, Integer httpProxyPort, Duration timeout) {
       this.baseUrl = baseUrl;
       this.token = token;
       this.userAgent = userAgent;
@@ -41,6 +44,7 @@ public class Snyk {
       this.sslCertificatePath = sslCertificatePath;
       this.httpProxyHost = httpProxyHost;
       this.httpProxyPort = httpProxyPort;
+      this.timeout = timeout;
     }
   }
 }

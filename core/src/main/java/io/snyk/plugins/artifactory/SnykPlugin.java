@@ -1,10 +1,5 @@
 package io.snyk.plugins.artifactory;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.Optional;
-import java.util.Properties;
-
 import io.snyk.plugins.artifactory.audit.AuditModule;
 import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
@@ -24,17 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.time.Duration;
+import java.util.Optional;
 import java.util.Properties;
 
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_SSL_CERTIFICATE_PATH;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
-import static java.lang.String.format;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TRUST_ALL_CERTIFICATES;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.HTTP_PROXY_HOST;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.HTTP_PROXY_PORT;
 
 public class SnykPlugin {
 
@@ -145,8 +134,9 @@ public class SnykPlugin {
     String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
     String httpProxyHost = configurationModule.getPropertyOrDefault(HTTP_PROXY_HOST);
     Integer httpProxyPort = Integer.parseInt(configurationModule.getPropertyOrDefault(HTTP_PROXY_PORT));
+    Duration timeout = Duration.ofMillis(Integer.parseInt(configurationModule.getPropertyOrDefault(API_TIMEOUT)));
 
-    var config = new Snyk.Config(baseUrl, token, API_USER_AGENT + pluginVersion, trustAllCertificates, sslCertificatePath, httpProxyHost, httpProxyPort);
+    var config = new Snyk.Config(baseUrl, token, API_USER_AGENT + pluginVersion, trustAllCertificates, sslCertificatePath, httpProxyHost, httpProxyPort, timeout);
     LOG.debug("about to log config...");
     LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
     LOG.debug("config.httpProxyPort: " + config.httpProxyPort);

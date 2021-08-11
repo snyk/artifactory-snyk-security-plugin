@@ -11,7 +11,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -35,7 +34,7 @@ public class SnykClient {
 
     var builder = HttpClient.newBuilder()
       .version(HttpClient.Version.HTTP_1_1)
-      .connectTimeout(Duration.ofSeconds(10));
+      .connectTimeout(config.timeout);
 
     if (config.trustAllCertificates) {
       SSLContext sslContext = SSLContext.getInstance("TLS");

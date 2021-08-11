@@ -62,7 +62,8 @@ public class SnykHttpRequestBuilder {
 
     var reqBuilder = HttpRequest.newBuilder()
       .GET()
-      .uri(URI.create(apiUrl));
+      .uri(URI.create(apiUrl))
+      .timeout(definedConfig.timeout);
 
     String authHeaderValue = String.format("token %s", definedConfig.token);
     reqBuilder.setHeader("Authorization", authHeaderValue);

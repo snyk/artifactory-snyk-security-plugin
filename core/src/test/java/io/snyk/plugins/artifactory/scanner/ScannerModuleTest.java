@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
@@ -14,8 +15,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.annotation.Nonnull;
+import java.net.http.HttpConnectTimeoutException;
 import java.time.Duration;
 import java.util.Properties;
+import java.util.function.Function;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,12 +63,21 @@ public class ScannerModuleTest {
     assertTrue(sm.getScannerForPackageType("unknown").isEmpty());
   }
 
-
   ScanTestSetup createScannerSpyModuleForTest(FileLayoutInfo fileLayoutInfo) throws Exception {
-    SnykConfig config = SnykConfig.newBuilder()
-      .setTimeout(Duration.ofMillis(60_000))
-      .setToken(System.getenv("TEST_SNYK_TOKEN"))
+    return createScannerSpyModuleForTest(fileLayoutInfo, Function.identity());
+  }
+
+  ScanTestSetup createScannerSpyModuleForTest(
+    FileLayoutInfo fileLayoutInfo,
+    Function<SnykConfig.Builder, SnykConfig.Builder> customiseBuilder
+  ) throws Exception {
+    SnykConfig config = customiseBuilder.apply(
+        SnykConfig.newBuilder()
+        .setTimeout(Duration.ofMillis(60_000))
+        .setToken(System.getenv("TEST_SNYK_TOKEN"))
+      )
       .build();
+
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
@@ -98,6 +110,29 @@ public class ScannerModuleTest {
       this.scannerModule = scannerModule;
       this.repoPath = repoPath;
       this.org = org;
+    }
+  }
+
+  @Test
+  void shouldUseConfiguredTimeoutForAPIRequests() throws Exception {
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn("minimist");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.5");
+
+    ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo, config -> config.setTimeout(Duration.ofMillis(1)));
+    ScannerModule spyScanner = testSetup.scannerModule;
+    RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.tgz");
+    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.5.tgz");
+
+    // Using try-catch as assertThrows does not let us check the cause.
+    try {
+      spyScanner.scanArtifact(repoPath);
+      fail("Expected SnykAPIFailureException for timeout but no exception was thrown.");
+    } catch (SnykAPIFailureException e) {
+      Throwable cause = e.getCause();
+      assertEquals(HttpConnectTimeoutException.class, cause.getClass());
+      assertEquals("HTTP connect timed out", cause.getMessage());
     }
   }
 

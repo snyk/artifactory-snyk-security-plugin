@@ -11,14 +11,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import io.snyk.sdk.Snyk;
+import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;
@@ -26,16 +25,15 @@ import io.snyk.sdk.model.TestResult;
 public class SnykClient {
   private static final Logger LOG = LoggerFactory.getLogger(SnykClient.class);
 
-  private Snyk.Config config;
+  private final SnykConfig config;
+  private final HttpClient httpClient;
 
-  private HttpClient httpClient;
-
-  public SnykClient(Snyk.Config config) throws Exception {
+  public SnykClient(SnykConfig config) throws Exception {
     this.config = config;
 
     var builder = HttpClient.newBuilder()
       .version(HttpClient.Version.HTTP_1_1)
-      .connectTimeout(Duration.ofSeconds(10));
+      .connectTimeout(config.timeout);
 
     if (config.trustAllCertificates) {
       SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -76,8 +74,8 @@ public class SnykClient {
         URLEncoder.encode(artifactId, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
-      .withOptionalQueryParam("repository", repository)
+      .withQueryParam("org", organisation)
+      .withQueryParam("repository", repository)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -90,7 +88,7 @@ public class SnykClient {
         URLEncoder.encode(packageName, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
+      .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -103,7 +101,7 @@ public class SnykClient {
         URLEncoder.encode(gemName, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
+      .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -116,7 +114,7 @@ public class SnykClient {
         URLEncoder.encode(packageName, UTF_8),
         URLEncoder.encode(version, UTF_8)
       ))
-      .withOptionalQueryParam("org", organisation)
+      .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);

@@ -1,7 +1,8 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
-import io.snyk.sdk.Snyk;
+import io.snyk.plugins.artifactory.util.SnykConfigForTests;
+import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.when;
 public class NpmScannerTest {
   @Test
   void shouldTestNpmPackage() throws Exception {
-    Snyk.Config config = new Snyk.Config(System.getenv("TEST_SNYK_TOKEN"));
+    SnykConfig config = SnykConfigForTests.withDefaults();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");

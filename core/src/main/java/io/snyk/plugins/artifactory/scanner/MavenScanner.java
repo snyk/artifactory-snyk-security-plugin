@@ -54,8 +54,6 @@ class MavenScanner implements PackageScanner {
       throw new SnykAPIFailureException(e);
     }
 
-    result.responseAsText.ifPresent(r -> LOG.debug("testMaven response: {}", r));
-
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
     testResult.packageDetailsURL = getArtifactDetailsURL(groupID, artifactID, artifactVersion);
     return testResult;

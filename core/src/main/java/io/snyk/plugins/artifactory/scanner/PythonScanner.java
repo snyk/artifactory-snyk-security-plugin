@@ -75,8 +75,6 @@ class PythonScanner implements PackageScanner {
       throw new SnykAPIFailureException(e);
     }
 
-    result.responseAsText.ifPresent(r -> LOG.debug("testPip response: {}", r));
-
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
     testResult.packageDetailsURL = getModuleDetailsURL(details);
     return testResult;

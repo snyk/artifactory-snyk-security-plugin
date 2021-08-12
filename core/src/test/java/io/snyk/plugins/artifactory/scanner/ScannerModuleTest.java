@@ -2,6 +2,7 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
+import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.TestResult;
@@ -71,13 +72,7 @@ public class ScannerModuleTest {
     FileLayoutInfo fileLayoutInfo,
     Function<SnykConfig.Builder, SnykConfig.Builder> customiseBuilder
   ) throws Exception {
-    SnykConfig config = customiseBuilder.apply(
-        SnykConfig.newBuilder()
-        .setTimeout(Duration.ofMillis(60_000))
-        .setToken(System.getenv("TEST_SNYK_TOKEN"))
-      )
-      .build();
-
+    SnykConfig config = customiseBuilder.apply(SnykConfigForTests.newBuilder()).build();
     Properties properties = new Properties();
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");

@@ -93,10 +93,10 @@ public class SnykPlugin {
 
       String message = format("Artifact scan failed. %s %s", causeMessage, repoPath);
       if ("true".equals(blockOnApiFailure)) {
+        LOG.debug("Blocking download. Plugin Property \"{}\" is \"true\". {}", blockOnApiFailurePropertyKey, repoPath);
         throw new CancelException(message, 500);
       }
       LOG.debug(message);
-      LOG.debug("Allowing download. Plugin Property \"{}\" is not \"true\". {}", blockOnApiFailurePropertyKey, repoPath);
     }
   }
 

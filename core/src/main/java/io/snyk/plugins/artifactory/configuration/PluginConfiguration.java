@@ -13,7 +13,7 @@ public enum PluginConfiguration implements Configuration {
   HTTP_PROXY_PORT("snyk.http.proxyPort", "80"),
 
   // scanner module
-  SCANNER_BLOCK_ON_API_FAILURE("snyk.scanner.block-on-api-failure", "true"),
+  SCANNER_BLOCK_ON_API_FAILURE("snyk.scanner.block-on-api-failure", "false"),
   SCANNER_VULNERABILITY_THRESHOLD("snyk.scanner.vulnerability.threshold", "low"),
   SCANNER_LICENSE_THRESHOLD("snyk.scanner.license.threshold", "low"),
   SCANNER_PACKAGE_TYPE_MAVEN("snyk.scanner.packageType.maven", "true"),

@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
+import static java.lang.String.format;
 
 public class SnykPlugin {
 
@@ -81,21 +82,21 @@ public class SnykPlugin {
     try {
       scannerModule.scanArtifact(repoPath);
     } catch (CannotScanException e) {
-      LOG.debug("Artifact cannot be scanned {}. {}", repoPath, e.getMessage());
+      LOG.debug("Artifact cannot be scanned. {} {}", e.getMessage(), repoPath);
     } catch (SnykAPIFailureException e) {
       final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
       final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
       final String causeMessage = Optional.ofNullable(e.getCause())
         .map(Throwable::getMessage)
-        .map(m -> " " + m)
-        .orElse("");
+        .map(m -> e.getMessage() + " " + m)
+        .orElseGet(e::getMessage);
 
-      String message = "Failed to scan artifact '" + repoPath + "'. " + e.getMessage() + causeMessage;
+      String message = format("Artifact scan failed. %s %s", causeMessage, repoPath);
       if ("true".equals(blockOnApiFailure)) {
+        LOG.debug("Blocking download. Plugin Property \"{}\" is \"true\". {}", blockOnApiFailurePropertyKey, repoPath);
         throw new CancelException(message, 500);
       }
       LOG.debug(message);
-      LOG.debug("Property '{}' is false, so allowing download: '{}'", blockOnApiFailurePropertyKey, repoPath);
     }
   }
 
@@ -103,10 +104,10 @@ public class SnykPlugin {
     try {
       configurationModule.validate();
     } catch (Exception ex) {
-      throw new SnykRuntimeException("Snyk plugin configuration is not valid!", ex);
+      throw new SnykRuntimeException("Snyk Plugin Configuration is not valid!", ex);
     }
 
-    LOG.debug("Snyk plugin configuration:");
+    LOG.debug("Snyk Plugin Configuration:");
     configurationModule.getPropertyEntries().stream()
                        .filter(entry -> !API_TOKEN.propertyKey().equals(entry.getKey()))
                        .filter(entry -> !API_ORGANIZATION.propertyKey().equals(entry.getKey()))
@@ -160,9 +161,9 @@ public class SnykPlugin {
     } else {
       LOG.warn("Snyk token check unsuccessful - response status code {}", res.statusCode);
       if (res.statusCode == 401) {
-        throw new SnykRuntimeException("Invalid 'snyk.api.token' provided");
+        throw new SnykRuntimeException(format("%s is not valid.", API_TOKEN.propertyKey()));
       } else {
-        throw new SnykRuntimeException("Error verifying Snyk token");
+        throw new SnykRuntimeException(format("%s could not be verified.", API_TOKEN.propertyKey()));
       }
     }
 

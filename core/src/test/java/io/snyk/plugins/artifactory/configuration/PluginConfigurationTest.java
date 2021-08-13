@@ -20,7 +20,7 @@ class PluginConfigurationTest {
   void checkDefaultValues() {
     assertAll("should be not empty",
               () -> assertEquals("https://snyk.io/api/v1/", API_URL.defaultValue(), getAssertionMessage(API_URL, "default value must be 'https://snyk.io/api/v1/'")),
-              () -> assertEquals("true", SCANNER_BLOCK_ON_API_FAILURE.defaultValue(), getAssertionMessage(SCANNER_BLOCK_ON_API_FAILURE, "default value must be 'true'")),
+              () -> assertEquals("false", SCANNER_BLOCK_ON_API_FAILURE.defaultValue(), getAssertionMessage(SCANNER_BLOCK_ON_API_FAILURE, "default value must be 'false'")),
               () -> assertEquals("low", SCANNER_VULNERABILITY_THRESHOLD.defaultValue(), getAssertionMessage(SCANNER_VULNERABILITY_THRESHOLD, "default value must be 'low'")),
               () -> assertEquals("low", SCANNER_LICENSE_THRESHOLD.defaultValue(), getAssertionMessage(SCANNER_LICENSE_THRESHOLD, "default value must be 'low'"))
     );

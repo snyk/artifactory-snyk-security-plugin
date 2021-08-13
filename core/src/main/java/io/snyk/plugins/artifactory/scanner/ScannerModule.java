@@ -62,21 +62,21 @@ public class ScannerModule {
       if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_MAVEN).equals("true")) {
         return mavenScanner;
       }
-      throw new CannotScanException("Maven repository scanning is disabled by user configuration.");
+      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", SCANNER_PACKAGE_TYPE_MAVEN.propertyKey()));
     }
 
     if (path.endsWith(".tgz")) {
       if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_NPM).equals("true")) {
         return npmScanner;
       }
-      throw new CannotScanException("npm repository scanning is disabled by user configuration.");
+      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", SCANNER_PACKAGE_TYPE_NPM.propertyKey()));
     }
 
     if (path.endsWith(".whl") || path.endsWith(".tar.gz") || path.endsWith(".zip") || path.endsWith(".egg")) {
       if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_PYPI).equals("true")) {
         return pythonScanner;
       }
-      throw new CannotScanException("PyPi repository scanning is disabled by user configuration.");
+      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", SCANNER_PACKAGE_TYPE_PYPI.propertyKey()));
     }
 
     throw new CannotScanException("Artifact is not supported.");
@@ -126,35 +126,35 @@ public class ScannerModule {
     final String vulnerabilitiesForceDownload = repositories.getProperty(repoPath, vulnerabilitiesForceDownloadProperty);
     final boolean forceDownload = "true".equalsIgnoreCase(vulnerabilitiesForceDownload);
     if (forceDownload) {
-      LOG.info("Property '{}' is true, so we allow to download artifact: {}", vulnerabilitiesForceDownloadProperty, repoPath);
+      LOG.debug("Allowing download. Artifact Property \"{}\" is \"true\". {}", vulnerabilitiesForceDownloadProperty, repoPath);
       return;
     }
 
     Severity vulnerabilityThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
     if (vulnerabilityThreshold == Severity.LOW) {
       if (!testResult.issues.vulnerabilities.isEmpty()) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities", repoPath), 403);
+        throw new CancelException(format("Artifact has vulnerabilities. %s", repoPath), 403);
       }
     } else if (vulnerabilityThreshold == Severity.MEDIUM) {
       long count = testResult.issues.vulnerabilities.stream()
         .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity medium or high or critical", repoPath), 403);
+        throw new CancelException(format("Artifact has vulnerabilities with medium, high or critical severity. %s", repoPath), 403);
       }
     } else if (vulnerabilityThreshold == Severity.HIGH) {
       long count = testResult.issues.vulnerabilities.stream()
         .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity high or critical", repoPath), 403);
+        throw new CancelException(format("Artifact has vulnerabilities with high or critical severity. %s", repoPath), 403);
       }
     } else if (vulnerabilityThreshold == Severity.CRITICAL) {
       long count = testResult.issues.vulnerabilities.stream()
         .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities with severity critical", repoPath), 403);
+        throw new CancelException(format("Artifact has vulnerabilities with critical severity. %s", repoPath), 403);
       }
     }
   }
@@ -164,28 +164,28 @@ public class ScannerModule {
     final String licensesForceDownload = repositories.getProperty(repoPath, licensesForceDownloadProperty);
     final boolean forceDownload = "true".equalsIgnoreCase(licensesForceDownload);
     if (forceDownload) {
-      LOG.info("Property '{}' is true, so we allow to download artifact: {}", licensesForceDownloadProperty, repoPath);
+      LOG.debug("Allowing download. Artifact Property \"{}\" is \"true\". {}", repoPath, licensesForceDownloadProperty);
       return;
     }
 
     Severity licensesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));
     if (licensesThreshold == Severity.LOW) {
       if (!testResult.issues.licenses.isEmpty()) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses')", repoPath), 403);
+        throw new CancelException(format("Artifact has license issues. %s", repoPath), 403);
       }
     } else if (licensesThreshold == Severity.MEDIUM) {
       long count = testResult.issues.licenses.stream()
         .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses') with severity medium or high", repoPath), 403);
+        throw new CancelException(format("Artifact has license issues with medium or high severity. %s", repoPath), 403);
       }
     } else if (licensesThreshold == Severity.HIGH) {
       long count = testResult.issues.licenses.stream()
         .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact '%s' has vulnerabilities (type 'licenses') with severity high", repoPath), 403);
+        throw new CancelException(format("Artifact has license issues with high severity. %s", repoPath), 403);
       }
     }
   }

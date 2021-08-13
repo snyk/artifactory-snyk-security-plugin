@@ -32,6 +32,10 @@ public class ScannerModuleTest {
   @Test
   void testGetScannerForPackageType() {
     Properties properties = new Properties();
+    properties.put(SCANNER_PACKAGE_TYPE_MAVEN.propertyKey(), "true");
+    properties.put(SCANNER_PACKAGE_TYPE_NPM.propertyKey(), "true");
+    properties.put(SCANNER_PACKAGE_TYPE_PYPI.propertyKey(), "true");
+
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
     ScannerModule sm = new ScannerModule(
@@ -77,6 +81,10 @@ public class ScannerModuleTest {
   ) throws Exception {
     SnykConfig config = customiseBuilder.apply(SnykConfigForTests.newBuilder()).build();
     Properties properties = new Properties();
+    properties.put(SCANNER_PACKAGE_TYPE_MAVEN.propertyKey(), "true");
+    properties.put(SCANNER_PACKAGE_TYPE_NPM.propertyKey(), "true");
+    properties.put(SCANNER_PACKAGE_TYPE_PYPI.propertyKey(), "true");
+
     @Nonnull String org = System.getenv("TEST_SNYK_ORG");
     Assertions.assertNotNull(org, "must not be null for test");
 

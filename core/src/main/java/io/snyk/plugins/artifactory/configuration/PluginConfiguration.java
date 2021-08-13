@@ -18,7 +18,7 @@ public enum PluginConfiguration implements Configuration {
   SCANNER_LICENSE_THRESHOLD("snyk.scanner.license.threshold", "low"),
   SCANNER_PACKAGE_TYPE_MAVEN("snyk.scanner.packageType.maven", "true"),
   SCANNER_PACKAGE_TYPE_NPM("snyk.scanner.packageType.npm", "true"),
-  SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "true");
+  SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "false");
 
   private final String propertyKey;
   private final String defaultValue;

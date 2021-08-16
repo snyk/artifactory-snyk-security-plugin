@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,6 +90,7 @@ public class ScannerModule {
     repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getSeverityCountsAsFormattedString(vulnCounts));
     repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getSeverityCountsAsFormattedString(licenseCounts));
     repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
+    repositories.setProperty(repoPath, ISSUE_UPDATED_AT.propertyKey(), Instant.now().toString());
 
     setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
     setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");

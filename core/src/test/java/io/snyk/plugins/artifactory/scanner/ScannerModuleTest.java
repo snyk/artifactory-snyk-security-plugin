@@ -24,6 +24,7 @@ import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_PACKAGE_TYPE_PYPI;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.*;
 
 public class ScannerModuleTest {
@@ -163,6 +164,8 @@ public class ScannerModuleTest {
       .setProperty(repoPath, ISSUE_LICENSES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
     verify(testSetup.repositories)
       .setProperty(repoPath, ISSUE_URL.propertyKey(), "https://snyk.io/test/npm/minimist/1.2.5");
+    verify(testSetup.repositories)
+      .setProperty(eq(repoPath), eq(ISSUE_UPDATED_AT.propertyKey()), matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{6}Z"));
   }
 
   @Test

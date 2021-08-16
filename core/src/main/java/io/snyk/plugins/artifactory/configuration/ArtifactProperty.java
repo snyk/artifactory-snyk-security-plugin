@@ -7,7 +7,8 @@ public enum ArtifactProperty {
   ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO("snyk.issue.vulnerabilities.forceDownload.info"),
   ISSUE_LICENSES("snyk.issue.licenses"),
   ISSUE_LICENSES_FORCE_DOWNLOAD("snyk.issue.licenses.forceDownload"),
-  ISSUE_LICENSES_FORCE_DOWNLOAD_INFO("snyk.issue.licenses.forceDownload.info");
+  ISSUE_LICENSES_FORCE_DOWNLOAD_INFO("snyk.issue.licenses.forceDownload.info"),
+  ISSUE_UPDATED_AT("snyk.issue.updatedAt");
 
   private final String propertyKey;
 

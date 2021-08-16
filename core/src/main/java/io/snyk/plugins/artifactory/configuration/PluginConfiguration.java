@@ -14,6 +14,7 @@ public enum PluginConfiguration implements Configuration {
 
   // scanner module
   SCANNER_BLOCK_ON_API_FAILURE("snyk.scanner.block-on-api-failure", "false"),
+  SCANNER_CACHE_DURATION("snyk.scanner.cache.duration", "86400000"),
   SCANNER_VULNERABILITY_THRESHOLD("snyk.scanner.vulnerability.threshold", "low"),
   SCANNER_LICENSE_THRESHOLD("snyk.scanner.license.threshold", "low"),
   SCANNER_PACKAGE_TYPE_MAVEN("snyk.scanner.packageType.maven", "true"),

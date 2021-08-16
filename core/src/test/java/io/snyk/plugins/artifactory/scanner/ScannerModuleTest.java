@@ -17,6 +17,8 @@ import org.mockito.Mockito;
 import javax.annotation.Nonnull;
 import java.net.http.HttpConnectTimeoutException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Properties;
 import java.util.function.Function;
 
@@ -101,7 +103,8 @@ public class ScannerModuleTest {
     ScannerModule scanner = new ScannerModule(
       configurationModule,
       repositories,
-      snykClient);
+      snykClient
+    );
 
     ScannerModule scannerSpy = Mockito.spy(scanner);
     return new ScanTestSetup(scannerSpy, repoPath, org, repositories);
@@ -142,6 +145,50 @@ public class ScannerModuleTest {
       assertEquals(HttpConnectTimeoutException.class, cause.getClass());
       assertEquals("HTTP connect timed out", cause.getMessage());
     }
+  }
+
+  @Test
+  void shouldHitCache() throws Exception {
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn("minimist");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.5");
+
+    ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
+    ScannerModule spyScanner = testSetup.scannerModule;
+
+    RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.tgz");
+    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.5.tgz");
+
+    Repositories repositories = testSetup.repositories;
+    when(repositories.getProperty(repoPath, ISSUE_UPDATED_AT.propertyKey())).thenReturn(Instant.now().toString());
+    when(repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey())).thenReturn("1 critical, 0 high, 0 medium, 0 low");
+    when(repositories.getProperty(repoPath, ISSUE_LICENSES.propertyKey())).thenReturn("0 critical, 0 high, 0 medium, 0 low");
+
+    assertThrows(CancelException.class, () -> spyScanner.scanArtifact(repoPath));
+    verify(testSetup.repositories, never()).setProperty(eq(repoPath), anyString(), anyString());
+  }
+
+  @Test
+  void shouldMissCache_whenCacheIsStale() throws Exception {
+    FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
+    when(fileLayoutInfo.getModule()).thenReturn("minimist");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.5");
+
+    ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
+    ScannerModule spyScanner = testSetup.scannerModule;
+
+    RepoPath repoPath = testSetup.repoPath;
+    when(repoPath.getPath()).thenReturn("myArtifact.tgz");
+    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.5.tgz");
+
+    Repositories repositories = testSetup.repositories;
+    when(repositories.getProperty(repoPath, ISSUE_UPDATED_AT.propertyKey())).thenReturn(Instant.now().minus(2, ChronoUnit.DAYS).toString());
+    when(repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey())).thenReturn("1 critical, 0 high, 0 medium, 0 low");
+    when(repositories.getProperty(repoPath, ISSUE_LICENSES.propertyKey())).thenReturn("0 critical, 0 high, 0 medium, 0 low");
+
+    spyScanner.scanArtifact(repoPath);
+    verify(testSetup.repositories, atLeastOnce()).setProperty(eq(repoPath), anyString(), anyString());
   }
 
   @Test

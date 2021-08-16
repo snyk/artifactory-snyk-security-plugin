@@ -46,13 +46,49 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
+    try {
+      cachedScan(repoPath);
+    } catch (CancelException e) {
+      throw e;
+    } catch (Exception e) {
+      LOG.debug("Cache miss. {} {}", e.getMessage(), repoPath);
+      realScan(repoPath);
+    }
+  }
+
+  private void cachedScan(RepoPath repoPath) {
+    String updatedAtValue = Optional.ofNullable(repositories.getProperty(repoPath, ISSUE_UPDATED_AT.propertyKey()))
+      .orElseThrow(() -> new RuntimeException(format("Artifact Property \"%s\" not set.", ISSUE_UPDATED_AT.propertyKey())));
+
+    Instant updatedAt = Instant.parse(updatedAtValue);
+    long cacheDuration = Long.parseLong(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_CACHE_DURATION));
+    Instant expiryThreshold = Instant.now().minusMillis(cacheDuration);
+    boolean expired = updatedAt.isBefore(expiryThreshold);
+    if (expired) {
+      throw new RuntimeException("Previous scan is stale.");
+    }
+
+    String vulnValue = Optional.ofNullable(repositories.getProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey()))
+      .orElseThrow(() -> new RuntimeException(format("Artifact Property \"%s\" not set.", ISSUE_VULNERABILITIES.propertyKey())));
+    String licenseValue = Optional.ofNullable(repositories.getProperty(repoPath, ISSUE_LICENSES.propertyKey()))
+      .orElseThrow(() -> new RuntimeException(format("Artifact Property \"%s\" not set.", ISSUE_LICENSES.propertyKey())));
+
+    Map<Severity, Long> vulnCounts = getSeverityCounts(vulnValue);
+    Map<Severity, Long> licenseCounts = getSeverityCounts(licenseValue);
+
+    LOG.debug("Cache hit. {}", repoPath);
+    validateVulnerabilityIssues(vulnCounts, repoPath);
+    validateLicenseIssues(licenseCounts, repoPath);
+  }
+
+  private void realScan(RepoPath repoPath) {
     String path = Optional.ofNullable(repoPath.getPath())
       .orElseThrow(() -> new CannotScanException("Path not provided."));
 
     PackageScanner scanner = getScannerForPackageType(path);
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
-
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
+
     Map<Severity, Long> vulnCounts = getSeverityCounts(testResult.issues.vulnerabilities);
     Map<Severity, Long> licenseCounts = getSeverityCounts(testResult.issues.licenses);
 
@@ -125,6 +161,15 @@ public class ScannerModule {
       .filter(issue -> issue.severity == severity)
       .filter(distinctByKey(issue -> issue.id))
       .count();
+  }
+
+  private Map<Severity, Long> getSeverityCounts(String formattedString) {
+    return Arrays.stream(formattedString.split(", "))
+      .map(severityWithCount -> severityWithCount.split(" "))
+      .collect(Collectors.toMap(
+        severityCountPair -> Severity.of(severityCountPair[1]),
+        severityCountPair -> Long.parseLong(severityCountPair[0])
+      ));
   }
 
   private void validateVulnerabilityIssues(Map<Severity, Long> counts, RepoPath repoPath) {

@@ -122,70 +122,57 @@ public class ScannerModule {
   }
 
   protected void validateVulnerabilityIssues(TestResult testResult, RepoPath repoPath) {
-    final String vulnerabilitiesForceDownloadProperty = ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey();
-    final String vulnerabilitiesForceDownload = repositories.getProperty(repoPath, vulnerabilitiesForceDownloadProperty);
-    final boolean forceDownload = "true".equalsIgnoreCase(vulnerabilitiesForceDownload);
-    if (forceDownload) {
-      LOG.debug("Allowing download. Artifact Property \"{}\" is \"true\". {}", vulnerabilitiesForceDownloadProperty, repoPath);
-      return;
-    }
-
-    Severity vulnerabilityThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
-    if (vulnerabilityThreshold == Severity.LOW) {
-      if (!testResult.issues.vulnerabilities.isEmpty()) {
-        throw new CancelException(format("Artifact has vulnerabilities. %s", repoPath), 403);
-      }
-    } else if (vulnerabilityThreshold == Severity.MEDIUM) {
-      long count = testResult.issues.vulnerabilities.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
-        .count();
-      if (count > 0) {
-        throw new CancelException(format("Artifact has vulnerabilities with medium, high or critical severity. %s", repoPath), 403);
-      }
-    } else if (vulnerabilityThreshold == Severity.HIGH) {
-      long count = testResult.issues.vulnerabilities.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
-        .count();
-      if (count > 0) {
-        throw new CancelException(format("Artifact has vulnerabilities with high or critical severity. %s", repoPath), 403);
-      }
-    } else if (vulnerabilityThreshold == Severity.CRITICAL) {
-      long count = testResult.issues.vulnerabilities.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
-        .count();
-      if (count > 0) {
-        throw new CancelException(format("Artifact has vulnerabilities with critical severity. %s", repoPath), 403);
-      }
-    }
+    validateIssues(
+      testResult.issues.vulnerabilities,
+      Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD)),
+      ISSUE_VULNERABILITIES_FORCE_DOWNLOAD,
+      "vulnerabilities",
+      repoPath
+    );
   }
 
   protected void validateLicenseIssues(TestResult testResult, RepoPath repoPath) {
-    final String licensesForceDownloadProperty = ISSUE_LICENSES_FORCE_DOWNLOAD.propertyKey();
-    final String licensesForceDownload = repositories.getProperty(repoPath, licensesForceDownloadProperty);
-    final boolean forceDownload = "true".equalsIgnoreCase(licensesForceDownload);
-    if (forceDownload) {
-      LOG.debug("Allowing download. Artifact Property \"{}\" is \"true\". {}", repoPath, licensesForceDownloadProperty);
+    validateIssues(
+      testResult.issues.licenses,
+      Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LICENSE_THRESHOLD)),
+      ISSUE_LICENSES_FORCE_DOWNLOAD,
+      "license issues",
+      repoPath
+    );
+  }
+
+  private void validateIssues(List<? extends Issue> issues, Severity threshold, ArtifactProperty forceDownloadProperty, String type, RepoPath repoPath) {
+    final String forceDownloadKey = forceDownloadProperty.propertyKey();
+    final String forceDownloadValue = repositories.getProperty(repoPath, forceDownloadKey);
+    if ("true".equalsIgnoreCase(forceDownloadValue)) {
+      LOG.debug("Allowing download. Artifact Property \"{}\" is \"true\". {}", repoPath, forceDownloadKey);
       return;
     }
 
-    Severity licensesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));
-    if (licensesThreshold == Severity.LOW) {
-      if (!testResult.issues.licenses.isEmpty()) {
-        throw new CancelException(format("Artifact has license issues. %s", repoPath), 403);
+    if (threshold == Severity.LOW) {
+      if (!issues.isEmpty()) {
+        throw new CancelException(format("Artifact has %s. %s", type, repoPath), 403);
       }
-    } else if (licensesThreshold == Severity.MEDIUM) {
-      long count = testResult.issues.licenses.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH)
+    } else if (threshold == Severity.MEDIUM) {
+      long count = issues.stream()
+        .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact has license issues with medium or high severity. %s", repoPath), 403);
+        throw new CancelException(format("Artifact has %s with medium, high or critical severity. %s", type, repoPath), 403);
       }
-    } else if (licensesThreshold == Severity.HIGH) {
-      long count = testResult.issues.licenses.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.HIGH)
+    } else if (threshold == Severity.HIGH) {
+      long count = issues.stream()
+        .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
         .count();
       if (count > 0) {
-        throw new CancelException(format("Artifact has license issues with high severity. %s", repoPath), 403);
+        throw new CancelException(format("Artifact has %s with high or critical severity. %s", type, repoPath), 403);
+      }
+    } else if (threshold == Severity.CRITICAL) {
+      long count = issues.stream()
+        .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
+        .count();
+      if (count > 0) {
+        throw new CancelException(format("Artifact has %s with critical severity. %s", type, repoPath), 403);
       }
     }
   }

@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
@@ -52,9 +52,12 @@ public class ScannerModule {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
 
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
-    updateProperties(repoPath, testResult);
-    validateVulnerabilityIssues(testResult, repoPath);
-    validateLicenseIssues(testResult, repoPath);
+    Map<Severity, Long> vulnCounts = getSeverityCounts(testResult.issues.vulnerabilities);
+    Map<Severity, Long> licenseCounts = getSeverityCounts(testResult.issues.licenses);
+
+    updateProperties(repoPath, testResult, vulnCounts, licenseCounts);
+    validateVulnerabilityIssues(vulnCounts, repoPath);
+    validateLicenseIssues(licenseCounts, repoPath);
   }
 
   protected PackageScanner getScannerForPackageType(String path) {
@@ -82,9 +85,9 @@ public class ScannerModule {
     throw new CannotScanException("Artifact is not supported.");
   }
 
-  protected void updateProperties(RepoPath repoPath, TestResult testResult) {
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
-    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
+  private void updateProperties(RepoPath repoPath, TestResult testResult, Map<Severity, Long> vulnCounts, Map<Severity, Long> licenseCounts) {
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getSeverityCountsAsFormattedString(vulnCounts));
+    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getSeverityCountsAsFormattedString(licenseCounts));
     repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
 
     setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
@@ -100,30 +103,31 @@ public class ScannerModule {
     }
   }
 
-  private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
-    long countCriticalSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.CRITICAL)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-    long countHighSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.HIGH)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-    long countMediumSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.MEDIUM)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-    long countLowSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.LOW)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-
-    return format("%d critical, %d high, %d medium, %d low", countCriticalSeverities, countHighSeverities, countMediumSeverities, countLowSeverities);
+  private String getSeverityCountsAsFormattedString(@Nonnull Map<Severity, Long> counts) {
+    return counts.entrySet().stream()
+      .sorted((a, b) -> b.getKey().ordinal() - a.getKey().ordinal())
+      .map(entry -> entry.getValue() + " " + entry.getKey().getSeverityLevel())
+      .collect(Collectors.joining(", "));
   }
 
-  protected void validateVulnerabilityIssues(TestResult testResult, RepoPath repoPath) {
+  private static Map<Severity, Long> getSeverityCounts(@Nonnull List<? extends Issue> issues) {
+    return Arrays.stream(Severity.values())
+      .collect(Collectors.toMap(
+        severity -> severity,
+        severity -> getSeverityCount(issues, severity))
+      );
+  }
+
+  private static Long getSeverityCount(List<? extends Issue> issues, Severity severity) {
+    return issues.stream()
+      .filter(issue -> issue.severity == severity)
+      .filter(distinctByKey(issue -> issue.id))
+      .count();
+  }
+
+  private void validateVulnerabilityIssues(Map<Severity, Long> counts, RepoPath repoPath) {
     validateIssues(
-      testResult.issues.vulnerabilities,
+      counts,
       Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD)),
       ISSUE_VULNERABILITIES_FORCE_DOWNLOAD,
       "vulnerabilities",
@@ -131,9 +135,9 @@ public class ScannerModule {
     );
   }
 
-  protected void validateLicenseIssues(TestResult testResult, RepoPath repoPath) {
+  private void validateLicenseIssues(Map<Severity, Long> counts, RepoPath repoPath) {
     validateIssues(
-      testResult.issues.licenses,
+      counts,
       Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LICENSE_THRESHOLD)),
       ISSUE_LICENSES_FORCE_DOWNLOAD,
       "license issues",
@@ -141,7 +145,7 @@ public class ScannerModule {
     );
   }
 
-  private void validateIssues(List<? extends Issue> issues, Severity threshold, ArtifactProperty forceDownloadProperty, String type, RepoPath repoPath) {
+  private void validateIssues(Map<Severity, Long> counts, Severity threshold, ArtifactProperty forceDownloadProperty, String type, RepoPath repoPath) {
     final String forceDownloadKey = forceDownloadProperty.propertyKey();
     final String forceDownloadValue = repositories.getProperty(repoPath, forceDownloadKey);
     if ("true".equalsIgnoreCase(forceDownloadValue)) {
@@ -149,31 +153,16 @@ public class ScannerModule {
       return;
     }
 
-    if (threshold == Severity.LOW) {
-      if (!issues.isEmpty()) {
-        throw new CancelException(format("Artifact has %s. %s", type, repoPath), 403);
-      }
-    } else if (threshold == Severity.MEDIUM) {
-      long count = issues.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
-        .count();
-      if (count > 0) {
-        throw new CancelException(format("Artifact has %s with medium, high or critical severity. %s", type, repoPath), 403);
-      }
-    } else if (threshold == Severity.HIGH) {
-      long count = issues.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
-        .count();
-      if (count > 0) {
-        throw new CancelException(format("Artifact has %s with high or critical severity. %s", type, repoPath), 403);
-      }
-    } else if (threshold == Severity.CRITICAL) {
-      long count = issues.stream()
-        .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
-        .count();
-      if (count > 0) {
-        throw new CancelException(format("Artifact has %s with critical severity. %s", type, repoPath), 403);
-      }
+    Long count = sumCounts(counts, threshold);
+    if (count > 0) {
+      throw new CancelException(format("Artifact has %s %s above %s threshold. %s", count, type, threshold.getSeverityLevel(), repoPath), 403);
     }
+  }
+
+  private static Long sumCounts(Map<Severity, Long> counts, Severity threshold) {
+    return Arrays.stream(Severity.values())
+      .filter(severity -> severity.ordinal() >= threshold.ordinal())
+      .mapToLong(severity -> counts.getOrDefault(severity, 0L))
+      .sum();
   }
 }

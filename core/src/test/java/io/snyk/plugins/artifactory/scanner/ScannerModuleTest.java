@@ -6,14 +6,12 @@ import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.annotation.Nonnull;
@@ -22,6 +20,7 @@ import java.time.Duration;
 import java.util.Properties;
 import java.util.function.Function;
 
+import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_PACKAGE_TYPE_PYPI;
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,18 +103,20 @@ public class ScannerModuleTest {
       snykClient);
 
     ScannerModule scannerSpy = Mockito.spy(scanner);
-    return new ScanTestSetup(scannerSpy, repoPath, org);
+    return new ScanTestSetup(scannerSpy, repoPath, org, repositories);
   }
 
-  class ScanTestSetup {
+  static class ScanTestSetup {
     ScannerModule scannerModule;
     RepoPath repoPath;
     String org;
+    Repositories repositories;
 
-    public ScanTestSetup(ScannerModule scannerModule, RepoPath repoPath, String org) {
+    public ScanTestSetup(ScannerModule scannerModule, RepoPath repoPath, String org, Repositories repositories) {
       this.scannerModule = scannerModule;
       this.repoPath = repoPath;
       this.org = org;
+      this.repositories = repositories;
     }
   }
 
@@ -156,29 +157,12 @@ public class ScannerModuleTest {
 
     spyScanner.scanArtifact(repoPath);
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    TestResult tr = testResultCaptor.getValue();
-    assertTrue(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(0, tr.issues.vulnerabilities.size());
-    assertEquals("npm", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(1)).validateLicenseIssues(
-      eq(tr),
-      eq(repoPath)
-    );
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_LICENSES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_URL.propertyKey(), "https://snyk.io/test/npm/minimist/1.2.5");
   }
 
   @Test
@@ -193,33 +177,10 @@ public class ScannerModuleTest {
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
     when(repoPath.toString()).thenReturn("npm:lodash/-/lodash-4.17.15.tgz");
 
-    Assertions.assertThrows(CancelException.class, () -> {
-      spyScanner.scanArtifact(repoPath);
-    });
+    assertThrows(CancelException.class, () -> spyScanner.scanArtifact(repoPath));
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    TestResult tr = testResultCaptor.getValue();
-    assertFalse(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(5, tr.issues.vulnerabilities.size());
-    assertEquals("npm", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(0)).validateLicenseIssues(
-      any(),
-      any()
-    );
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), "1 critical, 2 high, 2 medium, 0 low");
   }
 
   @Test
@@ -236,29 +197,12 @@ public class ScannerModuleTest {
 
     spyScanner.scanArtifact(repoPath);
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    TestResult tr = testResultCaptor.getValue();
-    assertTrue(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(0, tr.issues.vulnerabilities.size());
-    assertEquals("maven", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(1)).validateLicenseIssues(
-      eq(tr),
-      eq(repoPath)
-    );
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_LICENSES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_URL.propertyKey(), "https://snyk.io/vuln/maven%3Aorg.apache.commons%3Acommons-lang3%403.12.0");
   }
 
   @Test
@@ -273,33 +217,10 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
-    Assertions.assertThrows(CancelException.class, () -> {
-      spyScanner.scanArtifact(repoPath);
-    });
+    assertThrows(CancelException.class, () -> spyScanner.scanArtifact(repoPath));
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    TestResult tr = testResultCaptor.getValue();
-    assertFalse(tr.success);
-    assertEquals(3, tr.dependencyCount);
-    assertEquals(47, tr.issues.vulnerabilities.size());
-    assertEquals("maven", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(0)).validateLicenseIssues(
-      any(),
-      any()
-    );
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), "15 critical, 31 high, 1 medium, 0 low");
   }
 
   @Test
@@ -315,29 +236,12 @@ public class ScannerModuleTest {
 
     spyScanner.scanArtifact(repoPath);
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    TestResult tr = testResultCaptor.getValue();
-    assertTrue(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(0, tr.issues.vulnerabilities.size());
-    assertEquals("pip", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(1)).validateLicenseIssues(
-      eq(tr),
-      eq(repoPath)
-    );
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_LICENSES.propertyKey(), "0 critical, 0 high, 0 medium, 0 low");
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_URL.propertyKey(), "https://snyk.io/vuln/pip%3Anumpy%401.21.0");
   }
 
   @Test
@@ -351,33 +255,9 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
+    assertThrows(CancelException.class, () -> spyScanner.scanArtifact(repoPath));
 
-    Assertions.assertThrows(CancelException.class, () -> {
-      spyScanner.scanArtifact(repoPath);
-    });
-
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    TestResult tr = testResultCaptor.getValue();
-    assertFalse(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(3, tr.issues.vulnerabilities.size());
-    assertEquals("pip", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(0)).validateLicenseIssues(
-      any(),
-      any()
-    );
+    verify(testSetup.repositories)
+      .setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), "0 critical, 1 high, 2 medium, 0 low");
   }
 }

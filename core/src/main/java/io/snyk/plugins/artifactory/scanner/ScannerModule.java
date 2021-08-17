@@ -168,7 +168,7 @@ public class ScannerModule {
       return;
     }
 
-    Severity licensesThreshold = Severity.of(configurationModule.getProperty(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));
+    Severity licensesThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LICENSE_THRESHOLD));
     if (licensesThreshold == Severity.LOW) {
       if (!testResult.issues.licenses.isEmpty()) {
         throw new CancelException(format("Artifact has license issues. %s", repoPath), 403);

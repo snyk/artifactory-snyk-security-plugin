@@ -1,6 +1,6 @@
 # Artifactory Snyk Security Plugin
 
-See the official documentation: https://support.snyk.io/hc/en-us/articles/360004032417-Artifactory-Gatekeeper-plugin-overview
+See the official documentation: https://docs.snyk.io/features/integrations/private-registry-gatekeeper-plugins/artifactory-gatekeeper-plugin-overview
 
 ## Building Locally
 ```

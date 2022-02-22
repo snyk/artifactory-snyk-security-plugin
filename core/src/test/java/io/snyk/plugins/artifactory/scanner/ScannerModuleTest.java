@@ -306,7 +306,7 @@ public class ScannerModuleTest {
   void testScanPythonItem_noVulns() throws Exception {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("numpy");
-    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.21.0");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.22.2");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
@@ -324,7 +324,7 @@ public class ScannerModuleTest {
 
     TestResult tr = testResultCaptor.getValue();
     assertTrue(tr.success);
-    assertEquals(1, tr.dependencyCount);
+    assertEquals(0, tr.dependencyCount);
     assertEquals(0, tr.issues.vulnerabilities.size());
     assertEquals("pip", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);

@@ -207,7 +207,7 @@ public class ScannerModuleTest {
     TestResult tr = testResultCaptor.getValue();
     assertFalse(tr.success);
     assertEquals(1, tr.dependencyCount);
-    assertEquals(5, tr.issues.vulnerabilities.size());
+    assertTrue(tr.issues.vulnerabilities.size() > 0);
     assertEquals("npm", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
 
@@ -287,7 +287,7 @@ public class ScannerModuleTest {
     TestResult tr = testResultCaptor.getValue();
     assertFalse(tr.success);
     assertEquals(3, tr.dependencyCount);
-    assertEquals(47, tr.issues.vulnerabilities.size());
+    assertTrue(tr.issues.vulnerabilities.size() > 0);
     assertEquals("maven", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
 

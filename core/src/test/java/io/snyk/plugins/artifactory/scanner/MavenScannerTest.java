@@ -42,7 +42,7 @@ public class MavenScannerTest {
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
     assertFalse(result.success); // false because it has vulns
     assertEquals(3, result.dependencyCount);
-    assertEquals(47, result.issues.vulnerabilities.size());
+    assertTrue(result.issues.vulnerabilities.size() > 0);
     assertEquals("maven", result.packageManager);
     assertEquals(org, result.organisation.id);
     assertEquals("https://snyk.io/vuln/maven%3Acom.fasterxml.jackson.core%3Ajackson-databind%402.9.8",

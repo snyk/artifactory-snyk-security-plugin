@@ -36,12 +36,12 @@ public class SnykClient {
       .connectTimeout(config.timeout);
 
     if (config.trustAllCertificates) {
-      SSLContext sslContext = SSLContext.getInstance("TLS");
+      SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
       TrustManager[] trustManagers = SSLConfiguration.buildUnsafeTrustManager();
       sslContext.init(null, trustManagers, new SecureRandom());
       builder.sslContext(sslContext);
     } else if (config.sslCertificatePath != null && !config.sslCertificatePath.isEmpty()) {
-      SSLContext sslContext = SSLContext.getInstance("TLS");
+      SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
       X509TrustManager trustManager = SSLConfiguration.buildCustomTrustManager(config.sslCertificatePath);
       sslContext.init(null, new TrustManager[]{trustManager}, null);
       builder.sslContext(sslContext);

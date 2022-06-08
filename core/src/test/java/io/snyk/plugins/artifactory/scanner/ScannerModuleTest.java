@@ -123,13 +123,13 @@ public class ScannerModuleTest {
   void shouldUseConfiguredTimeoutForAPIRequests() throws Exception {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("minimist");
-    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.5");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.6");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo, config -> config.setTimeout(Duration.ofMillis(1)));
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
-    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.5.tgz");
+    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.6.tgz");
 
     // Using try-catch as assertThrows does not let us check the cause.
     try {
@@ -146,13 +146,13 @@ public class ScannerModuleTest {
   void testScanNpmItem_noVulns() throws Exception {
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
     when(fileLayoutInfo.getModule()).thenReturn("minimist");
-    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.5");
+    when(fileLayoutInfo.getBaseRevision()).thenReturn("1.2.6");
 
     ScanTestSetup testSetup = createScannerSpyModuleForTest(fileLayoutInfo);
     ScannerModule spyScanner = testSetup.scannerModule;
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
-    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.5.tgz");
+    when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.6.tgz");
 
     spyScanner.scanArtifact(repoPath);
 
@@ -207,7 +207,7 @@ public class ScannerModuleTest {
     TestResult tr = testResultCaptor.getValue();
     assertFalse(tr.success);
     assertEquals(1, tr.dependencyCount);
-    assertEquals(5, tr.issues.vulnerabilities.size());
+    assertTrue(tr.issues.vulnerabilities.size() > 0);
     assertEquals("npm", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
 
@@ -287,7 +287,7 @@ public class ScannerModuleTest {
     TestResult tr = testResultCaptor.getValue();
     assertFalse(tr.success);
     assertEquals(3, tr.dependencyCount);
-    assertEquals(47, tr.issues.vulnerabilities.size());
+    assertTrue(tr.issues.vulnerabilities.size() > 0);
     assertEquals("maven", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
 

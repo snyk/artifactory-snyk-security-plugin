@@ -2,6 +2,8 @@ package io.snyk.sdk.api.v1;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -11,6 +13,7 @@ public class SnykResult<T> {
   public int statusCode;
   public Optional<T> result = Optional.empty();
   public Optional<String> responseAsText = Optional.empty();
+  private static final Logger LOG = LoggerFactory.getLogger(SnykResult.class);
 
   public SnykResult(int statusCode, T result, String responseBody) {
     this.statusCode = statusCode;
@@ -27,11 +30,7 @@ public class SnykResult<T> {
   }
 
   public boolean isSuccessful() {
-    if (statusCode == 200) {
-      return true;
-    } else {
-      return false;
-    }
+    return statusCode == 200;
   }
 
   public static <ResType> SnykResult<ResType> createResult(HttpResponse<String> response, Class<ResType> resultType) throws IOException {
@@ -42,7 +41,11 @@ public class SnykResult<T> {
       var res = objectMapper.readValue(responseBody, resultType);
       return new SnykResult<>(status, res, responseBody);
     } else {
-      // TODO: don't throw out the response body
+      LOG.error("HTTP error status received. Status: " + status);
+      LOG.error("HTTP error status received. Response: " + response.body());
+      LOG.error("HTTP Request method: " + response.request().method());
+      LOG.error("HTTP Request uri: " + response.request().uri());
+      LOG.error("HTTP Request headers: " + response.request().headers().toString());
       return new SnykResult<>(status);
     }
   }

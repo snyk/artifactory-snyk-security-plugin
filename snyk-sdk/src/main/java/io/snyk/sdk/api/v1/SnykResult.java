@@ -45,7 +45,7 @@ public class SnykResult<T> {
       LOG.error("HTTP error status received. Response: " + response.body());
       LOG.error("HTTP Request method: " + response.request().method());
       LOG.error("HTTP Request uri: " + response.request().uri());
-      LOG.error("HTTP Request headers: " + response.request().headers().toString());
+      LOG.debug("HTTP Request headers: " + response.request().headers().toString());
       return new SnykResult<>(status);
     }
   }

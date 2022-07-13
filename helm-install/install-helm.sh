@@ -78,5 +78,5 @@ pushd "$SCRIPT_DIR/.." || exit 1
 popd || exit 1
 
 minikube service artifactory-artifactory-nginx -n artifactory
-sleep 10
+sleep 10 # give the artifactory time at start up to copy the files from the mounted volume
 trap 'kill $(jobs -p)' EXIT

@@ -1,22 +1,16 @@
 artifactory:
-  image:
-    registry: releases-docker.jfrog.io
-    repository: jfrog/artifactory-oss
-    # tag:
-    pullPolicy: IfNotPresent
-
   ## Create a volume pointing to the config map with your configuration file
   customVolumes: |
     - name: snyk-plugin-mount
-      configMap:
-        name: snyk-plugin
+      hostPath:
+        path: /tmp/artifactory/plugins
+#      configMap:
+#        name: snyk-plugin
+
   customVolumeMounts: |
     - name: snyk-plugin-mount
-      mountPath: /var/opt/jfrog/artifactory/var/etc/artifactory/plugins
+      mountPath: /tmp/plugins
 
-nginx:
-  image:
-    registry: releases-docker.jfrog.io
-    repository: jfrog/nginx-artifactory-oss
-    # tag:
-    pullPolicy: IfNotPresent
+  copyOnEveryStartup:
+    - source: /tmp/plugins
+      target: etc/artifactory/plugins

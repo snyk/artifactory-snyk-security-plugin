@@ -59,7 +59,7 @@ public class SnykPlugin {
       } else {
         token = "no token configured";
       }
-      LOG.info("Token:" + token);
+      LOG.debug("Token:" + token);
       final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
 
       auditModule = new AuditModule();

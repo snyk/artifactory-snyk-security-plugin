@@ -1,0 +1,16 @@
+artifactory:
+  ## Create a volume pointing to the config map with your configuration file
+  customVolumes: |
+    - name: snyk-plugin-mount
+      hostPath:
+        path: /tmp/artifactory/plugins
+#      configMap:
+#        name: snyk-plugin
+
+  customVolumeMounts: |
+    - name: snyk-plugin-mount
+      mountPath: /tmp/plugins
+
+  copyOnEveryStartup:
+    - source: /tmp/plugins
+      target: etc/artifactory/plugins

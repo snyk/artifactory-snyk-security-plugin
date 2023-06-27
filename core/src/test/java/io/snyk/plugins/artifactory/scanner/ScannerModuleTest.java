@@ -5,7 +5,7 @@ import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
@@ -41,7 +41,7 @@ public class ScannerModuleTest {
     ScannerModule sm = new ScannerModule(
       configurationModule,
       mock(Repositories.class),
-      mock(SnykClient.class));
+      mock(SnykV1Client.class));
 
     assertEquals(MavenScanner.class, sm.getScannerForPackageType("myArtifact.jar").getClass());
     assertEquals(NpmScanner.class, sm.getScannerForPackageType("myArtifact.tgz").getClass());
@@ -63,7 +63,7 @@ public class ScannerModuleTest {
     ScannerModule sm = new ScannerModule(
       configurationModule,
       mock(Repositories.class),
-      mock(SnykClient.class)
+      mock(SnykV1Client.class)
     );
 
     assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("myArtifact.jar"));
@@ -91,7 +91,7 @@ public class ScannerModuleTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
+    SnykV1Client snykClient = new SnykV1Client(config);
 
     RepoPath repoPath = mock(RepoPath.class);
 

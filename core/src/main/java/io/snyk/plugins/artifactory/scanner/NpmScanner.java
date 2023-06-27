@@ -3,20 +3,18 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
-import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class NpmScanner implements PackageScanner {
@@ -24,9 +22,9 @@ class NpmScanner implements PackageScanner {
   private static final Logger LOG = getLogger(NpmScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final SnykClient snykClient;
+  private final SnykV1Client snykClient;
 
-  NpmScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  NpmScanner(ConfigurationModule configurationModule, SnykV1Client snykClient) {
     this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }

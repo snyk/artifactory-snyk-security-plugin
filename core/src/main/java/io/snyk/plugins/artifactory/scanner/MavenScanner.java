@@ -3,7 +3,7 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
@@ -22,9 +22,9 @@ class MavenScanner implements PackageScanner {
   private static final Logger LOG = getLogger(MavenScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final SnykClient snykClient;
+  private final SnykV1Client snykClient;
 
-  MavenScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  MavenScanner(ConfigurationModule configurationModule, SnykV1Client snykClient) {
     this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }

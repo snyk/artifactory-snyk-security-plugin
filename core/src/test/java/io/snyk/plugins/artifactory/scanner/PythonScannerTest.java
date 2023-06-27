@@ -4,7 +4,7 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -30,7 +30,7 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
+    SnykV1Client snykClient = new SnykV1Client(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
     RepoPath repoPath = mock(RepoPath.class);
@@ -57,7 +57,7 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
+    SnykV1Client snykClient = new SnykV1Client(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
     RepoPath repoPath = mock(RepoPath.class);
@@ -78,7 +78,7 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
+    SnykV1Client snykClient = new SnykV1Client(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
     RepoPath repoPath = mock(RepoPath.class);

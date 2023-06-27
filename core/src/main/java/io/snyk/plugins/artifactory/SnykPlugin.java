@@ -8,7 +8,7 @@ import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.model.NotificationSettings;
 import org.artifactory.exception.CancelException;
@@ -60,7 +60,7 @@ public class SnykPlugin {
         token = "no token configured";
       }
       LOG.debug("Token:" + token);
-      final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
+      final SnykV1Client snykClient = createSnykClient(configurationModule, pluginVersion);
 
       auditModule = new AuditModule();
       scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
@@ -131,7 +131,7 @@ public class SnykPlugin {
       .forEach(LOG::debug);
   }
 
-  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
+  private SnykV1Client createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
     boolean trustAllCertificates = false;
@@ -167,7 +167,7 @@ public class SnykPlugin {
     LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
     LOG.debug("config.httpProxyPort: " + config.httpProxyPort);
 
-    final SnykClient snykClient = new SnykClient(config);
+    final SnykV1Client snykClient = new SnykV1Client(config);
 
     String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
     var res = snykClient.getNotificationSettings(org);

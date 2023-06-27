@@ -1,4 +1,4 @@
-package io.snyk.sdk.api.v3;
+package io.snyk.sdk.api;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

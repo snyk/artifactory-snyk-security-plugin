@@ -11,6 +11,7 @@ import io.snyk.sdk.api.SnykClient;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import io.snyk.sdk.SnykConfig;
+import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;
 
@@ -20,7 +21,7 @@ public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
   }
 
   @Override
-  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
+  public SnykResult<NotificationSettings> validateCredentials(String org) throws java.io.IOException, java.lang.InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
       .withPath(String.format(
         "user/me/notification-settings/org/%s",

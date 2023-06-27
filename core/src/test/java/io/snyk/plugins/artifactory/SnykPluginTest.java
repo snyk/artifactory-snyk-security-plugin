@@ -4,7 +4,7 @@ import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykHttpRequestBuilder;
-import io.snyk.sdk.api.v1.SnykResult;
+import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.NotificationSettings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -80,6 +80,6 @@ class SnykPluginTest {
     };
     var res = new SnykResult<NotificationSettings>(httpResponse);
 
-    Assertions.assertThrows(SnykRuntimeException.class, () -> plugin.handleResponse(res));
+    Assertions.assertThrows(SnykRuntimeException.class, () -> plugin.validateCredentials(res));
   }
 }

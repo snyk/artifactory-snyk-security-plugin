@@ -1,7 +1,6 @@
 package io.snyk.sdk.api;
 
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykResult;
 import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.config.SSLConfiguration;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ public abstract class SnykClient<T, U> {
     httpClient = builder.build();
   }
 
-  public abstract SnykResult<T> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException;
+  public abstract SnykResult<T> validateCredentials(String org) throws java.io.IOException, java.lang.InterruptedException;
 
   public abstract SnykResult<U> testMaven(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException;
 

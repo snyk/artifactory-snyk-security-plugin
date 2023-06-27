@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_URL;
+import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_V1_URL;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_BLOCK_ON_API_FAILURE;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_LICENSE_THRESHOLD;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD;
@@ -19,7 +19,7 @@ class PluginConfigurationTest {
   @Test
   void checkDefaultValues() {
     assertAll("should be not empty",
-              () -> assertEquals("https://snyk.io/api/v1/", API_URL.defaultValue(), getAssertionMessage(API_URL, "default value must be 'https://snyk.io/api/v1/'")),
+              () -> assertEquals("https://snyk.io/api/v1/", API_V1_URL.defaultValue(), getAssertionMessage(API_V1_URL, "default value must be 'https://snyk.io/api/v1/'")),
               () -> assertEquals("false", SCANNER_BLOCK_ON_API_FAILURE.defaultValue(), getAssertionMessage(SCANNER_BLOCK_ON_API_FAILURE, "default value must be 'false'")),
               () -> assertEquals("low", SCANNER_VULNERABILITY_THRESHOLD.defaultValue(), getAssertionMessage(SCANNER_VULNERABILITY_THRESHOLD, "default value must be 'low'")),
               () -> assertEquals("low", SCANNER_LICENSE_THRESHOLD.defaultValue(), getAssertionMessage(SCANNER_LICENSE_THRESHOLD, "default value must be 'low'"))

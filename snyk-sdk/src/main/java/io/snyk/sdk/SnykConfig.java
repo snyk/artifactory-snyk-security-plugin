@@ -3,7 +3,8 @@ package io.snyk.sdk;
 import java.time.Duration;
 
 public class SnykConfig {
-  public final String baseUrl;
+  public final String baseUrlV1;
+  public final String baseUrlV3;
   public final String token;
   public final String userAgent;
   public final boolean trustAllCertificates;
@@ -13,7 +14,8 @@ public class SnykConfig {
   public final Duration timeout;
 
   private SnykConfig(
-    String baseUrl,
+    String baseUrlV1,
+    String baseUrlV3,
     String token,
     String userAgent,
     boolean trustAllCertificates,
@@ -22,7 +24,8 @@ public class SnykConfig {
     Integer httpProxyPort,
     Duration timeout
   ) {
-    this.baseUrl = baseUrl;
+    this.baseUrlV1 = baseUrlV1;
+    this.baseUrlV3 = baseUrlV3;
     this.token = token;
     this.userAgent = userAgent;
     this.trustAllCertificates = trustAllCertificates;
@@ -42,7 +45,8 @@ public class SnykConfig {
 
   public static class Builder {
     private String token;
-    private String baseUrl = "https://snyk.io/api/v1/";
+    private String baseUrlV1 = "https://snyk.io/api/v1/";
+    private String baseUrlV3 = "https://api.snyk.io/rest/";
     private String userAgent = "snyk-sdk-java";
     private boolean trustAllCertificates = false;
     private String sslCertificatePath = "";
@@ -58,8 +62,13 @@ public class SnykConfig {
       return this;
     }
 
-    public Builder setBaseUrl(String baseUrl) {
-      this.baseUrl = baseUrl;
+    public Builder setV1BaseUrl(String baseUrl) {
+      this.baseUrlV1 = baseUrl;
+      return this;
+    }
+
+    public Builder setV3BaseUrl(String baseUrl) {
+      this.baseUrlV3 = baseUrl;
       return this;
     }
 
@@ -95,7 +104,8 @@ public class SnykConfig {
 
     public SnykConfig build() {
       return new SnykConfig(
-        baseUrl,
+        baseUrlV1,
+        baseUrlV3,
         token,
         userAgent,
         trustAllCertificates,

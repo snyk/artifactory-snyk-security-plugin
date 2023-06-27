@@ -19,7 +19,7 @@ public class SnykHttpRequestBuilderTest {
       "https://snyk.io/api/v1/");
 
     String otherBaseUrl = "https://other-host/some-prefix/";
-    SnykConfig configWithDifferentBaseUrl = SnykConfig.newBuilder().setBaseUrl(otherBaseUrl).build();
+    SnykConfig configWithDifferentBaseUrl = SnykConfig.newBuilder().setV1BaseUrl(otherBaseUrl).build();
 
     assertEquals("https://other-host/some-prefix/some/endpoint",
       SnykHttpRequestBuilder.create(configWithDifferentBaseUrl)

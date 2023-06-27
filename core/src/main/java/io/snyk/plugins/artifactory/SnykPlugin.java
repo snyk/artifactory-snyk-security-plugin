@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.Optional;
@@ -51,7 +53,12 @@ public class SnykPlugin {
       validateConfiguration();
 
       LOG.info("Creating api client and modules...");
-      LOG.info("BaseURL:" + configurationModule.getPropertyOrDefault(API_URL));
+
+      String baseUrlV1 = Optional.ofNullable(configurationModule.getPropertyOrDefault(API_URL))
+        .orElse(configurationModule.getPropertyOrDefault(API_V1_URL));
+      String baseUrlV3 = configurationModule.getPropertyOrDefault(API_V3_URL);
+      LOG.info("BaseURLV1:" + baseUrlV1);
+      LOG.info("BaseURLV3:" + baseUrlV3);
       LOG.info("Organization:" + configurationModule.getPropertyOrDefault(API_ORGANIZATION));
       String token = configurationModule.getPropertyOrDefault(API_TOKEN);
       if (null != token && token.length() > 4) {
@@ -136,21 +143,29 @@ public class SnykPlugin {
       .forEach(LOG::debug);
   }
 
+  private String getValidatedUrl(String baseUrl) {
+    try {
+      URI uri = new URI(baseUrl).normalize().resolve("/"); // Ensure exactly one trailing slash
+      return uri.toString();
+    } catch (URISyntaxException e) {
+      throw new SnykRuntimeException(String.format("your base URL is malformed: %s", baseUrl));
+    }
+  }
+
   private SnykConfig createSnykConfig(String pluginVersion) {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
-    String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
     boolean trustAllCertificates = false;
     String trustAllCertificatesProperty = configurationModule.getPropertyOrDefault(API_TRUST_ALL_CERTIFICATES);
     if ("true".equals(trustAllCertificatesProperty)) {
       trustAllCertificates = true;
     }
 
-    if (!baseUrl.endsWith("/")) {
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("'{}' must end in /, your value is '{}'", API_URL.propertyKey(), baseUrl);
-      }
-      baseUrl = baseUrl + "/";
-    }
+    String baseUrlV1 = Optional.ofNullable(configurationModule.getPropertyOrDefault(API_URL))
+      .orElse(configurationModule.getPropertyOrDefault(API_V1_URL));
+    baseUrlV1 = getValidatedUrl(baseUrlV1);
+
+    String baseUrlV3 = configurationModule.getPropertyOrDefault(API_V3_URL);
+    baseUrlV3 = getValidatedUrl(baseUrlV3);
 
     String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
     String httpProxyHost = configurationModule.getPropertyOrDefault(HTTP_PROXY_HOST);
@@ -158,7 +173,8 @@ public class SnykPlugin {
     Duration timeout = Duration.ofMillis(Integer.parseInt(configurationModule.getPropertyOrDefault(API_TIMEOUT)));
 
     var config = SnykConfig.newBuilder()
-      .setBaseUrl(baseUrl)
+      .setV1BaseUrl(baseUrlV1)
+      .setV3BaseUrl(baseUrlV3)
       .setToken(token)
       .setUserAgent(API_USER_AGENT + pluginVersion)
       .setTrustAllCertificates(trustAllCertificates)

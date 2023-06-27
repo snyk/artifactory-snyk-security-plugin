@@ -11,7 +11,7 @@ public class SnykConfigForTests {
 
     return SnykConfig.newBuilder()
       .setToken(token)
-      .setBaseUrl(baseUrl);
+      .setV1BaseUrl(baseUrl);
   }
 
   public static SnykConfig withDefaults() {

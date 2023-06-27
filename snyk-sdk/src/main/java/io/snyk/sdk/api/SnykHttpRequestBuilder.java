@@ -51,7 +51,7 @@ public class SnykHttpRequestBuilder {
   }
 
   private URI buildURI() {
-    String apiUrl = config.baseUrl + path;
+    String apiUrl = config.baseUrlV1 + path;
 
     String queryString = this.queryParams
       .entrySet()

@@ -6,6 +6,7 @@ import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.api.v3.SnykV3Client;
 import io.snyk.sdk.model.v1.TestResult;
+import io.snyk.sdk.model.v3.Issues;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ class PythonScanner implements PackageScanner {
       .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
         .orElseThrow(() -> new CannotScanException("Module details not provided.")));
 
-    SnykResult<TestResult> result;
+    SnykResult<Issues> result;
     try {
       result = snykClient.testPip(
         details.name,
@@ -75,9 +76,10 @@ class PythonScanner implements PackageScanner {
       throw new SnykAPIFailureException(e);
     }
 
-    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
-    testResult.packageDetailsURL = getModuleDetailsURL(details);
-    return testResult;
+//    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
+//    testResult.packageDetailsURL = getModuleDetailsURL(details);
+    TestResult heste = new TestResult();
+    return heste;
   }
 
   public static class ModuleURLDetails {

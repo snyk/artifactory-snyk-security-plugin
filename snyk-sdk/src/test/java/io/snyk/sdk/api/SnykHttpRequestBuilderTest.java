@@ -1,4 +1,4 @@
-package io.snyk.sdk.api.v1;
+package io.snyk.sdk.api;
 
 import io.snyk.sdk.SnykConfig;
 import org.junit.jupiter.api.Test;

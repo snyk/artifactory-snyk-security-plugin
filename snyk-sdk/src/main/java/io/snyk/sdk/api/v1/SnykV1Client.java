@@ -11,6 +11,7 @@ import io.snyk.sdk.api.SnykClient;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import io.snyk.sdk.SnykConfig;
+import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.NotificationSettings;
 import io.snyk.sdk.model.TestResult;

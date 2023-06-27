@@ -3,7 +3,7 @@ package io.snyk.plugins.artifactory;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykHttpRequestBuilder;
+import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.NotificationSettings;
 import org.junit.jupiter.api.Assertions;

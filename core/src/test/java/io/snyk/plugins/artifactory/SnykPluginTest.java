@@ -5,7 +5,7 @@ import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
-import io.snyk.sdk.model.NotificationSettings;
+import io.snyk.sdk.model.v1.NotificationSettings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

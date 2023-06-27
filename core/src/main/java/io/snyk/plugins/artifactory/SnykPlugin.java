@@ -10,7 +10,7 @@ import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.api.v1.SnykResult;
-import io.snyk.sdk.model.NotificationSettings;
+import io.snyk.sdk.model.v1.NotificationSettings;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;

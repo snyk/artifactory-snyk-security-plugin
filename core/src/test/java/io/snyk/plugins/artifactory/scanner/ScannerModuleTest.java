@@ -6,7 +6,7 @@ import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykV1Client;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;

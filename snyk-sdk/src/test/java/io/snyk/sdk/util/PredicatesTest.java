@@ -3,7 +3,7 @@ package io.snyk.sdk.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.snyk.sdk.model.Issue;
+import io.snyk.sdk.model.v1.Issue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -13,8 +13,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
-import io.snyk.sdk.model.NotificationSettings;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.model.v1.NotificationSettings;
+import io.snyk.sdk.model.v1.TestResult;
 
 public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
   public SnykV1Client(SnykConfig config) throws Exception {

@@ -2,9 +2,8 @@ package io.snyk.sdk.api.v3;
 
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.config.SSLConfiguration;
-import io.snyk.sdk.model.NotificationSettings;
-import io.snyk.sdk.model.TestResult;
-import jdk.jshell.spi.ExecutionControl;
+import io.snyk.sdk.model.v1.NotificationSettings;
+import io.snyk.sdk.model.v1.TestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +13,9 @@ import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.security.SecureRandom;
 import java.util.Optional;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class SnykV3Client {
   private static final Logger LOG = LoggerFactory.getLogger(SnykV3Client.class);

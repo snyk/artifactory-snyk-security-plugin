@@ -1,4 +1,4 @@
-package io.snyk.sdk.model;
+package io.snyk.sdk.model.v1;
 
 import java.io.Serializable;
 

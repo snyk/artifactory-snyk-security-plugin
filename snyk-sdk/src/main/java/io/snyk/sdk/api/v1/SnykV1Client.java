@@ -6,6 +6,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 
+import io.snyk.sdk.api.ApiVersion;
 import io.snyk.sdk.api.SnykClient;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -28,7 +29,7 @@ public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
         "user/me/notification-settings/org/%s",
         URLEncoder.encode(org, UTF_8)
       ))
-      .build();
+      .build(ApiVersion.V1);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, NotificationSettings.class);
   }
@@ -44,7 +45,7 @@ public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
       ))
       .withQueryParam("org", organisation)
       .withQueryParam("repository", repository)
-      .build();
+      .build(ApiVersion.V1);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
   }
@@ -57,7 +58,7 @@ public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
         URLEncoder.encode(version, UTF_8)
       ))
       .withQueryParam("org", organisation)
-      .build();
+      .build(ApiVersion.V1);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
   }
@@ -70,7 +71,7 @@ public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
         URLEncoder.encode(version, UTF_8)
       ))
       .withQueryParam("org", organisation)
-      .build();
+      .build(ApiVersion.V1);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
   }
@@ -83,7 +84,7 @@ public class SnykV1Client extends SnykClient<NotificationSettings, TestResult> {
         URLEncoder.encode(version, UTF_8)
       ))
       .withQueryParam("org", organisation)
-      .build();
+      .build(ApiVersion.V1);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
   }

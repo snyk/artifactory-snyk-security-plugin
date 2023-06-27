@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-
 public class SnykHttpRequestBuilder {
   private final SnykConfig config;
   private final HashMap<String, String> queryParams = new HashMap<>();
@@ -40,18 +39,21 @@ public class SnykHttpRequestBuilder {
     return this;
   }
 
-  public HttpRequest build() {
+  public HttpRequest build(ApiVersion apiVersion) {
     return HttpRequest.newBuilder()
       .GET()
-      .uri(buildURI())
+      .uri(buildURI(apiVersion))
       .timeout(config.timeout)
       .setHeader("Authorization", String.format("token %s", config.token))
       .setHeader("User-Agent", config.userAgent)
       .build();
   }
 
-  private URI buildURI() {
+  private URI buildURI(ApiVersion apiVersion) {
     String apiUrl = config.baseUrlV1 + path;
+    if (apiVersion == ApiVersion.V3) {
+      apiUrl = config.baseUrlV3 + path;
+    }
 
     String queryString = this.queryParams
       .entrySet()

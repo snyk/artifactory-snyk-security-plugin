@@ -1,6 +1,7 @@
 package io.snyk.sdk.api.v3;
 
 import io.snyk.sdk.SnykConfig;
+import io.snyk.sdk.api.ApiVersion;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.config.SSLConfiguration;
@@ -101,7 +102,7 @@ public class SnykV3Client {
     String path = generatePurl(organisation, Namespace.PYPI.propertyKey(), packageName, version);
     HttpRequest request = SnykHttpRequestBuilder.create(config)
       .withPath(path)
-      .build();
+      .build(ApiVersion.V3);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, Issues.class);
   }

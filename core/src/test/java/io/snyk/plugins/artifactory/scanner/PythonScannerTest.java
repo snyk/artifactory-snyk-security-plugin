@@ -4,7 +4,7 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.api.v3.SnykV3Client;
 import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -30,7 +30,7 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykV1Client snykClient = new SnykV1Client(config);
+    SnykV3Client snykClient = new SnykV3Client(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
     RepoPath repoPath = mock(RepoPath.class);
@@ -57,7 +57,7 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykV1Client snykClient = new SnykV1Client(config);
+    SnykV3Client snykClient = new SnykV3Client(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
     RepoPath repoPath = mock(RepoPath.class);
@@ -78,7 +78,7 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykV1Client snykClient = new SnykV1Client(config);
+    SnykV3Client snykClient = new SnykV3Client(config);
     PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
 
     RepoPath repoPath = mock(RepoPath.class);
@@ -91,9 +91,7 @@ public class PythonScannerTest {
 
   @Test
   void getModuleDetailsFromUrl_shouldExtractDetailsFromWheelURL() {
-    var result = PythonScanner.getModuleDetailsFromUrl(
-      "jahed-pypi-remote-cache:73/d1/8891d9f1813257b2ea06261cfb23abbd660fa344d7067a1283fb9195d9cd/pandas-1.3.1-cp39-cp39-macosx_10_9_x86_64.whl"
-    );
+    var result = PythonScanner.getModuleDetailsFromUrl("jahed-pypi-remote-cache:73/d1/8891d9f1813257b2ea06261cfb23abbd660fa344d7067a1283fb9195d9cd/pandas-1.3.1-cp39-cp39-macosx_10_9_x86_64.whl");
     assertTrue(result.isPresent());
     var details = result.get();
     assertEquals("pandas", details.name);
@@ -102,9 +100,7 @@ public class PythonScannerTest {
 
   @Test
   void getModuleDetailsFromUrl_shouldExtractDetailsFromWheelURL_WithCustomPostFix() {
-    var result = PythonScanner.getModuleDetailsFromUrl(
-      "jahed-pypi-remote-cache:f9/1a/312d3cc9d29ac72a53d2a85144f5dce1e97b4ad513008394cfed5e27ffa2/ws3-0.0.1.post3-py3-none-any.whl"
-    );
+    var result = PythonScanner.getModuleDetailsFromUrl("jahed-pypi-remote-cache:f9/1a/312d3cc9d29ac72a53d2a85144f5dce1e97b4ad513008394cfed5e27ffa2/ws3-0.0.1.post3-py3-none-any.whl");
     assertTrue(result.isPresent());
     var details = result.get();
     assertEquals("ws3", details.name);
@@ -113,9 +109,7 @@ public class PythonScannerTest {
 
   @Test
   void getModuleDetailsFromUrl_shouldExtractDetailsFromEggURL() {
-    var result = PythonScanner.getModuleDetailsFromUrl(
-      "jahed-pypi-remote-cache:73/d1/8891d9f1813257b2ea06261cfb23abbd660fa344d7067a1283fb9195d9cd/pandas-1.3.1-cp39-cp39-macosx_10_9_x86_64.egg"
-    );
+    var result = PythonScanner.getModuleDetailsFromUrl("jahed-pypi-remote-cache:73/d1/8891d9f1813257b2ea06261cfb23abbd660fa344d7067a1283fb9195d9cd/pandas-1.3.1-cp39-cp39-macosx_10_9_x86_64.egg");
     assertTrue(result.isPresent());
     var details = result.get();
     assertEquals("pandas", details.name);
@@ -124,9 +118,7 @@ public class PythonScannerTest {
 
   @Test
   void getModuleDetailsFromUrl_shouldExtractDetailsFromWheelTarGzURL() {
-    var result = PythonScanner.getModuleDetailsFromUrl(
-      "jahed-pypi-remote-cache:8c/15/3298c4ee5d187a462883a7f80d7621a05e8b880a8234729e733769a3476f/QSTK-0.2.8.tar.gz"
-    );
+    var result = PythonScanner.getModuleDetailsFromUrl("jahed-pypi-remote-cache:8c/15/3298c4ee5d187a462883a7f80d7621a05e8b880a8234729e733769a3476f/QSTK-0.2.8.tar.gz");
     assertTrue(result.isPresent());
     var details = result.get();
     assertEquals("QSTK", details.name);
@@ -135,9 +127,7 @@ public class PythonScannerTest {
 
   @Test
   void getModuleDetailsFromUrl_shouldExtractDetailsFromZipURL() {
-    var result = PythonScanner.getModuleDetailsFromUrl(
-      "jahed-pypi-remote-cache:8c/15/3298c4ee5d187a462883a7f80d7621a05e8b880a8234729e733769a3476f/QSTK-0.2.8.zip"
-    );
+    var result = PythonScanner.getModuleDetailsFromUrl("jahed-pypi-remote-cache:8c/15/3298c4ee5d187a462883a7f80d7621a05e8b880a8234729e733769a3476f/QSTK-0.2.8.zip");
     assertTrue(result.isPresent());
     var details = result.get();
     assertEquals("QSTK", details.name);

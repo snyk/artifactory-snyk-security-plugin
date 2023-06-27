@@ -5,6 +5,7 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.api.v3.SnykV3Client;
 import io.snyk.sdk.model.v1.Issue;
 import io.snyk.sdk.model.v1.Severity;
 import io.snyk.sdk.model.v1.TestResult;
@@ -35,13 +36,13 @@ public class ScannerModule {
   private final NpmScanner npmScanner;
   private final PythonScanner pythonScanner;
 
-  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykV1Client snykClient) {
+  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykV1Client snykV1Client,  @Nonnull SnykV3Client snykV3Client) {
     this.configurationModule = requireNonNull(configurationModule);
     this.repositories = requireNonNull(repositories);
 
-    mavenScanner = new MavenScanner(configurationModule, snykClient);
-    npmScanner = new NpmScanner(configurationModule, snykClient);
-    pythonScanner = new PythonScanner(configurationModule, snykClient);
+    mavenScanner = new MavenScanner(configurationModule, snykV1Client);
+    npmScanner = new NpmScanner(configurationModule, snykV1Client);
+    pythonScanner = new PythonScanner(configurationModule, snykV3Client);
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {

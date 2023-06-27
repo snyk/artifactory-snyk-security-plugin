@@ -1,9 +1,11 @@
 package io.snyk.sdk.api.v3;
 
 import io.snyk.sdk.SnykConfig;
+import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.model.v1.NotificationSettings;
 import io.snyk.sdk.model.v1.TestResult;
+import io.snyk.sdk.model.v3.OrganisationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +50,7 @@ public class SnykV3Client {
     httpClient = builder.build();
   }
 
-  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws IOException, InterruptedException {
+  public SnykResult<OrganisationSettings> validateCredentials(String org) throws IOException, InterruptedException {
     throw new UnsupportedOperationException("This method is not yet implemented.");
   }
 

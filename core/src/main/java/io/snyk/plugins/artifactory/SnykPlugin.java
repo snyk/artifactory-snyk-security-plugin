@@ -9,8 +9,8 @@ import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykV1Client;
-import io.snyk.sdk.api.v1.SnykResult;
-import io.snyk.sdk.model.v1.NotificationSettings;
+import io.snyk.sdk.api.SnykResult;
+import io.snyk.sdk.api.v3.SnykV3Client;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
@@ -60,10 +60,15 @@ public class SnykPlugin {
         token = "no token configured";
       }
       LOG.debug("Token:" + token);
-      final SnykV1Client snykClient = createSnykClient(configurationModule, pluginVersion);
+
+      final SnykConfig config = createSnykConfig(pluginVersion);
+
+      String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
+      final SnykV1Client snykV1Client = createSnykV1Client(config, org);
+      final SnykV3Client snykV3Client = createSnykV3Client(config, org);
+      scannerModule = new ScannerModule(configurationModule, repositories, snykV1Client, snykV3Client);
 
       auditModule = new AuditModule();
-      scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
 
       LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {
@@ -131,7 +136,7 @@ public class SnykPlugin {
       .forEach(LOG::debug);
   }
 
-  private SnykV1Client createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
+  private SnykConfig createSnykConfig(String pluginVersion) {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
     boolean trustAllCertificates = false;
@@ -167,16 +172,24 @@ public class SnykPlugin {
     LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
     LOG.debug("config.httpProxyPort: " + config.httpProxyPort);
 
+    return config;
+  }
+
+  private SnykV1Client createSnykV1Client(SnykConfig config, String org) throws Exception {
     final SnykV1Client snykClient = new SnykV1Client(config);
-
-    String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
-    var res = snykClient.getNotificationSettings(org);
-    handleResponse(res);
-
+    var res = snykClient.validateCredentials(org);
+    validateCredentials(res);
     return snykClient;
   }
 
-  void handleResponse(SnykResult<NotificationSettings> res) {
+  private SnykV3Client createSnykV3Client(SnykConfig config, String org) throws Exception {
+    final SnykV3Client snykClient = new SnykV3Client(config);
+    var res = snykClient.validateCredentials(org);
+    validateCredentials(res);
+    return snykClient;
+  }
+
+  void validateCredentials(SnykResult<?> res) {
     if (res.isSuccessful()) {
       LOG.info("Snyk token check successful - response status code {}", res.statusCode);
     } else {

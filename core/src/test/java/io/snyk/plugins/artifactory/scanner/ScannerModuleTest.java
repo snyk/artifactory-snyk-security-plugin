@@ -6,6 +6,7 @@ import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.api.v3.SnykV3Client;
 import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
@@ -23,7 +24,6 @@ import java.util.Properties;
 import java.util.function.Function;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_PACKAGE_TYPE_PYPI;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -41,7 +41,9 @@ public class ScannerModuleTest {
     ScannerModule sm = new ScannerModule(
       configurationModule,
       mock(Repositories.class),
-      mock(SnykV1Client.class));
+      mock(SnykV1Client.class),
+      mock(SnykV3Client.class)
+    );
 
     assertEquals(MavenScanner.class, sm.getScannerForPackageType("myArtifact.jar").getClass());
     assertEquals(NpmScanner.class, sm.getScannerForPackageType("myArtifact.tgz").getClass());
@@ -63,7 +65,8 @@ public class ScannerModuleTest {
     ScannerModule sm = new ScannerModule(
       configurationModule,
       mock(Repositories.class),
-      mock(SnykV1Client.class)
+      mock(SnykV1Client.class),
+      mock(SnykV3Client.class)
     );
 
     assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("myArtifact.jar"));
@@ -91,7 +94,8 @@ public class ScannerModuleTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykV1Client snykClient = new SnykV1Client(config);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    SnykV3Client snykV3Client = new SnykV3Client(config);
 
     RepoPath repoPath = mock(RepoPath.class);
 
@@ -101,7 +105,8 @@ public class ScannerModuleTest {
     ScannerModule scanner = new ScannerModule(
       configurationModule,
       repositories,
-      snykClient);
+      snykV1Client,
+      snykV3Client);
 
     ScannerModule scannerSpy = Mockito.spy(scanner);
     return new ScanTestSetup(scannerSpy, repoPath, org);

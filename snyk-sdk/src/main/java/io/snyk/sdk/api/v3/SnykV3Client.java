@@ -5,9 +5,7 @@ import io.snyk.sdk.api.ApiVersion;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.config.SSLConfiguration;
-import io.snyk.sdk.model.v1.NotificationSettings;
-import io.snyk.sdk.model.v1.TestResult;
-import io.snyk.sdk.model.v3.Issues;
+import io.snyk.sdk.model.v3.IssuesResult;
 import io.snyk.sdk.model.v3.OrganisationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +76,7 @@ public class SnykV3Client {
     // https://api.snyk.io/rest/orgs/c7771571-a175-4aba-b6c3-a7d41d217848/packages/pkg%3Apypi%2Furllib3%401.25.7/issues?version=2023-06-19
     // https://api.snyk.io/rest/orgs/c7771571-a175-4aba-b6c3-a7d41d217848/packages/pkg:pypi/urllib3@1.25.7/issues?version=2023-06-19
     String path = String.format("orgs/%s/packages/", organisation.orElseThrow());
-    String purl = String.format("pkg:%s/%s@%s/issues?=%s", namespace, packageName, version, API_VERSION);
+    String purl = String.format("pkg:%s/%s@%s", namespace, packageName, version);
     return path + URLEncoder.encode(purl, UTF_8);
   }
 
@@ -86,24 +84,25 @@ public class SnykV3Client {
     throw new UnsupportedOperationException("This method is not yet implemented.");
   }
 
-  public SnykResult<Issues> testMaven(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
+  public SnykResult<IssuesResult> testMaven(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
     throw new UnsupportedOperationException("This method is not yet implemented.");
   }
 
-  public SnykResult<Issues> testNpm(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+  public SnykResult<IssuesResult> testNpm(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
     throw new UnsupportedOperationException("This method is not yet implemented.");
   }
 
-  public SnykResult<Issues> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+  public SnykResult<IssuesResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
     throw new UnsupportedOperationException("This method is not yet implemented.");
   }
 
-  public SnykResult<Issues> testPip(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+  public SnykResult<IssuesResult> testPip(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
     String path = generatePurl(organisation, Namespace.PYPI.propertyKey(), packageName, version);
     HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(path)
+      .withPath(String.format("%s/issues", path))
+      .withQueryParam("version", API_VERSION)
       .build(ApiVersion.V3);
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, Issues.class);
+    return SnykResult.createResult(response, IssuesResult.class);
   }
 }

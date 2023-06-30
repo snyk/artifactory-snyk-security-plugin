@@ -7,7 +7,7 @@ import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.api.v3.SnykV3Client;
 import io.snyk.sdk.model.v1.Issue;
-import io.snyk.sdk.model.v1.Severity;
+import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;

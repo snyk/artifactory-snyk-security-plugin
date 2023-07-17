@@ -55,7 +55,7 @@ public class SnykClient {
     httpClient = builder.build();
   }
 
-  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
+  public SnykResult<NotificationSettings> validateCredentials(String org) throws java.io.IOException, java.lang.InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
       .withPath(String.format(
         "user/me/notification-settings/org/%s",

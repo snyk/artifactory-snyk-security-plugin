@@ -170,7 +170,7 @@ public class SnykPlugin {
     final SnykClient snykClient = new SnykClient(config);
 
     String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
-    var res = snykClient.getNotificationSettings(org);
+    var res = snykClient.validateCredentials(org);
     handleResponse(res);
 
     return snykClient;

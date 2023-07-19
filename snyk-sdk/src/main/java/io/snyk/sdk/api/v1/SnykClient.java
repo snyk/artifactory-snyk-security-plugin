@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.model.NotificationSettings;
@@ -76,6 +77,7 @@ public class SnykClient {
       ))
       .withQueryParam("org", organisation)
       .withQueryParam("repository", repository)
+      .withQueryParam("topLevelOnly", "true")
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -89,6 +91,7 @@ public class SnykClient {
         URLEncoder.encode(version, UTF_8)
       ))
       .withQueryParam("org", organisation)
+      .withQueryParam("topLevelOnly", "true")
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -102,6 +105,7 @@ public class SnykClient {
         URLEncoder.encode(version, UTF_8)
       ))
       .withQueryParam("org", organisation)
+      .withQueryParam("topLevelOnly", "true")
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);
@@ -115,6 +119,7 @@ public class SnykClient {
         URLEncoder.encode(version, UTF_8)
       ))
       .withQueryParam("org", organisation)
+      .withQueryParam("topLevelOnly", "true")
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, TestResult.class);

@@ -34,7 +34,7 @@ mvn install -DskipTests
 ```
 
 Will probably work. Per default, you'll find a baked `.zip`
-in `~/.m2/repository/io/snyk/plugins/artifactory-snyk-security-plugin/LOCAL-SNAPSHOT`.
+in `~/.m2/repository/io/snyk/plugins/artifactory/distribution/LOCAL-SNAPSHOT`.
 
 Unzip it. Inside is a `.groovy` file, a `.properties` file, as well as the actual `.jar` inside `/lib`.
 

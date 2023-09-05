@@ -118,6 +118,12 @@
         <artifactId>xstream</artifactId>
         <version>1.4.20</version>
       </dependency>
+      <!-- Transitive of artifactory-papi -->
+      <dependency>
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>2.5.0</version>
+      </dependency>
       <!-- End of overrides -->
       <dependency>
         <groupId>org.artifactory</groupId>

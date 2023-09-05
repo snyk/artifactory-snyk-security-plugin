@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.snyk.plugins</groupId>
@@ -107,6 +108,17 @@
 
   <dependencyManagement>
     <dependencies>
+      <!--
+        Overrides of transitive deps that have not been fixed in the top level dependency yet.
+        Maybe circle back to these from time to time to see if the top level dependency was eventually fixed.
+      -->
+      <!-- Transitive of artifactory-papi -->
+      <dependency>
+        <groupId>com.thoughtworks.xstream</groupId>
+        <artifactId>xstream</artifactId>
+        <version>1.4.20</version>
+      </dependency>
+      <!-- End of overrides -->
       <dependency>
         <groupId>org.artifactory</groupId>
         <artifactId>artifactory-papi</artifactId>

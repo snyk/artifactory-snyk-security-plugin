@@ -93,3 +93,4 @@ Wait until the Docker has loaded, it can take a while. Check the progress with `
 
 You'll have a ton of trouble if you default to building your Docker images as `linux/amd64`. At least I had. Ensure you
 do not have a env variable like `DOCKER_DEFAULT_PLATFORM=linux/amd64` enabled when pulling and/or running the image.
+

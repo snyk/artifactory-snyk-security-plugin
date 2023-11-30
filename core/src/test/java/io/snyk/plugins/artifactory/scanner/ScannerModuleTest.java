@@ -366,7 +366,7 @@ public class ScannerModuleTest {
     TestResult tr = testResultCaptor.getValue();
     assertFalse(tr.success);
     assertEquals(1, tr.dependencyCount);
-    assertEquals(3, tr.issues.vulnerabilities.size());
+    assertEquals(5, tr.issues.vulnerabilities.size());
     assertEquals("pip", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
 

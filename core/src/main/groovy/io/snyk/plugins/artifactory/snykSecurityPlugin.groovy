@@ -26,12 +26,22 @@ executions {
 
 download {
   beforeDownload { Request request, RepoPath repoPath ->
-    snykPlugin.handleBeforeDownloadEvent(repoPath)
+    try {
+      snykPlugin.handleBeforeDownloadEvent(repoPath)
+    } catch (Exception e) {
+      log.error("An exception occurred during beforeDownload, re-throwing it for Artifactory to handle. Message was: ${e.message}")
+      throw e
+    }
   }
 }
 
 storage {
   afterPropertyCreate { ItemInfo itemInfo, String propertyName, String[] propertyValues ->
-    snykPlugin.handleAfterPropertyCreateEvent(security.currentUser(), itemInfo, propertyName, propertyValues)
+    try {
+      snykPlugin.handleAfterPropertyCreateEvent(security.currentUser(), itemInfo, propertyName, propertyValues)
+    } catch (Exception e) {
+      log.error("An exception occurred during afterPropertyCreate, re-throwing it for Artifactory to handle. Message was: ${e.message}")
+      throw e;
+    }
   }
 }

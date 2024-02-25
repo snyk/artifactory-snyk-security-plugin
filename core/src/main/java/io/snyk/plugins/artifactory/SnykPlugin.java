@@ -106,12 +106,12 @@ public class SnykPlugin {
         .map(m -> e.getMessage() + " " + m)
         .orElseGet(e::getMessage);
 
-      String message = format("Artifact scan failed. %s %s", causeMessage, repoPath);
+      String message = format("Artifact scan failed due to an API error on Snyk's side. %s %s", causeMessage, repoPath);
+      LOG.debug(message);
       if ("true".equals(blockOnApiFailure)) {
         LOG.debug("Blocking download. Plugin Property \"{}\" is \"true\". {}", blockOnApiFailurePropertyKey, repoPath);
         throw new CancelException(message, 500);
       }
-      LOG.debug(message);
     }
   }
 

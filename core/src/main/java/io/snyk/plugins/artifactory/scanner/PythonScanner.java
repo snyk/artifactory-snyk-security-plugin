@@ -3,8 +3,8 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.api.v1.SnykResult;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -24,11 +24,11 @@ class PythonScanner implements PackageScanner {
   private static final Logger LOG = getLogger(PythonScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final SnykClient snykClient;
+  private final SnykV1Client snykV1Client;
 
-  PythonScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  PythonScanner(ConfigurationModule configurationModule, SnykV1Client snykV1Client) {
     this.configurationModule = configurationModule;
-    this.snykClient = snykClient;
+    this.snykV1Client = snykV1Client;
   }
 
   public static Optional<ModuleURLDetails> getModuleDetailsFromFileLayoutInfo(FileLayoutInfo fileLayoutInfo) {
@@ -66,7 +66,7 @@ class PythonScanner implements PackageScanner {
 
     SnykResult<TestResult> result;
     try {
-      result = snykClient.testPip(
+      result = snykV1Client.testPip(
         details.name,
         details.version,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))

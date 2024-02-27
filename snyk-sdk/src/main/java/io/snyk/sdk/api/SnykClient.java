@@ -1,33 +1,32 @@
-package io.snyk.sdk.api.v1;
+package io.snyk.sdk.api;
+
+import io.snyk.sdk.SnykConfig;
+import io.snyk.sdk.config.SSLConfiguration;
+import io.snyk.sdk.model.NotificationSettings;
+import io.snyk.sdk.model.TestResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.SecureRandom;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.config.SSLConfiguration;
-import io.snyk.sdk.model.NotificationSettings;
-import io.snyk.sdk.model.TestResult;
+public abstract class SnykClient {
+  protected static final Logger LOG = LoggerFactory.getLogger(SnykClient.class);
 
-public class SnykClient {
-  private static final Logger LOG = LoggerFactory.getLogger(SnykClient.class);
-
-  private final SnykConfig config;
-  private final HttpClient httpClient;
+  protected final SnykConfig config;
+  protected final HttpClient httpClient;
 
   public SnykClient(SnykConfig config) throws Exception {
     this.config = config;
@@ -56,7 +55,7 @@ public class SnykClient {
     httpClient = builder.build();
   }
 
-  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
+  public SnykResult<NotificationSettings> getNotificationSettings(String org) throws IOException, InterruptedException {
     HttpRequest request = SnykHttpRequestBuilder.create(config)
       .withPath(String.format(
         "user/me/notification-settings/org/%s",
@@ -65,63 +64,5 @@ public class SnykClient {
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     return SnykResult.createResult(response, NotificationSettings.class);
-  }
-
-  public SnykResult<TestResult> testMaven(String groupId, String artifactId, String version, Optional<String> organisation, Optional<String> repository) throws IOException, InterruptedException {
-    HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format(
-        "test/maven/%s/%s/%s",
-        URLEncoder.encode(groupId, UTF_8),
-        URLEncoder.encode(artifactId, UTF_8),
-        URLEncoder.encode(version, UTF_8)
-      ))
-      .withQueryParam("org", organisation)
-      .withQueryParam("repository", repository)
-      .withQueryParam("topLevelOnly", "true")
-      .build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, TestResult.class);
-  }
-
-  public SnykResult<TestResult> testNpm(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
-    HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format(
-        "test/npm/%s/%s",
-        URLEncoder.encode(packageName, UTF_8),
-        URLEncoder.encode(version, UTF_8)
-      ))
-      .withQueryParam("org", organisation)
-      .withQueryParam("topLevelOnly", "true")
-      .build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, TestResult.class);
-  }
-
-  public SnykResult<TestResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
-    HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format(
-        "test/rubygems/%s/%s",
-        URLEncoder.encode(gemName, UTF_8),
-        URLEncoder.encode(version, UTF_8)
-      ))
-      .withQueryParam("org", organisation)
-      .withQueryParam("topLevelOnly", "true")
-      .build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, TestResult.class);
-  }
-
-  public SnykResult<TestResult> testPip(String packageName, String version, Optional<String> organisation) throws IOException, InterruptedException {
-    HttpRequest request = SnykHttpRequestBuilder.create(config)
-      .withPath(String.format(
-        "test/pip/%s/%s",
-        URLEncoder.encode(packageName, UTF_8),
-        URLEncoder.encode(version, UTF_8)
-      ))
-      .withQueryParam("org", organisation)
-      .withQueryParam("topLevelOnly", "true")
-      .build();
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return SnykResult.createResult(response, TestResult.class);
   }
 }

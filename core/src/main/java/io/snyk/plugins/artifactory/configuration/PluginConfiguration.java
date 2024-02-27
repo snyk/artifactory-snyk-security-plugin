@@ -3,6 +3,8 @@ package io.snyk.plugins.artifactory.configuration;
 public enum PluginConfiguration implements Configuration {
   // general settings
   API_URL("snyk.api.url", "https://snyk.io/api/v1/"),
+  API_REST_URL("snyk.api.rest.url", "https://api.snyk.io/rest/"),
+  API_REST_VERSION("snyk.api.rest.version", "2024-01-23"),
   API_TOKEN("snyk.api.token", ""),
   API_ORGANIZATION("snyk.api.organization", ""),
   API_SSL_CERTIFICATE_PATH("snyk.api.sslCertificatePath", ""),
@@ -18,7 +20,9 @@ public enum PluginConfiguration implements Configuration {
   SCANNER_LICENSE_THRESHOLD("snyk.scanner.license.threshold", "low"),
   SCANNER_PACKAGE_TYPE_MAVEN("snyk.scanner.packageType.maven", "true"),
   SCANNER_PACKAGE_TYPE_NPM("snyk.scanner.packageType.npm", "true"),
-  SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "false");
+  SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "false"),
+  SCANNER_PACKAGE_TYPE_COCOAPODS("snyk.scanner.packageType.cocoapods", "false"),
+  SCANNER_PACKAGE_TYPE_NUGET("snyk.scanner.packageType.nuget", "false");
 
   private final String propertyKey;
   private final String defaultValue;

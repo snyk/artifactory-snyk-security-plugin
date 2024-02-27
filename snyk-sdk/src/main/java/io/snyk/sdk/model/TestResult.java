@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * The test result is the object returned from the API giving the results of testing a package
  * for issues.
  */
-public class TestResult implements Serializable {
+public class TestResult implements Serializable, ScanResponse {
 
   private static final long serialVersionUID = 1L;
 

@@ -1,30 +1,18 @@
 package io.snyk.sdk.api.v1;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.security.SecureRandom;
-import java.util.Optional;
-
+import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.SnykClient;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.snyk.sdk.model.TestResult;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-
-import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.config.SSLConfiguration;
-import io.snyk.sdk.model.NotificationSettings;
-import io.snyk.sdk.model.TestResult;
 
 public class SnykV1Client extends SnykClient {
 

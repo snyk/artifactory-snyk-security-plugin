@@ -4,11 +4,9 @@ import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.SnykClient;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
-import io.snyk.sdk.model.TestResult;
 import io.snyk.sdk.model.rest.PurlIssues;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -29,9 +27,9 @@ public class SnykRestClient extends SnykClient {
         URLEncoder.encode(org, UTF_8), URLEncoder.encode(purl, UTF_8)))
       .withQueryParam("version", config.restVersion)
       .buildRestClient();
-    LOG.info("SnykArt: sending request to Snyk REST API endpoint: " + request.uri().toURL());
+    LOG.info("Snyk sending request to REST API endpoint: " + request.uri().toURL());
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    LOG.debug("SnykArt: Snyk list-issues-by-purl response body:" + response.body());
+    LOG.debug("Snyk retrieving list-issues-by-purl response body:" + response.body());
     return SnykResult.createResult(response, PurlIssues.class);
   }
 }

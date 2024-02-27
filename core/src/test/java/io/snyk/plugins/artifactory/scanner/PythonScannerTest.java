@@ -4,8 +4,8 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
@@ -30,8 +30,8 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    PythonScanner scanner = new PythonScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
@@ -44,7 +44,7 @@ public class PythonScannerTest {
     assertEquals(6, result.issues.vulnerabilities.size());
     assertEquals("pip", result.packageManager);
     assertEquals(org, result.organisation.id);
-    assertEquals("https://snyk.io/vuln/pip%3Aurllib3%401.25.7", result.packageDetailsURL);
+    assertEquals("https://snyk.io/vuln/pip%3Aurllib3%401.25.7", result.getPackageDetailsUrl());
   }
 
   @Test
@@ -57,8 +57,8 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    PythonScanner scanner = new PythonScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
@@ -78,8 +78,8 @@ public class PythonScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    PythonScanner scanner = new PythonScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    PythonScanner scanner = new PythonScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);

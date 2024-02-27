@@ -1,4 +1,4 @@
-package io.snyk.sdk.api.v1;
+package io.snyk.sdk.api;
 
 import io.snyk.sdk.SnykConfig;
 
@@ -43,15 +43,27 @@ public class SnykHttpRequestBuilder {
   public HttpRequest build() {
     return HttpRequest.newBuilder()
       .GET()
-      .uri(buildURI())
+      .uri(buildURI(config.baseUrl))
       .timeout(config.timeout)
       .setHeader("Authorization", String.format("token %s", config.token))
       .setHeader("User-Agent", config.userAgent)
       .build();
   }
 
-  private URI buildURI() {
-    String apiUrl = config.baseUrl + path;
+  public HttpRequest buildRestClient() {
+    String contentType = "application/vnd.api+json";
+    return HttpRequest.newBuilder()
+      .GET()
+      .uri(buildURI(config.restBaseUrl))
+      .timeout(config.timeout)
+      .setHeader("Authorization", String.format("token %s", config.token))
+      .setHeader("User-Agent", config.userAgent)
+      .setHeader("Content-Type", contentType)
+      .build();
+  }
+
+  private URI buildURI(String baseUrl) {
+    String apiUrl = baseUrl + path;
 
     String queryString = this.queryParams
       .entrySet()

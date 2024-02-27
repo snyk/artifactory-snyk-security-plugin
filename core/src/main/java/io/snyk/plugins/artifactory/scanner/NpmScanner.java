@@ -3,20 +3,20 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.api.v1.SnykResult;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.api.rest.SnykRestClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.api.SnykResult;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
-import java.net.URLEncoder;
+import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class NpmScanner implements PackageScanner {
@@ -24,11 +24,11 @@ class NpmScanner implements PackageScanner {
   private static final Logger LOG = getLogger(NpmScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final SnykClient snykClient;
+  private final SnykV1Client snykV1Client;
 
-  NpmScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  NpmScanner(ConfigurationModule configurationModule, SnykV1Client snykV1Client) {
     this.configurationModule = configurationModule;
-    this.snykClient = snykClient;
+    this.snykV1Client = snykV1Client;
   }
 
   public static Optional<PackageURLDetails> getPackageDetailsFromUrl(String repoPath) {
@@ -53,7 +53,7 @@ class NpmScanner implements PackageScanner {
 
     SnykResult<TestResult> result;
     try {
-      result = snykClient.testNpm(
+      result = snykV1Client.testNpm(
         details.name,
         details.version,
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
@@ -63,7 +63,7 @@ class NpmScanner implements PackageScanner {
     }
 
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
-    testResult.packageDetailsURL = getPackageDetailsURL(details);
+    testResult.setPackageDetailsUrl(getPackageDetailsURL(details));
     return testResult;
   }
 

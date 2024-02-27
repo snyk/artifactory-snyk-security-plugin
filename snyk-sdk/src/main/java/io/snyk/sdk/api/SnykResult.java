@@ -1,4 +1,4 @@
-package io.snyk.sdk.api.v1;
+package io.snyk.sdk.api;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,10 +39,12 @@ public class SnykResult<T> {
 
   public static <ResType> SnykResult<ResType> createResult(HttpResponse<String> response, Class<ResType> resultType) throws IOException {
     int status = response.statusCode();
+    LOG.info("Snyk retrieving REST response status code: " + status);
     if (status == 200) {
       String responseBody = response.body();
       ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       var res = objectMapper.readValue(responseBody, resultType);
+      LOG.debug("Snyk retrieving mapped json object:\n" + res.toString());
       return new SnykResult<>(status, res, responseBody, response);
     } else {
       return new SnykResult<>(response);

@@ -4,8 +4,8 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
@@ -30,8 +30,8 @@ public class MavenScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    MavenScanner scanner = new MavenScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
@@ -46,7 +46,7 @@ public class MavenScannerTest {
     assertEquals("maven", result.packageManager);
     assertEquals(org, result.organisation.id);
     assertEquals("https://snyk.io/vuln/maven%3Acom.fasterxml.jackson.core%3Ajackson-databind%402.9.8",
-      result.packageDetailsURL
+      result.getPackageDetailsUrl()
     );
   }
 
@@ -60,8 +60,8 @@ public class MavenScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    MavenScanner scanner = new MavenScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
@@ -82,8 +82,8 @@ public class MavenScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    MavenScanner scanner = new MavenScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);
@@ -104,8 +104,8 @@ public class MavenScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    MavenScanner scanner = new MavenScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    MavenScanner scanner = new MavenScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     FileLayoutInfo fileLayoutInfo = mock(FileLayoutInfo.class);

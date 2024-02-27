@@ -4,6 +4,8 @@ import java.time.Duration;
 
 public class SnykConfig {
   public final String baseUrl;
+  public final String restBaseUrl;
+  public final String restVersion;
   public final String token;
   public final String userAgent;
   public final boolean trustAllCertificates;
@@ -14,6 +16,8 @@ public class SnykConfig {
 
   private SnykConfig(
     String baseUrl,
+    String restBaseUrl,
+    String restVersion,
     String token,
     String userAgent,
     boolean trustAllCertificates,
@@ -23,6 +27,8 @@ public class SnykConfig {
     Duration timeout
   ) {
     this.baseUrl = baseUrl;
+    this.restBaseUrl = restBaseUrl;
+    this.restVersion = restVersion;
     this.token = token;
     this.userAgent = userAgent;
     this.trustAllCertificates = trustAllCertificates;
@@ -43,6 +49,8 @@ public class SnykConfig {
   public static class Builder {
     private String token;
     private String baseUrl = "https://api.snyk.io/v1/";
+    private String restBaseUrl = "https://api.snyk.io/rest/";
+    private String restVersion = "2024-01-23";
     private String userAgent = "snyk-sdk-java";
     private boolean trustAllCertificates = false;
     private String sslCertificatePath = "";
@@ -60,6 +68,16 @@ public class SnykConfig {
 
     public Builder setBaseUrl(String baseUrl) {
       this.baseUrl = baseUrl;
+      return this;
+    }
+
+    public Builder setRestBaseUrl(String restBaseUrl) {
+      this.restBaseUrl = restBaseUrl;
+      return this;
+    }
+
+    public Builder setRestVersion(String restVersion) {
+      this.restVersion = restVersion;
       return this;
     }
 
@@ -96,6 +114,8 @@ public class SnykConfig {
     public SnykConfig build() {
       return new SnykConfig(
         baseUrl,
+        restBaseUrl,
+        restVersion,
         token,
         userAgent,
         trustAllCertificates,

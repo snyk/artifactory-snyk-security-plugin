@@ -3,8 +3,8 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
@@ -29,8 +29,8 @@ public class NpmScannerTest {
     properties.put(API_ORGANIZATION.propertyKey(), org);
     ConfigurationModule configurationModule = new ConfigurationModule(properties);
 
-    SnykClient snykClient = new SnykClient(config);
-    NpmScanner scanner = new NpmScanner(configurationModule, snykClient);
+    SnykV1Client snykV1Client = new SnykV1Client(config);
+    NpmScanner scanner = new NpmScanner(configurationModule, snykV1Client);
 
     RepoPath repoPath = mock(RepoPath.class);
     when(repoPath.toString()).thenReturn("npm:lodash/-/lodash-4.17.15.tgz");
@@ -42,7 +42,7 @@ public class NpmScannerTest {
     assertTrue(result.issues.vulnerabilities.size() > 0);
     assertEquals("npm", result.packageManager);
     assertEquals(org, result.organisation.id);
-    assertEquals("https://snyk.io/test/npm/lodash/4.17.15", result.packageDetailsURL);
+    assertEquals("https://snyk.io/test/npm/lodash/4.17.15", result.getPackageDetailsUrl());
   }
 
   @Test

@@ -8,8 +8,10 @@ import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
 import io.snyk.plugins.artifactory.scanner.ScannerModule;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.api.v1.SnykResult;
+import io.snyk.sdk.api.SnykClient;
+import io.snyk.sdk.api.rest.SnykRestClient;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.NotificationSettings;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.ItemInfo;
@@ -52,6 +54,8 @@ public class SnykPlugin {
 
       LOG.info("Creating api client and modules...");
       LOG.info("BaseURL:" + configurationModule.getPropertyOrDefault(API_URL));
+      LOG.info("RestBaseURL:" + configurationModule.getPropertyOrDefault(API_REST_URL));
+      LOG.info("RestVersion:" + configurationModule.getPropertyOrDefault(API_REST_VERSION));
       LOG.info("Organization:" + configurationModule.getPropertyOrDefault(API_ORGANIZATION));
       String token = configurationModule.getPropertyOrDefault(API_TOKEN);
       if (null != token && token.length() > 4) {
@@ -60,10 +64,11 @@ public class SnykPlugin {
         token = "no token configured";
       }
       LOG.debug("Token:" + token);
-      final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
+      final SnykClient snykV1Client = createSnykV1Client(configurationModule, pluginVersion);
+      final SnykClient snykRestClient = createSnykRestClient(configurationModule, pluginVersion);
 
       auditModule = new AuditModule();
-      scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
+      scannerModule = new ScannerModule(configurationModule, repositories, pluginVersion);
 
       LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {
@@ -131,9 +136,11 @@ public class SnykPlugin {
       .forEach(LOG::debug);
   }
 
-  private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
+  private SnykConfig createSnykConfig(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
+    String restBaseUrl = configurationModule.getPropertyOrDefault(API_REST_URL);
+    String restVersion = configurationModule.getPropertyOrDefault(API_REST_VERSION);
     boolean trustAllCertificates = false;
     String trustAllCertificatesProperty = configurationModule.getPropertyOrDefault(API_TRUST_ALL_CERTIFICATES);
     if ("true".equals(trustAllCertificatesProperty)) {
@@ -146,6 +153,12 @@ public class SnykPlugin {
       }
       baseUrl = baseUrl + "/";
     }
+    if (!restBaseUrl.endsWith("/")) {
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("'{}' must end in /, your value is '{}'", API_REST_URL.propertyKey(), restBaseUrl);
+      }
+      restBaseUrl = restBaseUrl + "/";
+    }
 
     String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
     String httpProxyHost = configurationModule.getPropertyOrDefault(HTTP_PROXY_HOST);
@@ -154,6 +167,8 @@ public class SnykPlugin {
 
     var config = SnykConfig.newBuilder()
       .setBaseUrl(baseUrl)
+      .setRestBaseUrl(restBaseUrl)
+      .setRestVersion(restVersion)
       .setToken(token)
       .setUserAgent(API_USER_AGENT + pluginVersion)
       .setTrustAllCertificates(trustAllCertificates)
@@ -167,13 +182,29 @@ public class SnykPlugin {
     LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
     LOG.debug("config.httpProxyPort: " + config.httpProxyPort);
 
-    final SnykClient snykClient = new SnykClient(config);
+    return config;
+  }
 
+  // TODO: refactor with class newInstance()
+  private SnykClient createSnykV1Client(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
+    SnykConfig config = createSnykConfig(configurationModule, pluginVersion);
+    final SnykClient snykV1Client = new SnykV1Client(config);
     String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
-    var res = snykClient.getNotificationSettings(org);
+    var res = snykV1Client.getNotificationSettings(org);
     handleResponse(res);
 
-    return snykClient;
+    return snykV1Client;
+  }
+
+  // TODO: refactor with class newInstance()
+  private SnykClient createSnykRestClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
+    SnykConfig config = createSnykConfig(configurationModule, pluginVersion);
+    final SnykClient snykRestClient = new SnykRestClient(config);
+    String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
+    var res = snykRestClient.getNotificationSettings(org);
+    handleResponse(res);
+
+    return snykRestClient;
   }
 
   void handleResponse(SnykResult<NotificationSettings> res) {

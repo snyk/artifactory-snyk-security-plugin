@@ -3,9 +3,9 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykV1Client;
 import io.snyk.sdk.api.SnykResult;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.api.v1.SnykV1Client;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.net.URLEncoder;
 import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class MavenScanner implements PackageScanner {
@@ -55,7 +55,7 @@ class MavenScanner implements PackageScanner {
     }
 
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
-    testResult.packageDetailsURL = getArtifactDetailsURL(groupID, artifactID, artifactVersion);
+    testResult.setPackageDetailsUrl(getArtifactDetailsURL(groupID, artifactID, artifactVersion));
     return testResult;
   }
 }

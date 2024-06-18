@@ -22,7 +22,8 @@ public enum PluginConfiguration implements Configuration {
   SCANNER_PACKAGE_TYPE_NPM("snyk.scanner.packageType.npm", "true"),
   SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "false"),
   SCANNER_PACKAGE_TYPE_COCOAPODS("snyk.scanner.packageType.cocoapods", "false"),
-  SCANNER_PACKAGE_TYPE_NUGET("snyk.scanner.packageType.nuget", "false");
+  SCANNER_PACKAGE_TYPE_NUGET("snyk.scanner.packageType.nuget", "false"),
+  SCANNER_PACKAGE_TYPE_GEMS("snyk.scanner.packageType.gems", "false");
 
   private final String propertyKey;
   private final String defaultValue;

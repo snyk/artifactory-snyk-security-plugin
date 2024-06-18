@@ -4,7 +4,7 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykV1Client;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.model.v1.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
@@ -42,7 +42,7 @@ public class NpmScannerTest {
     assertTrue(result.issues.vulnerabilities.size() > 0);
     assertEquals("npm", result.packageManager);
     assertEquals(org, result.organisation.id);
-    assertEquals("https://snyk.io/test/npm/lodash/4.17.15", result.packageDetailsURL);
+    assertEquals("https://snyk.io/test/npm/lodash/4.17.15", result.getPackageDetailsUrl());
   }
 
   @Test

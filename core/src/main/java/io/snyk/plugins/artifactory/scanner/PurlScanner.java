@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.configuration.RepoPackageType;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.SnykResult;
@@ -32,33 +33,17 @@ public class PurlScanner implements PackageScanner {
   }
 
   public static String getPackageSecurityUrl(String packageType, String pkgNameVersion) {
-    // snyk security vuln database url e.g. https://snyk.io/vuln/cocoapods:protobuf@3.0.0
-    return "https://snyk.io/vuln/" + packageType.toLowerCase() + ":" + pkgNameVersion.toLowerCase();
+    return "https://security.snyk.io/package/" + RepoPackageType.valueOf(packageType).getVulnType() + "/" + pkgNameVersion.toLowerCase();
   }
 
   public PurlIssues scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     RepositoryConfiguration repoConf = repositories.getRepositoryConfiguration(repoPath.getRepoKey());
     String packageType = requireNonNull(repoConf).getPackageType();
     // get requested package name and version
-    String packageNameVerExt = repoPath.getName();
-    String purlNameVersion = null;
-
-    // improve with enum map packageType to Set<extensions>?
-    // format the purl as required by Snyk list-issues-for-purl-packages API
-    if (packageType.equalsIgnoreCase("cocoapods")) {
-      String packageNameVer = packageNameVerExt.replaceFirst(".tar.gz$|.zip$", "");
-      // replacing any leading versioning alphabets with greedy match e.g. SnapKit-v5.0.1 -> SnapKit@5.0.0
-      purlNameVersion = packageNameVer.replaceFirst("-[a-zA-Z]*", "@");
-    } else if (packageType.equalsIgnoreCase("nuget")) {
-      String packageNameVer = packageNameVerExt.replaceFirst(".nupkg$", "");
-      // replace first occurrence of .[0-9] in "log4net.Ext.Json.2.0.10.1" -> "log4net.Ext.Json@2.0.10.1"
-      purlNameVersion = packageNameVer.replaceFirst("(\\.)(\\d)", "@$2");
-    }
-
-    String pkgNameVersion = Optional.ofNullable(purlNameVersion)
-      .orElseThrow(() -> new CannotScanException("PackageNameAndVersion is not derived: " + packageNameVerExt));
-    String purl = "pkg:" + packageType.toLowerCase() + "/" + pkgNameVersion;
-    LOG.debug("Snyk scanning for PURL: " + purl);
+    String pkgNameVersion = getPkgNameVersion(repoPath, packageType);
+    // derive purl type
+    String purl = "pkg:" + RepoPackageType.valueOf(packageType).getPurlType() + "/" + pkgNameVersion;
+    LOG.info("Snyk security scanning on Package URL:{}", purl);
 
     SnykResult<PurlIssues> result;
     try {
@@ -67,12 +52,38 @@ public class PurlScanner implements PackageScanner {
         Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
       );
     } catch (Exception e) {
-      LOG.debug("Snyk throwing SnykAPIFailureException: " + e.getMessage());
       throw new SnykAPIFailureException(e);
     }
 
     PurlIssues testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result, purl));
-    testResult.packageDetailsURL = getPackageSecurityUrl(packageType, pkgNameVersion);
+    testResult.setPackageDetailsUrl(getPackageSecurityUrl(packageType, pkgNameVersion));
     return testResult;
+  }
+
+  private static String getPkgNameVersion(RepoPath repoPath, String packageType) {
+    String packageNameVerExt = repoPath.getName();
+    LOG.info("SNYK USING packageNameVerExt: " + packageNameVerExt + ".");
+    String purlNameVersion = null;
+
+    // improve with enum map packageType to Set<extensions>?
+    // format the purl as required by Snyk list-issues-for-purl-packages API
+    if (packageType.equalsIgnoreCase(RepoPackageType.cocoapods.toString())) {
+      String packageNameVer = packageNameVerExt.replaceFirst(".tar.gz$|.zip$", "");
+      // replacing any leading versioning alphabets with greedy match e.g. SnapKit-v5.0.1 -> SnapKit@5.0.0
+      purlNameVersion = packageNameVer.replaceFirst("-[a-zA-Z]*", "@");
+    } else if (packageType.equalsIgnoreCase(RepoPackageType.nuget.toString())) {
+      String packageNameVer = packageNameVerExt.replaceFirst(".nupkg$", "");
+      // replace first occurrence of .[0-9] in "log4net.Ext.Json.2.0.10.1" -> "log4net.Ext.Json@2.0.10.1"
+      purlNameVersion = packageNameVer.replaceFirst("(\\.)(\\d)", "@$2");
+    } else if (packageType.equalsIgnoreCase(RepoPackageType.gems.toString())) {
+      String packageNameVer = packageNameVerExt.replaceFirst(".gem$", "");
+      // replace -<semanticVersion> with @(grouping) -> @-<semanticVersion>
+      purlNameVersion = packageNameVer.replaceFirst("-(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$", "@$0");
+      purlNameVersion = purlNameVersion.replaceFirst("@-", "@");
+    }
+
+    return Optional.ofNullable(purlNameVersion)
+      .orElseThrow(() -> new CannotScanException("PackageNameAndVersion is not derived: " + packageNameVerExt));
+    //return pkgNameVersion;
   }
 }

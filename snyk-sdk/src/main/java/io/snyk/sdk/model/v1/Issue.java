@@ -1,8 +1,9 @@
-package io.snyk.sdk.model;
+package io.snyk.sdk.model.v1;
 
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.snyk.sdk.model.Severity;
 
 /**
  * An issue is either a vulnerability or a license issue, according to the organisation's policy.

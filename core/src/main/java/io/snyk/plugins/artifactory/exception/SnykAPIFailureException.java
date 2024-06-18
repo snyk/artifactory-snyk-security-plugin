@@ -1,7 +1,7 @@
 package io.snyk.plugins.artifactory.exception;
 
 import io.snyk.sdk.api.SnykResult;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.model.v1.TestResult;
 import io.snyk.sdk.model.rest.PurlIssues;
 
 public class SnykAPIFailureException extends RuntimeException {

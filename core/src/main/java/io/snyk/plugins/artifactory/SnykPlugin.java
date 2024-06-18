@@ -68,7 +68,7 @@ public class SnykPlugin {
       final SnykClient snykRestClient = createSnykRestClient(configurationModule, pluginVersion);
 
       auditModule = new AuditModule();
-      scannerModule = new ScannerModule(configurationModule, repositories, (SnykV1Client) snykV1Client, (SnykRestClient) snykRestClient);
+      scannerModule = new ScannerModule(configurationModule, repositories, pluginVersion);
 
       LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {

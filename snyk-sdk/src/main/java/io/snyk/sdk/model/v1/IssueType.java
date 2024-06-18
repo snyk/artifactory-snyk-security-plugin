@@ -1,4 +1,4 @@
-package io.snyk.sdk.model;
+package io.snyk.sdk.model.v1;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

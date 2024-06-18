@@ -4,7 +4,7 @@ import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.SnykClient;
 import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import io.snyk.sdk.api.SnykResult;
-import io.snyk.sdk.model.TestResult;
+import io.snyk.sdk.model.v1.TestResult;
 
 import java.io.IOException;
 import java.net.URLEncoder;

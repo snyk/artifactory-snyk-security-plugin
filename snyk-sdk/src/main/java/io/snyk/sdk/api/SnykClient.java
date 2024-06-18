@@ -3,7 +3,6 @@ package io.snyk.sdk.api;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.config.SSLConfiguration;
 import io.snyk.sdk.model.NotificationSettings;
-import io.snyk.sdk.model.TestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.SecureRandom;
-import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

@@ -42,7 +42,7 @@ public class SnykConfig {
 
   public static class Builder {
     private String token;
-    private String baseUrl = "https://snyk.io/api/v1/";
+    private String baseUrl = "https://api.snyk.io/v1/";
     private String userAgent = "snyk-sdk-java";
     private boolean trustAllCertificates = false;
     private String sslCertificatePath = "";

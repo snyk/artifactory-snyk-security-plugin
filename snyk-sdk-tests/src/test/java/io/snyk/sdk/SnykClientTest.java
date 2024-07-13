@@ -20,7 +20,7 @@ class SnykClientTest {
   void createSnykConfig_shouldReturnDefaultValues_ifNotDefined() {
     Config config = new Config("snyk-api-token");
 
-    assertEquals("https://snyk.io/api/v1/", config.baseUrl);
+    assertEquals("https://api.snyk.io/v1/", config.baseUrl);
     assertEquals("snyk-sdk-java", config.userAgent);
   }
 

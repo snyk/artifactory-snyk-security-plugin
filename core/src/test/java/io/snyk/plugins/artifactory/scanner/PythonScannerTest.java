@@ -41,7 +41,7 @@ public class PythonScannerTest {
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
     assertFalse(result.success);
     assertEquals(1, result.dependencyCount);
-    assertEquals(5, result.issues.vulnerabilities.size());
+    assertEquals(6, result.issues.vulnerabilities.size());
     assertEquals("pip", result.packageManager);
     assertEquals(org, result.organisation.id);
     assertEquals("https://snyk.io/vuln/pip%3Aurllib3%401.25.7", result.packageDetailsURL);

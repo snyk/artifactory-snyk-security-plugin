@@ -28,7 +28,7 @@ pushd "$SCRIPT_DIR/.." || exit 1
     if [[ $SNYK_TOKEN == "" ]]; then
       $SNYK auth
     fi
-    ORG=$(curl -s -H "Authorization: token $SNYK_TOKEN" https://snyk.io/api/v1/orgs | jq -r '.orgs|first|.id')
+    ORG=$(curl -s -H "Authorization: token $SNYK_TOKEN" https://api.snyk.io/v1/orgs | jq -r '.orgs|first|.id')
 
     # monkey patching config file
     pushd plugins

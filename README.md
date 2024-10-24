@@ -3,94 +3,61 @@
 For information about the Artifactory Gatekeeper plugin, see the Snyk user
 docs, [Artifactory Gatekeeper plugin](https://docs.snyk.io/integrations/private-registry-gatekeeper-plugins/artifactory-gatekeeper-plugin-overview).
 
-## Setup local development environment
+## Local development
 
-### Download an Artifactory Docker image:
+## Running artifactory locally
+You can run artifactory pro with docker compose. There are a few steps needed to set it up:
 
-```
-docker pull releases-docker.jfrog.io/jfrog/artifactory-pro:latest
-```
+### Step 1: Initialise the file system
+Start up the containers:
 
-Does not have to be `pro`, but in this example we'll do it.
-
-### Create a `$JFROG_HOME` folder
-
-```
-mkdir -p ~/.jfrog/artifactory/var/
+```shell
+docker compose up
 ```
 
-Export it to your environment for ease of use
+That will initialise the system files at `distribution/docker`.
 
-```
-echo export JFROG_HOME=~/.jfrog >> ~/.zshrc
-```
+### Step 2: Point Artifactory to the DB
+Ctrl+C out of the containers and edit the DB configuration in
+`distribution/docker/etc/system.yaml`:
 
-### Build the plugin
-
-Depends a lot on your system. But something like
-
-```
-mvn install -DskipTests
-```
-
-Will probably work. Per default, you'll find a baked `.zip`
-in `~/.m2/repository/io/snyk/plugins/artifactory/distribution/LOCAL-SNAPSHOT`.
-
-Unzip it. Inside is a `.groovy` file, a `.properties` file, as well as the actual `.jar` inside `/lib`.
-
-Edit the `.properties`, add something like this to the properties for a minimum working solution:
-
-```
-snyk.api.token=<INSERT_TOKEN>
-snyk.api.organization=<INSERT_ORG_ID>
+```yaml
+    database:
+        type: postgresql
+        driver: org.postgresql.Driver
+        url: "jdbc:postgresql://postgres/artifactory"
+        username: artifactory
+        password: password
 ```
 
-Also, if you want to test against your local Registry, but you're running on Docker:
+Run `docker compose up` again. The application should start at [localhost:8082](http://localhost:8082),
+you can log in with username `admin` and password `password`.
 
-```
-snyk.api.url=http://host.docker.internal:8000/api/v1/
-```
+### Step 3: Enable the license
+Artifactory pro license is required to run the plugin. You can get a trial one
+for free by signing up at [JFrog website](https://jfrog.com/start-free/).
+Paste the license in you artifactory.
 
-At least if you're on OSX, you cannot probe against `localhost` from within a Docker container.
+There! You have an artifactory pro running locally. Time to install the Snyk plugin.
 
-Also, remember to activate some of the scanners depending on what you're debugging:
+## Installing the plugin
+Build the plugin first with `mvn install -DskipTests`.
+Then unpack the release into artifactory's plugins folder:
 
-```
-snyk.scanner.packageType.maven=true
-snyk.scanner.packageType.npm=true
-snyk.scanner.packageType.pypi=true
-```
-
-### Enable debugging JVM options
-
-```
-vim $JFROG_HOME/artifactory/var/etc/system.yaml
-``` 
-
-Add `extraJavaOpts`
-
-```
-shared:
-    ## Java 17 distribution to use
-    #javaHome: "JFROG_HOME/artifactory/app/third-party/java"
-
-    ## Extra Java options to pass to the JVM. These values add to or override the defaults.
-    #extraJavaOpts: "-Xms512m -Xmx4g"
-    extraJavaOpts: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+```shell
+unzip -o distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip -d distribution/docker/etc/artifactory/
 ```
 
-### Run the Docker image
+Set your Snyk org ID and API token inside `distribution/docker/etc/artifactory/snykSecurityPlugin.properties`
+and restart Artifactory. Check [the logs](http://localhost:8082/ui/admin/artifactory/advanced/system_logs)
+to confirm the plugin gets loaded.
 
-And ensure you expose debugging ports, in this case, `5005`
+After making changes to the plugin, repeat `mvn install` and extract the jar file but without touching your config:
 
+```shell
+unzip -p distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip plugins/lib/artifactory-snyk-security-core.jar > distribution/docker/etc/artifactory/plugins/lib/artifactory-snyk-security-core.jar
 ```
-docker run -d --name artifactory -p 8888:8082 -p 8081:8081 -p 5005:5005 -v $JFROG_HOME/artifactory/var/:/var/opt/jfrog/artifactory releases-docker.jfrog.io/jfrog/artifactory-pro:latest
-```
 
-Wait until the Docker has loaded, it can take a while. Check the progress with `docker logs -f <id>`.
-
-#### Notice for M1 Macs
-
-You'll have a ton of trouble if you default to building your Docker images as `linux/amd64`. At least I had. Ensure you
-do not have a env variable like `DOCKER_DEFAULT_PLATFORM=linux/amd64` enabled when pulling and/or running the image.
-
+## Inspecting plugin logs
+In order to see the logs, set the log level for Snyk by inserting this line: `<logger name="io.snyk" level="debug"/>`
+into this file: `distribution/docker/etc/artifactory/logback.xml`.

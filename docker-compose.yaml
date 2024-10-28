@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16.4
+    environment:
+      - POSTGRES_USER=artifactory
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=artifactory
+  artifactory:
+    depends_on:
+      - postgres
+    image: releases-docker.jfrog.io/jfrog/artifactory-pro:7.84.20
+
+    environment:
+      - EXTRA_JAVA_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=8882,server=y,suspend=n"
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8882:8882"
+    volumes:
+      - "./distribution/docker:/var/opt/jfrog/artifactory"

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
 import static io.snyk.sdk.util.Predicates.distinctByKey;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -58,28 +57,21 @@ public class ScannerModule {
   }
 
   protected PackageScanner getScannerForPackageType(String path) {
-    if (path.endsWith(".jar")) {
-      if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_MAVEN).equals("true")) {
+    Ecosystem ecosystem = Ecosystem.fromPackagePath(path).orElseThrow(() -> new CannotScanException("Artifact is not supported."));
+    if(!configurationModule.getPropertyOrDefault(ecosystem.getConfigProperty()).equals("true")) {
+      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", ecosystem.getConfigProperty().propertyKey()));
+    }
+
+    switch (ecosystem) {
+      case MAVEN:
         return mavenScanner;
-      }
-      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", SCANNER_PACKAGE_TYPE_MAVEN.propertyKey()));
-    }
-
-    if (path.endsWith(".tgz")) {
-      if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_NPM).equals("true")) {
+      case NPM:
         return npmScanner;
-      }
-      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", SCANNER_PACKAGE_TYPE_NPM.propertyKey()));
-    }
-
-    if (path.endsWith(".whl") || path.endsWith(".tar.gz") || path.endsWith(".zip") || path.endsWith(".egg")) {
-      if (configurationModule.getPropertyOrDefault(SCANNER_PACKAGE_TYPE_PYPI).equals("true")) {
+      case PYPI:
         return pythonScanner;
-      }
-      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", SCANNER_PACKAGE_TYPE_PYPI.propertyKey()));
+      default:
+        throw new IllegalStateException("Unsupported ecosystem: " + ecosystem.name());
     }
-
-    throw new CannotScanException("Artifact is not supported.");
   }
 
   protected void updateProperties(RepoPath repoPath, TestResult testResult) {

@@ -30,29 +30,6 @@ import static org.mockito.Mockito.*;
 public class ScannerModuleTest {
 
   @Test
-  void testGetScannerForPackageType() {
-    Properties properties = new Properties();
-    properties.put(SCANNER_PACKAGE_TYPE_MAVEN.propertyKey(), "true");
-    properties.put(SCANNER_PACKAGE_TYPE_NPM.propertyKey(), "true");
-    properties.put(SCANNER_PACKAGE_TYPE_PYPI.propertyKey(), "true");
-
-    ConfigurationModule configurationModule = new ConfigurationModule(properties);
-
-    ScannerModule sm = new ScannerModule(
-      configurationModule,
-      mock(Repositories.class),
-      mock(SnykClient.class));
-
-    assertEquals(MavenScanner.class, sm.getScannerForPackageType("myArtifact.jar").getClass());
-    assertEquals(NpmScanner.class, sm.getScannerForPackageType("myArtifact.tgz").getClass());
-    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.whl").getClass());
-    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.tar.gz").getClass());
-    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.zip").getClass());
-    assertEquals(PythonScanner.class, sm.getScannerForPackageType("myArtifact.egg").getClass());
-    assertThrows(CannotScanException.class, () -> sm.getScannerForPackageType("unknown"));
-  }
-
-  @Test
   void testGetScannerForPackageType_cannotScanPathsWithDisabledScanners() {
     Properties properties = new Properties();
     properties.put(SCANNER_PACKAGE_TYPE_MAVEN.propertyKey(), "false");

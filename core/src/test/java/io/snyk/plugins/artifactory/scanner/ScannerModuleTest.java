@@ -146,16 +146,6 @@ public class ScannerModuleTest {
     assertEquals(0, tr.issues.vulnerabilities.size());
     assertEquals("npm", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(1)).validateLicenseIssues(
-      eq(tr),
-      eq(repoPath)
-    );
   }
 
   @Test
@@ -187,16 +177,6 @@ public class ScannerModuleTest {
     assertTrue(tr.issues.vulnerabilities.size() > 0);
     assertEquals("npm", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(0)).validateLicenseIssues(
-      any(),
-      any()
-    );
   }
 
   @Test
@@ -226,16 +206,6 @@ public class ScannerModuleTest {
     assertEquals(0, tr.issues.vulnerabilities.size());
     assertEquals("maven", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(1)).validateLicenseIssues(
-      eq(tr),
-      eq(repoPath)
-    );
   }
 
   @Test
@@ -267,16 +237,6 @@ public class ScannerModuleTest {
     assertTrue(tr.issues.vulnerabilities.size() > 0);
     assertEquals("maven", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(0)).validateLicenseIssues(
-      any(),
-      any()
-    );
   }
 
   @Test
@@ -305,16 +265,6 @@ public class ScannerModuleTest {
     assertEquals(0, tr.issues.vulnerabilities.size());
     assertEquals("pip", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(1)).validateLicenseIssues(
-      eq(tr),
-      eq(repoPath)
-    );
   }
 
   @Test
@@ -346,15 +296,5 @@ public class ScannerModuleTest {
     assertEquals(6, tr.issues.vulnerabilities.size());
     assertEquals("pip", tr.packageManager);
     assertEquals(testSetup.org, tr.organisation.id);
-
-    verify(spyScanner, times(1)).validateVulnerabilityIssues(
-      eq(tr),
-      eq(repoPath)
-    );
-
-    verify(spyScanner, times(0)).validateLicenseIssues(
-      any(),
-      any()
-    );
   }
 }

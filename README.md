@@ -48,7 +48,7 @@ Then unpack the release into artifactory's plugins folder:
 unzip -o distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip -d distribution/docker/etc/artifactory/
 ```
 
-Set your Snyk org ID and API token inside `distribution/docker/etc/artifactory/snykSecurityPlugin.properties`
+Set your Snyk org ID and API token inside `distribution/docker/etc/artifactory/plugins/snykSecurityPlugin.properties`
 and restart Artifactory. Check [the logs](http://localhost:8082/ui/admin/artifactory/advanced/system_logs)
 to confirm the plugin gets loaded.
 

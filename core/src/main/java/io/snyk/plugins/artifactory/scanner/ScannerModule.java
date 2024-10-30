@@ -3,6 +3,10 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.model.Ignores;
+import io.snyk.plugins.artifactory.model.IssueSummary;
+import io.snyk.plugins.artifactory.model.MonitoredArtifact;
+import io.snyk.plugins.artifactory.model.ValidationSettings;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
@@ -10,6 +14,7 @@ import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -47,8 +52,21 @@ public class ScannerModule {
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
     updateProperties(repoPath, testResult);
 
-    PackageValidator validator = new PackageValidator(configurationModule, repositories);
-    validator.validate(testResult, repoPath);
+    MonitoredArtifact artifact = toMonitoredArtifact(testResult, repoPath);
+    validateArtifact(artifact);
+  }
+
+  private void validateArtifact(MonitoredArtifact artifact) {
+    ValidationSettings validationSettings = ValidationSettings.from(configurationModule);
+    PackageValidator validator = new PackageValidator(validationSettings);
+    validator.validate(artifact);
+  }
+
+  private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
+    IssueSummary vulns = IssueSummary.from(testResult.issues.vulnerabilities);
+    IssueSummary licenses = IssueSummary.from(testResult.issues.licenses);
+    Ignores ignores = Ignores.fromProperties(repositories, repoPath);
+    return new MonitoredArtifact(repoPath.toString(), vulns, licenses, ignores);
   }
 
   protected PackageScanner getScannerForPackageType(String path) {

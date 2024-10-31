@@ -8,10 +8,10 @@ import org.artifactory.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD;
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD_INFO;
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD_INFO;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO;
 
 public class AuditModule {
 

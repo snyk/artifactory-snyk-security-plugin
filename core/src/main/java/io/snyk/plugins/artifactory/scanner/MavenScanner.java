@@ -5,7 +5,6 @@ import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
-import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ class MavenScanner implements PackageScanner {
     return "https://snyk.io/vuln/" + URLEncoder.encode("maven:" + groupID + ":" + artifactID + "@" + artifactVersion, UTF_8);
   }
 
-  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+  public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     String groupID = Optional.ofNullable(fileLayoutInfo.getOrganization())
       .orElseThrow(() -> new CannotScanException("Group ID not provided."));
     String artifactID = Optional.ofNullable(fileLayoutInfo.getModule())
@@ -41,7 +40,7 @@ class MavenScanner implements PackageScanner {
     String artifactVersion = Optional.ofNullable(fileLayoutInfo.getBaseRevision())
       .orElseThrow(() -> new CannotScanException("Artifact Version not provided."));
 
-    SnykResult<TestResult> result;
+    SnykResult<io.snyk.sdk.model.TestResult> result;
     try {
       result = snykClient.testMaven(
         groupID,
@@ -54,8 +53,8 @@ class MavenScanner implements PackageScanner {
       throw new SnykAPIFailureException(e);
     }
 
-    TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
+    io.snyk.sdk.model.TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
     testResult.packageDetailsURL = getArtifactDetailsURL(groupID, artifactID, artifactVersion);
-    return testResult;
+    return TestResultConverter.convert(testResult);
   }
 }

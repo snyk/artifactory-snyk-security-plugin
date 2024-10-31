@@ -1,7 +1,7 @@
 package io.snyk.plugins.artifactory;
 
 import io.snyk.plugins.artifactory.audit.AuditModule;
-import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;

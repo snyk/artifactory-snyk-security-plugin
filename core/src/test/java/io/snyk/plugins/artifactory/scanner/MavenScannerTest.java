@@ -2,10 +2,10 @@ package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.model.TestResult;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;
@@ -40,13 +40,9 @@ public class MavenScannerTest {
     when(fileLayoutInfo.getBaseRevision()).thenReturn("2.9.8");
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
-    assertFalse(result.success); // false because it has vulns
-    assertEquals(3, result.dependencyCount);
-    assertTrue(result.issues.vulnerabilities.size() > 0);
-    assertEquals("maven", result.packageManager);
-    assertEquals(org, result.organisation.id);
+    assertTrue(result.getVulnSummary().getTotalCount() > 0);
     assertEquals("https://snyk.io/vuln/maven%3Acom.fasterxml.jackson.core%3Ajackson-databind%402.9.8",
-      result.packageDetailsURL
+      result.getDetailsUrl().toString()
     );
   }
 

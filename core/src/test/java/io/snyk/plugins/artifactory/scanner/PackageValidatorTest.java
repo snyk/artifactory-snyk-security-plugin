@@ -1,9 +1,6 @@
 package io.snyk.plugins.artifactory.scanner;
 
-import io.snyk.plugins.artifactory.model.Ignores;
-import io.snyk.plugins.artifactory.model.IssueSummary;
-import io.snyk.plugins.artifactory.model.MonitoredArtifact;
-import io.snyk.plugins.artifactory.model.ValidationSettings;
+import io.snyk.plugins.artifactory.model.*;
 import io.snyk.sdk.model.Severity;
 import org.artifactory.exception.CancelException;
 import org.junit.jupiter.api.Test;
@@ -23,10 +20,12 @@ class PackageValidatorTest {
       .withLicenseSeverityThreshold(Severity.CRITICAL);
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
-      IssueSummary.from(Stream.of(Severity.LOW)),
-      IssueSummary.from(Stream.of(Severity.MEDIUM)),
-      new Ignores(),
-      URI.create("https://snyk.io/package/version")
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.LOW)),
+        IssueSummary.from(Stream.of(Severity.MEDIUM)),
+        URI.create("https://snyk.io/package/version")
+      ),
+      new Ignores()
     );
 
     assertDoesNotThrow(() -> validator.validate(artifact));
@@ -39,10 +38,12 @@ class PackageValidatorTest {
       .withLicenseSeverityThreshold(Severity.LOW);
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
-      IssueSummary.from(Stream.of(Severity.HIGH)),
-      IssueSummary.from(Stream.empty()),
-      new Ignores(),
-      URI.create("https://snyk.io/package/version")
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.HIGH)),
+        IssueSummary.from(Stream.empty()),
+        URI.create("https://snyk.io/package/version")
+      ),
+      new Ignores()
     );
 
     assertThrows(CancelException.class, () -> validator.validate(artifact));
@@ -55,10 +56,12 @@ class PackageValidatorTest {
       .withLicenseSeverityThreshold(Severity.LOW);
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
-      IssueSummary.from(Stream.of(Severity.HIGH)),
-      IssueSummary.from(Stream.empty()),
-      new Ignores().withIgnoreVulnIssues(true),
-      URI.create("https://snyk.io/package/version")
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.HIGH)),
+        IssueSummary.from(Stream.empty()),
+        URI.create("https://snyk.io/package/version")
+      ),
+      new Ignores().withIgnoreVulnIssues(true)
     );
 
     assertDoesNotThrow(() -> validator.validate(artifact));
@@ -71,10 +74,12 @@ class PackageValidatorTest {
       .withLicenseSeverityThreshold(Severity.MEDIUM);
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
-      IssueSummary.from(Stream.empty()),
-      IssueSummary.from(Stream.of(Severity.MEDIUM)),
-      new Ignores(),
-      URI.create("https://snyk.io/package/version")
+      new TestResult(
+        IssueSummary.from(Stream.empty()),
+        IssueSummary.from(Stream.of(Severity.MEDIUM)),
+        URI.create("https://snyk.io/package/version")
+      ),
+      new Ignores()
     );
 
     assertThrows(CancelException.class, () -> validator.validate(artifact));
@@ -87,10 +92,12 @@ class PackageValidatorTest {
       .withLicenseSeverityThreshold(Severity.MEDIUM);
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
-      IssueSummary.from(Stream.empty()),
-      IssueSummary.from(Stream.of(Severity.MEDIUM)),
-      new Ignores().withIgnoreLicenseIssues(true),
-      URI.create("https://snyk.io/package/version")
+      new TestResult(
+        IssueSummary.from(Stream.empty()),
+        IssueSummary.from(Stream.of(Severity.MEDIUM)),
+        URI.create("https://snyk.io/package/version")
+      ),
+      new Ignores().withIgnoreLicenseIssues(true)
     );
 
     assertDoesNotThrow(() -> validator.validate(artifact));

@@ -1,4 +1,4 @@
-package io.snyk.plugins.artifactory.configuration;
+package io.snyk.plugins.artifactory.configuration.properties;
 
 public enum ArtifactProperty {
   ISSUE_URL("snyk.issue.url"),

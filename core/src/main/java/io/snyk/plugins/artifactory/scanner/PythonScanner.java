@@ -59,7 +59,7 @@ class PythonScanner implements PackageScanner {
     return "https://snyk.io/vuln/" + URLEncoder.encode("pip:" + details.name + "@" + details.version, UTF_8);
   }
 
-  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+  public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     ModuleURLDetails details = getModuleDetailsFromFileLayoutInfo(fileLayoutInfo)
       .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
         .orElseThrow(() -> new CannotScanException("Module details not provided.")));
@@ -77,7 +77,7 @@ class PythonScanner implements PackageScanner {
 
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
     testResult.packageDetailsURL = getModuleDetailsURL(details);
-    return testResult;
+    return TestResultConverter.convert(testResult);
   }
 
   public static class ModuleURLDetails {

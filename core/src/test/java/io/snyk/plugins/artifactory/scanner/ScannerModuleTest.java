@@ -7,13 +7,11 @@ import io.snyk.plugins.artifactory.model.MonitoredArtifact;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
-import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.annotation.Nonnull;
@@ -23,9 +21,9 @@ import java.util.Properties;
 import java.util.function.Function;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
-import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_PACKAGE_TYPE_PYPI;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ScannerModuleTest {
 
@@ -131,17 +129,9 @@ public class ScannerModuleTest {
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
     when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.6.tgz");
 
-    spyScanner.scanArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
 
-    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    MonitoredArtifact result = testResultCaptor.getValue();
-    assertEquals(0, result.getVulnSummary().getTotalCount());
+    assertEquals(0, result.getTestResult().getVulnSummary().getTotalCount());
   }
 
   @Test
@@ -156,19 +146,8 @@ public class ScannerModuleTest {
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
     when(repoPath.toString()).thenReturn("npm:lodash/-/lodash-4.17.15.tgz");
 
-    Assertions.assertThrows(CancelException.class, () -> {
-      spyScanner.scanArtifact(repoPath);
-    });
-
-    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    MonitoredArtifact result = testResultCaptor.getValue();
-    assertTrue(result.getVulnSummary().getTotalCount() > 0);
+    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    assertTrue(result.getTestResult().getVulnSummary().getTotalCount() > 0);
   }
 
   @Test
@@ -183,17 +162,8 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
-    spyScanner.scanArtifact(repoPath);
-
-    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    MonitoredArtifact result = testResultCaptor.getValue();
-    assertEquals(0, result.getVulnSummary().getTotalCount());
+    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    assertEquals(0, result.getTestResult().getVulnSummary().getTotalCount());
   }
 
   @Test
@@ -208,19 +178,8 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
-    Assertions.assertThrows(CancelException.class, () -> {
-      spyScanner.scanArtifact(repoPath);
-    });
-
-    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    MonitoredArtifact result = testResultCaptor.getValue();
-    assertTrue(result.getVulnSummary().getTotalCount() > 0);
+    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    assertTrue(result.getTestResult().getVulnSummary().getTotalCount() > 0);
   }
 
   @Test
@@ -234,17 +193,8 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
-    spyScanner.scanArtifact(repoPath);
-
-    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    MonitoredArtifact result = testResultCaptor.getValue();
-    assertEquals(0, result.getVulnSummary().getTotalCount());
+    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    assertEquals(0, result.getTestResult().getVulnSummary().getTotalCount());
   }
 
   @Test
@@ -258,19 +208,7 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
-
-    Assertions.assertThrows(CancelException.class, () -> {
-      spyScanner.scanArtifact(repoPath);
-    });
-
-    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
-
-    verify(spyScanner, times(1)).updateProperties(
-      eq(repoPath),
-      testResultCaptor.capture()
-    );
-
-    MonitoredArtifact result = testResultCaptor.getValue();
-    assertEquals(6, result.getVulnSummary().getTotalCount());
+    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    assertEquals(6, result.getTestResult().getVulnSummary().getTotalCount());
   }
 }

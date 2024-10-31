@@ -8,6 +8,7 @@ import io.snyk.sdk.model.Severity;
 import org.artifactory.exception.CancelException;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -24,7 +25,8 @@ class PackageValidatorTest {
     MonitoredArtifact artifact = new MonitoredArtifact("",
       IssueSummary.from(Stream.of(Severity.LOW)),
       IssueSummary.from(Stream.of(Severity.MEDIUM)),
-      new Ignores()
+      new Ignores(),
+      URI.create("https://snyk.io/package/version")
     );
 
     assertDoesNotThrow(() -> validator.validate(artifact));
@@ -39,7 +41,8 @@ class PackageValidatorTest {
     MonitoredArtifact artifact = new MonitoredArtifact("",
       IssueSummary.from(Stream.of(Severity.HIGH)),
       IssueSummary.from(Stream.empty()),
-      new Ignores()
+      new Ignores(),
+      URI.create("https://snyk.io/package/version")
     );
 
     assertThrows(CancelException.class, () -> validator.validate(artifact));
@@ -54,7 +57,8 @@ class PackageValidatorTest {
     MonitoredArtifact artifact = new MonitoredArtifact("",
       IssueSummary.from(Stream.of(Severity.HIGH)),
       IssueSummary.from(Stream.empty()),
-      new Ignores().withIgnoreVulnIssues(true)
+      new Ignores().withIgnoreVulnIssues(true),
+      URI.create("https://snyk.io/package/version")
     );
 
     assertDoesNotThrow(() -> validator.validate(artifact));
@@ -69,7 +73,8 @@ class PackageValidatorTest {
     MonitoredArtifact artifact = new MonitoredArtifact("",
       IssueSummary.from(Stream.empty()),
       IssueSummary.from(Stream.of(Severity.MEDIUM)),
-      new Ignores()
+      new Ignores(),
+      URI.create("https://snyk.io/package/version")
     );
 
     assertThrows(CancelException.class, () -> validator.validate(artifact));
@@ -84,7 +89,8 @@ class PackageValidatorTest {
     MonitoredArtifact artifact = new MonitoredArtifact("",
       IssueSummary.from(Stream.empty()),
       IssueSummary.from(Stream.of(Severity.MEDIUM)),
-      new Ignores().withIgnoreLicenseIssues(true)
+      new Ignores().withIgnoreLicenseIssues(true),
+      URI.create("https://snyk.io/package/version")
     );
 
     assertDoesNotThrow(() -> validator.validate(artifact));

@@ -3,10 +3,10 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
+import io.snyk.plugins.artifactory.model.MonitoredArtifact;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
 import org.artifactory.exception.CancelException;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -133,19 +133,15 @@ public class ScannerModuleTest {
 
     spyScanner.scanArtifact(repoPath);
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
+    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
       testResultCaptor.capture()
     );
 
-    TestResult tr = testResultCaptor.getValue();
-    assertTrue(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(0, tr.issues.vulnerabilities.size());
-    assertEquals("npm", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
+    MonitoredArtifact result = testResultCaptor.getValue();
+    assertEquals(0, result.getVulnSummary().getTotalCount());
   }
 
   @Test
@@ -164,19 +160,15 @@ public class ScannerModuleTest {
       spyScanner.scanArtifact(repoPath);
     });
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
+    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
       testResultCaptor.capture()
     );
 
-    TestResult tr = testResultCaptor.getValue();
-    assertFalse(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertTrue(tr.issues.vulnerabilities.size() > 0);
-    assertEquals("npm", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
+    MonitoredArtifact result = testResultCaptor.getValue();
+    assertTrue(result.getVulnSummary().getTotalCount() > 0);
   }
 
   @Test
@@ -193,19 +185,15 @@ public class ScannerModuleTest {
 
     spyScanner.scanArtifact(repoPath);
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
+    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
       testResultCaptor.capture()
     );
 
-    TestResult tr = testResultCaptor.getValue();
-    assertTrue(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(0, tr.issues.vulnerabilities.size());
-    assertEquals("maven", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
+    MonitoredArtifact result = testResultCaptor.getValue();
+    assertEquals(0, result.getVulnSummary().getTotalCount());
   }
 
   @Test
@@ -224,19 +212,15 @@ public class ScannerModuleTest {
       spyScanner.scanArtifact(repoPath);
     });
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
+    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
       testResultCaptor.capture()
     );
 
-    TestResult tr = testResultCaptor.getValue();
-    assertFalse(tr.success);
-    assertEquals(3, tr.dependencyCount);
-    assertTrue(tr.issues.vulnerabilities.size() > 0);
-    assertEquals("maven", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
+    MonitoredArtifact result = testResultCaptor.getValue();
+    assertTrue(result.getVulnSummary().getTotalCount() > 0);
   }
 
   @Test
@@ -252,19 +236,15 @@ public class ScannerModuleTest {
 
     spyScanner.scanArtifact(repoPath);
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
+    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
       testResultCaptor.capture()
     );
 
-    TestResult tr = testResultCaptor.getValue();
-    assertTrue(tr.success);
-    assertEquals(0, tr.dependencyCount);
-    assertEquals(0, tr.issues.vulnerabilities.size());
-    assertEquals("pip", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
+    MonitoredArtifact result = testResultCaptor.getValue();
+    assertEquals(0, result.getVulnSummary().getTotalCount());
   }
 
   @Test
@@ -283,18 +263,14 @@ public class ScannerModuleTest {
       spyScanner.scanArtifact(repoPath);
     });
 
-    ArgumentCaptor<TestResult> testResultCaptor = ArgumentCaptor.forClass(TestResult.class);
+    ArgumentCaptor<MonitoredArtifact> testResultCaptor = ArgumentCaptor.forClass(MonitoredArtifact.class);
 
     verify(spyScanner, times(1)).updateProperties(
       eq(repoPath),
       testResultCaptor.capture()
     );
 
-    TestResult tr = testResultCaptor.getValue();
-    assertFalse(tr.success);
-    assertEquals(1, tr.dependencyCount);
-    assertEquals(6, tr.issues.vulnerabilities.size());
-    assertEquals("pip", tr.packageManager);
-    assertEquals(testSetup.org, tr.organisation.id);
+    MonitoredArtifact result = testResultCaptor.getValue();
+    assertEquals(6, result.getVulnSummary().getTotalCount());
   }
 }

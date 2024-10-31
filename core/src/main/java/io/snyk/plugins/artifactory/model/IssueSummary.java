@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
+
 public class IssueSummary {
 
   private final Map<Severity, Integer> countBySeverity;
@@ -28,7 +30,7 @@ public class IssueSummary {
   public int getCountAtOrAbove(Severity severity) {
     int total = 0;
     for (Severity value : Arrays.asList(Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW)) {
-      total += getBySeverity(value);
+      total += getCountBySeverity(value);
       if (value == severity) {
         return total;
       }
@@ -36,7 +38,21 @@ public class IssueSummary {
     return total;
   }
 
-  private int getBySeverity(Severity severity) {
+  private int getCountBySeverity(Severity severity) {
     return countBySeverity.getOrDefault(severity, 0);
+  }
+
+  public int getTotalCount() {
+    return getCountAtOrAbove(Severity.LOW);
+  }
+
+  @Override
+  public String toString() {
+    return format("%d critical, %d high, %d medium, %d low",
+            getCountBySeverity(Severity.CRITICAL),
+            getCountBySeverity(Severity.HIGH),
+            getCountBySeverity(Severity.MEDIUM),
+            getCountBySeverity(Severity.LOW)
+    );
   }
 }

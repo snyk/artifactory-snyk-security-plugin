@@ -8,8 +8,6 @@ import io.snyk.plugins.artifactory.model.IssueSummary;
 import io.snyk.plugins.artifactory.model.MonitoredArtifact;
 import io.snyk.plugins.artifactory.model.ValidationSettings;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.Issue;
-import io.snyk.sdk.model.Severity;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -17,11 +15,10 @@ import org.artifactory.repo.Repositories;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.net.URI;
 import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
-import static io.snyk.sdk.util.Predicates.distinctByKey;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
@@ -43,17 +40,18 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
-    String path = Optional.ofNullable(repoPath.getPath())
-      .orElseThrow(() -> new CannotScanException("Path not provided."));
+    MonitoredArtifact artifact = testArtifact(repoPath);
 
-    PackageScanner scanner = getScannerForPackageType(path);
-    FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
-
-    TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
-    updateProperties(repoPath, testResult);
-
-    MonitoredArtifact artifact = toMonitoredArtifact(testResult, repoPath);
     validateArtifact(artifact);
+  }
+
+  private @NotNull MonitoredArtifact testArtifact(RepoPath repoPath) {
+    PackageScanner scanner = getScannerForPackageType(repoPath);
+    FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
+    TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
+    MonitoredArtifact artifact = toMonitoredArtifact(testResult, repoPath);
+    updateProperties(repoPath, artifact);
+    return artifact;
   }
 
   private void validateArtifact(MonitoredArtifact artifact) {
@@ -66,12 +64,18 @@ public class ScannerModule {
     IssueSummary vulns = IssueSummary.from(testResult.issues.vulnerabilities);
     IssueSummary licenses = IssueSummary.from(testResult.issues.licenses);
     Ignores ignores = Ignores.fromProperties(repositories, repoPath);
-    return new MonitoredArtifact(repoPath.toString(), vulns, licenses, ignores);
+    return new MonitoredArtifact(repoPath.toString(), vulns, licenses, ignores, URI.create(testResult.packageDetailsURL));
+  }
+
+  protected PackageScanner getScannerForPackageType(RepoPath repoPath) {
+    String path = Optional.ofNullable(repoPath.getPath())
+      .orElseThrow(() -> new CannotScanException("Path not provided."));
+    return getScannerForPackageType(path);
   }
 
   protected PackageScanner getScannerForPackageType(String path) {
     Ecosystem ecosystem = Ecosystem.fromPackagePath(path).orElseThrow(() -> new CannotScanException("Artifact is not supported."));
-    if(!configurationModule.getPropertyOrDefault(ecosystem.getConfigProperty()).equals("true")) {
+    if (!configurationModule.getPropertyOrDefault(ecosystem.getConfigProperty()).equals("true")) {
       throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", ecosystem.getConfigProperty().propertyKey()));
     }
 
@@ -87,10 +91,10 @@ public class ScannerModule {
     }
   }
 
-  protected void updateProperties(RepoPath repoPath, TestResult testResult) {
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
-    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
-    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
+  protected void updateProperties(RepoPath repoPath, MonitoredArtifact artifact) {
+    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), artifact.getVulnSummary().toString());
+    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), artifact.getLicenseSummary().toString());
+    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), artifact.getDetailsUrl().toString());
 
     setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
     setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");
@@ -104,29 +108,4 @@ public class ScannerModule {
       repositories.setProperty(repoPath, key, value);
     }
   }
-
-  private String getIssuesAsFormattedString(@Nonnull List<? extends Issue> issues) {
-    long countCriticalSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.CRITICAL)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-    long countHighSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.HIGH)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-    long countMediumSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.MEDIUM)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-    long countLowSeverities = issues.stream()
-      .filter(issue -> issue.severity == Severity.LOW)
-      .filter(distinctByKey(issue -> issue.id))
-      .count();
-
-    return format("%d critical, %d high, %d medium, %d low", countCriticalSeverities, countHighSeverities, countMediumSeverities, countLowSeverities);
-  }
-
-
-
-
 }

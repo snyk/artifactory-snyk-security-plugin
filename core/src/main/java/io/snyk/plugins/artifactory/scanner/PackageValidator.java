@@ -27,7 +27,7 @@ public class PackageValidator {
 
   private void validateVulnerabilityIssues(MonitoredArtifact artifact) {
     validateIssues(
-      artifact.getVulnSummary(),
+      artifact.getTestResult().getVulnSummary(),
       settings.getVulnSeverityThreshold(),
       artifact.getIgnores().shouldIgnoreVulnIssues(),
       format("VULNERABILITIES, %s", artifact.getPath())
@@ -36,7 +36,7 @@ public class PackageValidator {
 
   private void validateLicenseIssues(MonitoredArtifact artifact) {
     validateIssues(
-      artifact.getLicenseSummary(),
+      artifact.getTestResult().getLicenseSummary(),
       settings.getLicenseSeverityThreshold(),
       artifact.getIgnores().shouldIgnoreLicenseIssues(),
       format("LICENSES, %s", artifact.getPath())

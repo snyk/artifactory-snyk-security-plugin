@@ -10,13 +10,11 @@ import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
-import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class NpmScanner implements PackageScanner {
@@ -47,7 +45,7 @@ class NpmScanner implements PackageScanner {
     return "https://snyk.io/test/npm/" + details.name + "/" + details.version;
   }
 
-  public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
+  public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
     PackageURLDetails details = getPackageDetailsFromUrl(repoPath.toString())
       .orElseThrow(() -> new CannotScanException("Package details not provided."));
 
@@ -64,7 +62,7 @@ class NpmScanner implements PackageScanner {
 
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
     testResult.packageDetailsURL = getPackageDetailsURL(details);
-    return testResult;
+    return TestResultConverter.convert(testResult);
   }
 
   public static class PackageURLDetails {

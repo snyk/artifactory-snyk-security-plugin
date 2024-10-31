@@ -1,11 +1,11 @@
 package io.snyk.plugins.artifactory.model;
 
-import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD;
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
 
 public class Ignores {
 

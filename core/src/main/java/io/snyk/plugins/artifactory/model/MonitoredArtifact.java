@@ -1,40 +1,48 @@
 package io.snyk.plugins.artifactory.model;
 
-import java.net.URI;
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
+
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.*;
 
 public class MonitoredArtifact {
 
   private final String path;
-  private final IssueSummary vulnSummary;
-  private final IssueSummary licenseSummary;
-  private final Ignores ignores;
-  private final URI detailsUrl;
 
-  public MonitoredArtifact(String path, IssueSummary vulnSummary, IssueSummary licenseSummary, Ignores ignores, URI detailsUrl) {
+  private TestResult testResult;
+
+  private final Ignores ignores;
+
+  public MonitoredArtifact(String path, TestResult testResult, Ignores ignores) {
     this.path = path;
-    this.vulnSummary = vulnSummary;
-    this.licenseSummary = licenseSummary;
+    this.testResult = testResult;
     this.ignores = ignores;
-    this.detailsUrl = detailsUrl;
   }
 
   public String getPath() {
     return path;
   }
 
-  public IssueSummary getVulnSummary() {
-    return vulnSummary;
-  }
-
-  public IssueSummary getLicenseSummary() {
-    return licenseSummary;
+  public TestResult getTestResult() {
+    return testResult;
   }
 
   public Ignores getIgnores() {
     return ignores;
   }
 
-  public URI getDetailsUrl() {
-    return detailsUrl;
+  public void write(ArtifactProperties properties) {
+    testResult.write(properties);
+
+    setDefaultArtifactProperty(properties, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
+    setDefaultArtifactProperty(properties, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");
+    setDefaultArtifactProperty(properties, ISSUE_LICENSES_FORCE_DOWNLOAD, "false");
+    setDefaultArtifactProperty(properties, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO, "");
+  }
+
+  private void setDefaultArtifactProperty(ArtifactProperties properties, ArtifactProperty property, String value) {
+    if (!properties.hasProperty(property)) {
+      properties.setProperty(property, value);
+    }
   }
 }

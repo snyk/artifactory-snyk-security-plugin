@@ -1,24 +1,18 @@
 package io.snyk.plugins.artifactory.scanner;
 
-import io.snyk.plugins.artifactory.configuration.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.configuration.properties.RepositoryArtifactProperties;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
-import io.snyk.plugins.artifactory.model.Ignores;
-import io.snyk.plugins.artifactory.model.IssueSummary;
-import io.snyk.plugins.artifactory.model.MonitoredArtifact;
-import io.snyk.plugins.artifactory.model.ValidationSettings;
+import io.snyk.plugins.artifactory.model.*;
 import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.net.URI;
 import java.util.Optional;
 
-import static io.snyk.plugins.artifactory.configuration.ArtifactProperty.*;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
@@ -40,9 +34,13 @@ public class ScannerModule {
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
-    MonitoredArtifact artifact = testArtifact(repoPath);
+    MonitoredArtifact artifact = resolveArtifact(repoPath);
 
     validateArtifact(artifact);
+  }
+
+  public MonitoredArtifact resolveArtifact(RepoPath repoPath) {
+    return testArtifact(repoPath);
   }
 
   private @NotNull MonitoredArtifact testArtifact(RepoPath repoPath) {
@@ -50,7 +48,7 @@ public class ScannerModule {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
     MonitoredArtifact artifact = toMonitoredArtifact(testResult, repoPath);
-    updateProperties(repoPath, artifact);
+    artifact.write(new RepositoryArtifactProperties(repoPath, repositories));
     return artifact;
   }
 
@@ -61,10 +59,8 @@ public class ScannerModule {
   }
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
-    IssueSummary vulns = IssueSummary.from(testResult.issues.vulnerabilities);
-    IssueSummary licenses = IssueSummary.from(testResult.issues.licenses);
     Ignores ignores = Ignores.fromProperties(repositories, repoPath);
-    return new MonitoredArtifact(repoPath.toString(), vulns, licenses, ignores, URI.create(testResult.packageDetailsURL));
+    return new MonitoredArtifact(repoPath.toString(), testResult, ignores);
   }
 
   protected PackageScanner getScannerForPackageType(RepoPath repoPath) {
@@ -88,24 +84,6 @@ public class ScannerModule {
         return pythonScanner;
       default:
         throw new IllegalStateException("Unsupported ecosystem: " + ecosystem.name());
-    }
-  }
-
-  protected void updateProperties(RepoPath repoPath, MonitoredArtifact artifact) {
-    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), artifact.getVulnSummary().toString());
-    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), artifact.getLicenseSummary().toString());
-    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), artifact.getDetailsUrl().toString());
-
-    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
-    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");
-    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD, "false");
-    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO, "");
-  }
-
-  private void setDefaultArtifactProperty(RepoPath repoPath, ArtifactProperty property, String value) {
-    String key = property.propertyKey();
-    if (!repositories.hasProperty(repoPath, key)) {
-      repositories.setProperty(repoPath, key, value);
     }
   }
 }

@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory.configuration.properties;
 
 public enum ArtifactProperty {
+  TEST_TIMESTAMP("snyk.test.timestamp"),
   ISSUE_URL("snyk.issue.url"),
   ISSUE_VULNERABILITIES("snyk.issue.vulnerabilities"),
   ISSUE_VULNERABILITIES_FORCE_DOWNLOAD("snyk.issue.vulnerabilities.forceDownload"),

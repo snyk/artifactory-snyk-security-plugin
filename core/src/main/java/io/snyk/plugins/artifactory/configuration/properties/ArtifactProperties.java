@@ -4,9 +4,11 @@ import java.util.Optional;
 
 public interface ArtifactProperties {
 
-  Optional<String> getProperty(ArtifactProperty key);
+  String getArtifactPath();
 
-  void setProperty(ArtifactProperty property, String value);
+  Optional<String> get(ArtifactProperty key);
 
-  boolean hasProperty(ArtifactProperty property);
+  void set(ArtifactProperty property, String value);
+
+  boolean has(ArtifactProperty property);
 }

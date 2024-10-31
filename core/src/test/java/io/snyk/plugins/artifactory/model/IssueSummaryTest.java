@@ -4,6 +4,7 @@ import io.snyk.sdk.model.Severity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,5 +39,21 @@ class IssueSummaryTest {
   @Test
   void toString_withAllSeverities() {
     assertEquals("1 critical, 2 high, 3 medium, 4 low", summary.toString());
+  }
+
+  @Test
+  void parse_matching() {
+    Optional<IssueSummary> parsed = IssueSummary.parse(summary.toString());
+
+    assertTrue(parsed.isPresent());
+    assertEquals(1, parsed.get().getCountAtOrAbove(Severity.CRITICAL));
+    assertEquals(3, parsed.get().getCountAtOrAbove(Severity.HIGH));
+    assertEquals(6, parsed.get().getCountAtOrAbove(Severity.MEDIUM));
+    assertEquals(10, parsed.get().getCountAtOrAbove(Severity.LOW));
+  }
+
+  @Test
+  void parse_invalidInput() {
+    assertFalse(IssueSummary.parse("3 medium").isPresent());
   }
 }

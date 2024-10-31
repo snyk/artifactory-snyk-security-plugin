@@ -3,15 +3,18 @@ package io.snyk.plugins.artifactory.model;
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 
 public class IssueSummary {
+
+  private static final Pattern pattern = Pattern.compile("(\\d+) critical, (\\d+) high, (\\d+) medium, (\\d+) low");
 
   private final Map<Severity, Integer> countBySeverity;
 
@@ -25,6 +28,19 @@ public class IssueSummary {
 
   public static IssueSummary from(Stream<Severity> severities) {
     return new IssueSummary(severities.collect(Collectors.toMap(s -> s, s -> 1, Integer::sum)));
+  }
+
+  public static Optional<IssueSummary> parse(String stringifiedSummary) {
+    Matcher matcher = pattern.matcher(stringifiedSummary);
+    if(!matcher.matches()) {
+      return Optional.empty();
+    }
+    HashMap<Severity, Integer> countBySeverity = new HashMap<>();
+    countBySeverity.put(Severity.CRITICAL, parseInt(matcher.group(1)));
+    countBySeverity.put(Severity.HIGH, parseInt(matcher.group(2)));
+    countBySeverity.put(Severity.MEDIUM, parseInt(matcher.group(3)));
+    countBySeverity.put(Severity.LOW, parseInt(matcher.group(4)));
+    return Optional.of(new IssueSummary(countBySeverity));
   }
 
   public int getCountAtOrAbove(Severity severity) {
@@ -54,5 +70,18 @@ public class IssueSummary {
             getCountBySeverity(Severity.MEDIUM),
             getCountBySeverity(Severity.LOW)
     );
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    IssueSummary summary = (IssueSummary) o;
+    return toString().equals(summary.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(countBySeverity);
   }
 }

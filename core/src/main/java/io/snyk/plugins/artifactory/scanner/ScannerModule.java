@@ -1,6 +1,8 @@
 package io.snyk.plugins.artifactory.scanner;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
 import io.snyk.plugins.artifactory.configuration.properties.RepositoryArtifactProperties;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.model.*;
@@ -11,6 +13,7 @@ import org.artifactory.repo.Repositories;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -23,6 +26,7 @@ public class ScannerModule {
   private final MavenScanner mavenScanner;
   private final NpmScanner npmScanner;
   private final PythonScanner pythonScanner;
+  private final ArtifactCache cache;
 
   public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykClient snykClient) {
     this.configurationModule = requireNonNull(configurationModule);
@@ -31,35 +35,37 @@ public class ScannerModule {
     mavenScanner = new MavenScanner(configurationModule, snykClient);
     npmScanner = new NpmScanner(configurationModule, snykClient);
     pythonScanner = new PythonScanner(configurationModule, snykClient);
+
+    cache = new ArtifactCache(Duration.ofHours(
+      Integer.parseInt(configurationModule.getPropertyOrDefault(PluginConfiguration.TEST_FREQUENCY_HOURS))
+    ));
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
-    MonitoredArtifact artifact = resolveArtifact(repoPath);
-
-    validateArtifact(artifact);
+    filter(resolveArtifact(repoPath));
   }
 
   public MonitoredArtifact resolveArtifact(RepoPath repoPath) {
-    return testArtifact(repoPath);
+    ArtifactProperties properties = new RepositoryArtifactProperties(repoPath, repositories);
+    return cache.getCachedArtifact(properties)
+      .orElseGet(() -> testArtifact(repoPath).write(properties));
   }
 
   private @NotNull MonitoredArtifact testArtifact(RepoPath repoPath) {
     PackageScanner scanner = getScannerForPackageType(repoPath);
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
-    MonitoredArtifact artifact = toMonitoredArtifact(testResult, repoPath);
-    artifact.write(new RepositoryArtifactProperties(repoPath, repositories));
-    return artifact;
+    return toMonitoredArtifact(testResult, repoPath);
   }
 
-  private void validateArtifact(MonitoredArtifact artifact) {
+  private void filter(MonitoredArtifact artifact) {
     ValidationSettings validationSettings = ValidationSettings.from(configurationModule);
     PackageValidator validator = new PackageValidator(validationSettings);
     validator.validate(artifact);
   }
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
-    Ignores ignores = Ignores.fromProperties(repositories, repoPath);
+    Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
     return new MonitoredArtifact(repoPath.toString(), testResult, ignores);
   }
 

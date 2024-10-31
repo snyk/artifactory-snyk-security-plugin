@@ -66,6 +66,7 @@ class PythonScanner implements PackageScanner {
 
     SnykResult<TestResult> result;
     try {
+      LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.testPip(
         details.name,
         details.version,

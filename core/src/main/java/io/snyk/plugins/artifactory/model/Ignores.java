@@ -1,8 +1,9 @@
 package io.snyk.plugins.artifactory.model;
 
-import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
-import org.artifactory.repo.RepoPath;
-import org.artifactory.repo.Repositories;
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
+
+import java.util.Objects;
+import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_LICENSES_FORCE_DOWNLOAD;
 import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.ISSUE_VULNERABILITIES_FORCE_DOWNLOAD;
@@ -38,15 +39,30 @@ public class Ignores {
     return new Ignores(ignoreVulnIssues, ignoreLicenseIssues);
   }
 
-  public static Ignores fromProperties(Repositories repositories, RepoPath repoPath) {
-    boolean ignoreVulnIssues = readIgnoreFlag(repositories, repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD);
-    boolean ignoreLicenseIssues = readIgnoreFlag(repositories, repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD);
+  public static Ignores read(ArtifactProperties properties) {
+    boolean ignoreVulnIssues = properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD).equals(Optional.of("true"));
+    boolean ignoreLicenseIssues = properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD).equals(Optional.of("true"));
     return new Ignores(ignoreVulnIssues, ignoreLicenseIssues);
   }
 
-  private static boolean readIgnoreFlag(Repositories repositories, RepoPath repoPath, ArtifactProperty property) {
-    final String vulnerabilitiesForceDownloadProperty = property.propertyKey();
-    final String vulnerabilitiesForceDownload = repositories.getProperty(repoPath, vulnerabilitiesForceDownloadProperty);
-    return "true".equalsIgnoreCase(vulnerabilitiesForceDownload);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Ignores ignores = (Ignores) o;
+    return ignoreVulnIssues == ignores.ignoreVulnIssues && ignoreLicenseIssues == ignores.ignoreLicenseIssues;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(ignoreVulnIssues, ignoreLicenseIssues);
+  }
+
+  @Override
+  public String toString() {
+    return "Ignores{" +
+        "ignoreVulnIssues=" + ignoreVulnIssues +
+        ", ignoreLicenseIssues=" + ignoreLicenseIssues +
+        '}';
   }
 }

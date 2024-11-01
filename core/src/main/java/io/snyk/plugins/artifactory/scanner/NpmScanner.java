@@ -51,6 +51,7 @@ class NpmScanner implements PackageScanner {
 
     SnykResult<TestResult> result;
     try {
+      LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.testNpm(
         details.name,
         details.version,

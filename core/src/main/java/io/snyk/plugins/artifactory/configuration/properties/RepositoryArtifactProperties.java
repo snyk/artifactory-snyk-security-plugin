@@ -17,17 +17,22 @@ public class RepositoryArtifactProperties implements ArtifactProperties {
   }
 
   @Override
-  public Optional<String> getProperty(ArtifactProperty key) {
+  public String getArtifactPath() {
+    return repoPath.toString();
+  }
+
+  @Override
+  public Optional<String> get(ArtifactProperty key) {
     return Optional.ofNullable(repositories.getProperty(repoPath, key.propertyKey()));
   }
 
   @Override
-  public void setProperty(ArtifactProperty property, String value) {
+  public void set(ArtifactProperty property, String value) {
     repositories.setProperty(repoPath, property.propertyKey(), value);
   }
 
   @Override
-  public boolean hasProperty(ArtifactProperty property) {
+  public boolean has(ArtifactProperty property) {
     return repositories.hasProperty(repoPath, property.propertyKey());
   }
 }

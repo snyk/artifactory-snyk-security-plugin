@@ -42,6 +42,7 @@ class MavenScanner implements PackageScanner {
 
     SnykResult<io.snyk.sdk.model.TestResult> result;
     try {
+      LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.testMaven(
         groupID,
         artifactID,

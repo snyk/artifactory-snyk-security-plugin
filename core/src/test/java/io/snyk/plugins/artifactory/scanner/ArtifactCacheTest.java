@@ -50,4 +50,17 @@ class ArtifactCacheTest {
 
     assertTrue(cachedArtifact.isEmpty());
   }
+
+  @Test
+  void getCachedArtifact_whenTestFrequencyIs0() {
+    FakeArtifactProperties properties = new FakeArtifactProperties("electron");
+    TestResult recentTestResult = new TestResult(IssueSummary.from(Stream.empty()), IssueSummary.from(Stream.empty()), URI.create("https://snyk.io"));
+    MonitoredArtifact recentResult = new MonitoredArtifact("electron", recentTestResult, new Ignores());
+    recentResult.write(properties);
+    ArtifactCache cache = new ArtifactCache(Duration.ofHours(0));
+
+    Optional<MonitoredArtifact> cachedArtifact = cache.getCachedArtifact(properties);
+
+    assertTrue(cachedArtifact.isEmpty());
+  }
 }

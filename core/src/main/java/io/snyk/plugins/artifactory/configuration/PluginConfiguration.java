@@ -19,7 +19,8 @@ public enum PluginConfiguration implements Configuration {
   SCANNER_PACKAGE_TYPE_MAVEN("snyk.scanner.packageType.maven", "true"),
   SCANNER_PACKAGE_TYPE_NPM("snyk.scanner.packageType.npm", "true"),
   SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "false"),
-  TEST_FREQUENCY_HOURS("snyk.scanner.frequency.hours", "168");
+  TEST_FREQUENCY_HOURS("snyk.scanner.frequency.hours", "168"),
+  EXTEND_TEST_DEADLINE_HOURS("snyk.scanner.extendTestDeadline.hours", "24");
 
   private final String propertyKey;
   private final String defaultValue;

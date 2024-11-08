@@ -1,5 +1,6 @@
 package io.snyk.plugins.artifactory.model;
 
+import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.properties.FakeArtifactProperties;
 import io.snyk.sdk.model.Severity;
 import org.junit.jupiter.api.Test;
@@ -91,5 +92,21 @@ class MonitoredArtifactTest {
     Optional<MonitoredArtifact> retrievedArtifact = MonitoredArtifact.read(properties);
 
     assertTrue(retrievedArtifact.isEmpty());
+  }
+
+  @Test
+  void read_whenPropertiesMalformed() {
+    FakeArtifactProperties properties = new FakeArtifactProperties("electron");
+    new MonitoredArtifact("electron",
+      new TestResult(
+        IssueSummary.from(Stream.of()),
+        IssueSummary.from(Stream.of()),
+        URI.create("https://app.snyk.io/package/electron/1.0.0")
+      ),
+      new Ignores()
+    ).write(properties);
+    properties.set(TEST_TIMESTAMP, "not a valid timestamp");
+
+    assertTrue(MonitoredArtifact.read(properties).isEmpty());
   }
 }

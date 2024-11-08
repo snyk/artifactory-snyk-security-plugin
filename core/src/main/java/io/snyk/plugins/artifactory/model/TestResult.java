@@ -19,7 +19,7 @@ public class TestResult {
     this(ZonedDateTime.now(), vulnSummary, licenseSummary, detailsUrl);
   }
 
-  private TestResult(ZonedDateTime timestamp, IssueSummary vulnSummary, IssueSummary licenseSummary, URI detailsUrl) {
+  public TestResult(ZonedDateTime timestamp, IssueSummary vulnSummary, IssueSummary licenseSummary, URI detailsUrl) {
     this.timestamp = timestamp;
     this.vulnSummary = vulnSummary;
     this.licenseSummary = licenseSummary;

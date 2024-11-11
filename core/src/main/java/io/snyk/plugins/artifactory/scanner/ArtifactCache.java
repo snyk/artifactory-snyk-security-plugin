@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -14,32 +15,59 @@ public class ArtifactCache {
 
   private static final Logger LOG = getLogger(ArtifactCache.class);
 
-  private final Duration frequency;
+  private final Duration testFrequency;
 
-  public ArtifactCache(Duration frequency) {
-    this.frequency = frequency;
+  private final Duration extendTestDeadline;
+
+  public ArtifactCache(Duration testFrequency, Duration extendTestDeadline) {
+    this.testFrequency = testFrequency;
+    this.extendTestDeadline = extendTestDeadline;
   }
 
-  public Optional<MonitoredArtifact> getCachedArtifact(ArtifactProperties properties) {
-    try {
-      return MonitoredArtifact.read(properties).filter(this::checkIfRecent);
-    } catch (RuntimeException e) {
-      return Optional.empty();
+  public MonitoredArtifact getArtifact(ArtifactProperties properties, Supplier<MonitoredArtifact> fetch) {
+    Optional<MonitoredArtifact> artifact = MonitoredArtifact.read(properties);
+    if (artifact.isEmpty()) {
+      LOG.info("Previous Snyk Test result not available - testing {}", properties.getArtifactPath());
+      return fetchAndStore(properties, fetch);
     }
+
+    if (withinTtl(artifact.get())) {
+      LOG.info("Using recent Snyk Test result until {} - {}", nextTestDue(artifact.get()), properties.getArtifactPath());
+      return artifact.get();
+    }
+
+    LOG.info("Snyk Test due for {}", properties.getArtifactPath());
+
+    if (withinHardDeadline(artifact.get())) {
+      try {
+        return fetchAndStore(properties, fetch);
+      } catch (RuntimeException e) {
+        LOG.info("Snyk Test was due but failed for package {}. Using previous Test result until {}. Error was {}", properties.getArtifactPath(), nextTestHardDeadline(artifact.get()), e.getMessage());
+        return artifact.get();
+      }
+    }
+
+    return fetchAndStore(properties, fetch);
   }
 
-  private boolean checkIfRecent(MonitoredArtifact artifact) {
-    ZonedDateTime testTime = artifact.getTestResult().getTimestamp();
-    ZonedDateTime expiry = testTime.plus(frequency);
-    boolean recent = expiry.isAfter(ZonedDateTime.now());
+  private MonitoredArtifact fetchAndStore(ArtifactProperties properties, Supplier<MonitoredArtifact> fetch) {
+    return fetch.get().write(properties);
+  }
 
-    if(recent) {
-      LOG.debug("Found recent artifact vuln info: {} was last tested {}", artifact.getPath(), testTime);
-    } else {
-      LOG.debug("Stale artifact vuln info: {} was last tested {}", artifact.getPath(), testTime);
-    }
+  private boolean withinTtl(MonitoredArtifact artifact) {
+    return testFrequency.getSeconds() > 0 && nextTestDue(artifact).isAfter(ZonedDateTime.now());
+  }
 
-    return recent;
+  private boolean withinHardDeadline(MonitoredArtifact artifact) {
+    return nextTestHardDeadline(artifact).isAfter(ZonedDateTime.now());
+  }
+
+  private ZonedDateTime nextTestDue(MonitoredArtifact artifact) {
+    return artifact.getTestResult().getTimestamp().plus(testFrequency);
+  }
+
+  private ZonedDateTime nextTestHardDeadline(MonitoredArtifact artifact) {
+    return nextTestDue(artifact).plus(extendTestDeadline);
   }
 
 }

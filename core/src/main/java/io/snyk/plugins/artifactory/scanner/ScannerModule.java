@@ -36,9 +36,10 @@ public class ScannerModule {
     npmScanner = new NpmScanner(configurationModule, snykClient);
     pythonScanner = new PythonScanner(configurationModule, snykClient);
 
-    cache = new ArtifactCache(Duration.ofHours(
-      Integer.parseInt(configurationModule.getPropertyOrDefault(PluginConfiguration.TEST_FREQUENCY_HOURS))
-    ));
+    cache = new ArtifactCache(
+      durationHoursProperty(PluginConfiguration.TEST_FREQUENCY_HOURS, configurationModule),
+      durationHoursProperty(PluginConfiguration.EXTEND_TEST_DEADLINE_HOURS, configurationModule)
+    );
   }
 
   public void scanArtifact(@Nonnull RepoPath repoPath) {
@@ -47,8 +48,7 @@ public class ScannerModule {
 
   public MonitoredArtifact resolveArtifact(RepoPath repoPath) {
     ArtifactProperties properties = new RepositoryArtifactProperties(repoPath, repositories);
-    return cache.getCachedArtifact(properties)
-      .orElseGet(() -> testArtifact(repoPath).write(properties));
+    return cache.getArtifact(properties, () -> testArtifact(repoPath));
   }
 
   private @NotNull MonitoredArtifact testArtifact(RepoPath repoPath) {
@@ -91,5 +91,9 @@ public class ScannerModule {
       default:
         throw new IllegalStateException("Unsupported ecosystem: " + ecosystem.name());
     }
+  }
+
+  private Duration durationHoursProperty(PluginConfiguration property, ConfigurationModule configurationModule) {
+    return Duration.ofHours(Integer.parseInt(configurationModule.getPropertyOrDefault(property)));
   }
 }

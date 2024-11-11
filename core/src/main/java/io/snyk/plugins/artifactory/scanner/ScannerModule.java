@@ -5,12 +5,17 @@ import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
 import io.snyk.plugins.artifactory.configuration.properties.RepositoryArtifactProperties;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
-import io.snyk.plugins.artifactory.model.*;
+import io.snyk.plugins.artifactory.model.Ignores;
+import io.snyk.plugins.artifactory.model.MonitoredArtifact;
+import io.snyk.plugins.artifactory.model.TestResult;
+import io.snyk.plugins.artifactory.model.ValidationSettings;
 import io.snyk.sdk.api.v1.SnykClient;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -20,13 +25,13 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 public class ScannerModule {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ScannerModule.class);
   private final ConfigurationModule configurationModule;
   private final Repositories repositories;
   private final MavenScanner mavenScanner;
   private final NpmScanner npmScanner;
   private final PythonScanner pythonScanner;
-  private final ArtifactCache cache;
+  private final ArtifactResolver artifactResolver;
 
   public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykClient snykClient) {
     this.configurationModule = requireNonNull(configurationModule);
@@ -36,23 +41,37 @@ public class ScannerModule {
     npmScanner = new NpmScanner(configurationModule, snykClient);
     pythonScanner = new PythonScanner(configurationModule, snykClient);
 
-    cache = new ArtifactCache(
+    artifactResolver = shouldTestContinuously() ? new ArtifactCache(
       durationHoursProperty(PluginConfiguration.TEST_FREQUENCY_HOURS, configurationModule),
       durationHoursProperty(PluginConfiguration.EXTEND_TEST_DEADLINE_HOURS, configurationModule)
-    );
+    ) : new ReadOnlyArtifactResolver();
   }
 
-  public void scanArtifact(@Nonnull RepoPath repoPath) {
-    filter(resolveArtifact(repoPath));
+  public Optional<MonitoredArtifact> testArtifact(@Nonnull RepoPath repoPath) {
+    return runTest(repoPath).map(artifact -> artifact.write(properties(repoPath)));
   }
 
-  public MonitoredArtifact resolveArtifact(RepoPath repoPath) {
-    ArtifactProperties properties = new RepositoryArtifactProperties(repoPath, repositories);
-    return cache.getArtifact(properties, () -> testArtifact(repoPath));
+  public void filterAccess(@Nonnull RepoPath repoPath) {
+    resolveArtifact(repoPath)
+      .ifPresentOrElse(
+        this::filter,
+        () -> LOG.info("No vulnerability info found for {}", repoPath)
+      );
   }
 
-  private @NotNull MonitoredArtifact testArtifact(RepoPath repoPath) {
-    PackageScanner scanner = getScannerForPackageType(repoPath);
+  private Optional<MonitoredArtifact> resolveArtifact(RepoPath repoPath) {
+    return artifactResolver.get(properties(repoPath), () -> runTest(repoPath));
+  }
+
+  private ArtifactProperties properties(RepoPath repoPath) {
+    return new RepositoryArtifactProperties(repoPath, repositories);
+  }
+
+  private @NotNull Optional<MonitoredArtifact> runTest(RepoPath repoPath) {
+    return getScannerForPackageType(repoPath).map(scanner -> runTestWith(scanner, repoPath));
+  }
+
+  private MonitoredArtifact runTestWith(PackageScanner scanner, RepoPath repoPath) {
     FileLayoutInfo fileLayoutInfo = repositories.getLayoutInfo(repoPath);
     TestResult testResult = scanner.scan(fileLayoutInfo, repoPath);
     return toMonitoredArtifact(testResult, repoPath);
@@ -69,14 +88,17 @@ public class ScannerModule {
     return new MonitoredArtifact(repoPath.toString(), testResult, ignores);
   }
 
-  protected PackageScanner getScannerForPackageType(RepoPath repoPath) {
+  protected Optional<PackageScanner> getScannerForPackageType(RepoPath repoPath) {
     String path = Optional.ofNullable(repoPath.getPath())
       .orElseThrow(() -> new CannotScanException("Path not provided."));
     return getScannerForPackageType(path);
   }
 
-  protected PackageScanner getScannerForPackageType(String path) {
-    Ecosystem ecosystem = Ecosystem.fromPackagePath(path).orElseThrow(() -> new CannotScanException("Artifact is not supported."));
+  protected Optional<PackageScanner> getScannerForPackageType(String path) {
+    return Ecosystem.fromPackagePath(path).map(this::getScanner);
+  }
+
+  private PackageScanner getScanner(Ecosystem ecosystem) {
     if (!configurationModule.getPropertyOrDefault(ecosystem.getConfigProperty()).equals("true")) {
       throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", ecosystem.getConfigProperty().propertyKey()));
     }
@@ -91,6 +113,10 @@ public class ScannerModule {
       default:
         throw new IllegalStateException("Unsupported ecosystem: " + ecosystem.name());
     }
+  }
+
+  private boolean shouldTestContinuously() {
+    return configurationModule.getPropertyOrDefault(PluginConfiguration.TEST_CONTINUOUSLY).equals("true");
   }
 
   private Duration durationHoursProperty(PluginConfiguration property, ConfigurationModule configurationModule) {

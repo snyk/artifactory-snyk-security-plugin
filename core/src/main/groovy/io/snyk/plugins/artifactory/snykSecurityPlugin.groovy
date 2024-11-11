@@ -25,6 +25,16 @@ executions {
 }
 
 download {
+
+  afterRemoteDownload { Request request, RepoPath repoPath ->
+    try {
+      snykPlugin.handleAfterRemoteDownloadEvent(repoPath)
+    } catch (Exception e) {
+      log.error("An exception occurred during afterRemoteDownload, re-throwing it for Artifactory to handle. Message was: ${e.message}")
+      throw e
+    }
+  }
+
   beforeDownload { Request request, RepoPath repoPath ->
     try {
       snykPlugin.handleBeforeDownloadEvent(repoPath)
@@ -33,6 +43,7 @@ download {
       throw e
     }
   }
+
 }
 
 storage {

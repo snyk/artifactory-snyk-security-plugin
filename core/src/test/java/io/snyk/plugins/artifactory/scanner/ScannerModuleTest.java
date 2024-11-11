@@ -108,7 +108,7 @@ public class ScannerModuleTest {
 
     // Using try-catch as assertThrows does not let us check the cause.
     try {
-      spyScanner.scanArtifact(repoPath);
+      spyScanner.testArtifact(repoPath);
       fail("Expected SnykAPIFailureException for timeout but no exception was thrown.");
     } catch (SnykAPIFailureException e) {
       Throwable cause = e.getCause();
@@ -129,7 +129,7 @@ public class ScannerModuleTest {
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
     when(repoPath.toString()).thenReturn("npm:minimist/-/minimist-1.2.6.tgz");
 
-    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.testArtifact(repoPath).get();
 
     assertEquals(0, result.getTestResult().getVulnSummary().getTotalCount());
   }
@@ -146,7 +146,7 @@ public class ScannerModuleTest {
     when(repoPath.getPath()).thenReturn("myArtifact.tgz");
     when(repoPath.toString()).thenReturn("npm:lodash/-/lodash-4.17.15.tgz");
 
-    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.testArtifact(repoPath).get();
     assertTrue(result.getTestResult().getVulnSummary().getTotalCount() > 0);
   }
 
@@ -162,7 +162,7 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
-    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.testArtifact(repoPath).get();
     assertEquals(0, result.getTestResult().getVulnSummary().getTotalCount());
   }
 
@@ -178,7 +178,7 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.jar");
 
-    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.testArtifact(repoPath).get();
     assertTrue(result.getTestResult().getVulnSummary().getTotalCount() > 0);
   }
 
@@ -193,7 +193,7 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
-    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.testArtifact(repoPath).get();
     assertEquals(0, result.getTestResult().getVulnSummary().getTotalCount());
   }
 
@@ -208,7 +208,7 @@ public class ScannerModuleTest {
     RepoPath repoPath = testSetup.repoPath;
     when(repoPath.getPath()).thenReturn("myArtifact.whl");
 
-    MonitoredArtifact result = spyScanner.resolveArtifact(repoPath);
+    MonitoredArtifact result = spyScanner.testArtifact(repoPath).get();
     assertEquals(6, result.getTestResult().getVulnSummary().getTotalCount());
   }
 }

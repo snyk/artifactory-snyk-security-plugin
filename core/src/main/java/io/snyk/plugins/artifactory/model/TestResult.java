@@ -49,8 +49,8 @@ public class TestResult {
   public void write(ArtifactProperties properties) {
     LOG.info("Writing Snyk properties for package {}", detailsUrl);
     properties.set(TEST_TIMESTAMP, timestamp.toString());
-    properties.set(ISSUE_VULNERABILITIES, getVulnSummary().toString());
-    properties.set(ISSUE_LICENSES, getLicenseSummary().toString());
+    properties.set(ISSUE_VULNERABILITIES, vulnSummary.toString());
+    properties.set(ISSUE_LICENSES, licenseSummary.toString());
     properties.set(ISSUE_URL, detailsUrl.toString());
     properties.set(ISSUE_URL_PLAINTEXT, " " + detailsUrl);
   }
@@ -63,7 +63,7 @@ public class TestResult {
       .map(String::trim)
       .map(URI::create);
 
-    if(timestamp.isEmpty() || vulns.isEmpty() || licenses.isEmpty() || detailsUrl.isEmpty()) {
+    if (timestamp.isEmpty() || vulns.isEmpty() || licenses.isEmpty() || detailsUrl.isEmpty()) {
       return Optional.empty();
     }
     return Optional.of(new TestResult(

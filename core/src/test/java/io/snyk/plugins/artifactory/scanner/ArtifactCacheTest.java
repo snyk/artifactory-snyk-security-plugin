@@ -32,36 +32,36 @@ class ArtifactCacheTest {
     properties = new FakeArtifactProperties(name);
   }
 
-  MonitoredArtifact fetch() {
+  Optional<MonitoredArtifact> fetch() {
     return anArtifact(ZonedDateTime.now());
   }
 
-  MonitoredArtifact failToFetch() {
+  Optional<MonitoredArtifact> failToFetch() {
     throw new RuntimeException("Failed to fetch artifact");
   }
 
   @Test
   void getArtifact_whenNothingCached() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(1), Duration.ofDays(1));
-    assertNotNull(cache.getArtifact(properties, this::fetch));
+    assertTrue(cache.get(properties, this::fetch).isPresent());
   }
 
   @Test
   void getArtifact_whenFreshlyCached() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(1), Duration.ofDays(1));
 
-    MonitoredArtifact artifact = cache.getArtifact(properties, this::fetch);
+    Optional<MonitoredArtifact> artifact = cache.get(properties, this::fetch);
 
-    assertEquals(artifact, cache.getArtifact(properties, this::fetch));
+    assertEquals(artifact, cache.get(properties, this::fetch));
   }
 
   @Test
   void getArtifact_whenCacheStale() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(1), Duration.ofDays(1));
 
-    MonitoredArtifact oldArtifact = cache.getArtifact(properties, () -> anArtifact(ZonedDateTime.now().minusDays(2)));
+    Optional<MonitoredArtifact> oldArtifact = cache.get(properties, () -> anArtifact(ZonedDateTime.now().minusDays(2)));
 
-    MonitoredArtifact newArtifact = cache.getArtifact(properties, this::fetch);
+    Optional<MonitoredArtifact> newArtifact = cache.get(properties, this::fetch);
 
     assertNotEquals(newArtifact, oldArtifact);
   }
@@ -69,9 +69,9 @@ class ArtifactCacheTest {
   @Test
   void getArtifact_whenTestFrequencyIs0_alwaysFetches() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(0), Duration.ofDays(1));
-    MonitoredArtifact oldArtifact = cache.getArtifact(properties, () -> anArtifact(ZonedDateTime.now().plusDays(1)));
+    Optional<MonitoredArtifact> oldArtifact = cache.get(properties, () -> anArtifact(ZonedDateTime.now().plusDays(1)));
 
-    MonitoredArtifact newArtifact = cache.getArtifact(properties, this::fetch);
+    Optional<MonitoredArtifact> newArtifact = cache.get(properties, this::fetch);
 
     assertNotEquals(newArtifact, oldArtifact);
   }
@@ -79,9 +79,9 @@ class ArtifactCacheTest {
   @Test
   void getArtifact_whenFetchFails_reliesOnStaleCache() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(1), Duration.ofDays(1));
-    MonitoredArtifact staleArtifact = cache.getArtifact(properties, () -> anArtifact(ZonedDateTime.now().minusHours(2)));
+    Optional<MonitoredArtifact> staleArtifact = cache.get(properties, () -> anArtifact(ZonedDateTime.now().minusHours(2)));
 
-    MonitoredArtifact cachedArtifact = cache.getArtifact(properties, this::failToFetch);
+    Optional<MonitoredArtifact> cachedArtifact = cache.get(properties, this::failToFetch);
 
     assertEquals(staleArtifact, cachedArtifact);
   }
@@ -89,20 +89,20 @@ class ArtifactCacheTest {
   @Test
   void getArtifact_whenFetchFailsForTooLong_throws() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(1), Duration.ofDays(1));
-    cache.getArtifact(properties, () -> anArtifact(ZonedDateTime.now().minusDays(2)));
+    cache.get(properties, () -> anArtifact(ZonedDateTime.now().minusDays(2)));
 
-    assertThrows(RuntimeException.class, () -> cache.getArtifact(properties, this::failToFetch), "Failed to fetch artifact");
+    assertThrows(RuntimeException.class, () -> cache.get(properties, this::failToFetch), "Failed to fetch artifact");
   }
 
   @Test
   void getArtifact_whenFetchFailsAndNoCache_throws() {
     ArtifactCache cache = new ArtifactCache(Duration.ofHours(1), Duration.ofDays(1));
 
-    assertThrows(RuntimeException.class, () -> cache.getArtifact(properties, this::failToFetch), "Failed to fetch artifact");
+    assertThrows(RuntimeException.class, () -> cache.get(properties, this::failToFetch), "Failed to fetch artifact");
   }
 
-  private MonitoredArtifact anArtifact(ZonedDateTime timestamp) {
+  private Optional<MonitoredArtifact> anArtifact(ZonedDateTime timestamp) {
     TestResult recentTestResult = new TestResult(timestamp, IssueSummary.from(Stream.empty()), IssueSummary.from(Stream.empty()), URI.create("https://snyk.io"));
-    return new MonitoredArtifact(name, recentTestResult, new Ignores());
+    return Optional.of(new MonitoredArtifact(name, recentTestResult, new Ignores()));
   }
 }

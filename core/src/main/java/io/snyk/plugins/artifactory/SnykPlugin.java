@@ -88,23 +88,42 @@ public class SnykPlugin {
   }
 
   /**
-   * Scans an artifact for issues (vulnerability or license).
+   * Invoked once when an artifact is first fetched from an external repository.
+   * Runs Snyk test and persists the result in properties.
+   * <p>
+   * Extension point: {@code download.afterRemoteDownload}.
+   */
+  public void handleAfterRemoteDownloadEvent(RepoPath repoPath) {
+    LOG.debug("Handle 'afterRemoteDownload' event for: {}", repoPath);
+
+    try {
+      scannerModule.testArtifact(repoPath);
+    } catch (CannotScanException e) {
+      LOG.debug("Artifact cannot be scanned. {} {}", e.getMessage(), repoPath);
+    } catch(SnykAPIFailureException e) {
+      String causeMessage = getCauseMessage(e);
+      String message = format("Snyk test failed. %s %s", causeMessage, repoPath);
+      LOG.error(message);
+    }
+  }
+
+  /**
+   * Filters access based on Snyk properties stored on the artifact.
+   * When in continuous mode, may run an extra Snyk test to refresh the results.
    * <p>
    * Extension point: {@code download.beforeDownload}.
    */
   public void handleBeforeDownloadEvent(RepoPath repoPath) {
     LOG.debug("Handle 'beforeDownload' event for: {}", repoPath);
+
     try {
-      scannerModule.scanArtifact(repoPath);
+      scannerModule.filterAccess(repoPath);
     } catch (CannotScanException e) {
       LOG.debug("Artifact cannot be scanned. {} {}", e.getMessage(), repoPath);
     } catch (SnykAPIFailureException e) {
       final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
       final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-      final String causeMessage = Optional.ofNullable(e.getCause())
-        .map(Throwable::getMessage)
-        .map(m -> e.getMessage() + " " + m)
-        .orElseGet(e::getMessage);
+      final String causeMessage = getCauseMessage(e);
 
       String message = format("Artifact scan failed due to an API error on Snyk's side. %s %s", causeMessage, repoPath);
       LOG.debug(message);
@@ -113,6 +132,13 @@ public class SnykPlugin {
         throw new CancelException(message, 500);
       }
     }
+  }
+
+  private String getCauseMessage(Throwable e) {
+    return Optional.ofNullable(e.getCause())
+      .map(Throwable::getMessage)
+      .map(m -> e.getMessage() + " " + m)
+      .orElseGet(e::getMessage);
   }
 
   private void validateConfiguration() {
@@ -129,6 +155,10 @@ public class SnykPlugin {
       .map(entry -> entry.getKey() + "=" + entry.getValue())
       .sorted()
       .forEach(LOG::debug);
+  }
+
+  private boolean shouldTestContinuously() {
+    return configurationModule.getPropertyOrDefault(TEST_CONTINUOUSLY).equals("true");
   }
 
   private SnykClient createSnykClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {

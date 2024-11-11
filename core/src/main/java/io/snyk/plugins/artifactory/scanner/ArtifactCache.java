@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class ArtifactCache {
+public class ArtifactCache implements ArtifactResolver {
 
   private static final Logger LOG = getLogger(ArtifactCache.class);
 
@@ -24,7 +24,8 @@ public class ArtifactCache {
     this.extendTestDeadline = extendTestDeadline;
   }
 
-  public MonitoredArtifact getArtifact(ArtifactProperties properties, Supplier<MonitoredArtifact> fetch) {
+  @Override
+  public Optional<MonitoredArtifact> get(ArtifactProperties properties, Supplier<Optional<MonitoredArtifact>> fetch) {
     Optional<MonitoredArtifact> artifact = MonitoredArtifact.read(properties);
     if (artifact.isEmpty()) {
       LOG.info("Previous Snyk Test result not available - testing {}", properties.getArtifactPath());
@@ -33,7 +34,7 @@ public class ArtifactCache {
 
     if (withinTtl(artifact.get())) {
       LOG.info("Using recent Snyk Test result until {} - {}", nextTestDue(artifact.get()), properties.getArtifactPath());
-      return artifact.get();
+      return artifact;
     }
 
     LOG.info("Snyk Test due for {}", properties.getArtifactPath());
@@ -43,15 +44,15 @@ public class ArtifactCache {
         return fetchAndStore(properties, fetch);
       } catch (RuntimeException e) {
         LOG.info("Snyk Test was due but failed for package {}. Using previous Test result until {}. Error was {}", properties.getArtifactPath(), nextTestHardDeadline(artifact.get()), e.getMessage());
-        return artifact.get();
+        return artifact;
       }
     }
 
     return fetchAndStore(properties, fetch);
   }
 
-  private MonitoredArtifact fetchAndStore(ArtifactProperties properties, Supplier<MonitoredArtifact> fetch) {
-    return fetch.get().write(properties);
+  private Optional<MonitoredArtifact> fetchAndStore(ArtifactProperties properties, Supplier<Optional<MonitoredArtifact>> fetch) {
+    return fetch.get().map(artifact -> artifact.write(properties));
   }
 
   private boolean withinTtl(MonitoredArtifact artifact) {
@@ -69,5 +70,4 @@ public class ArtifactCache {
   private ZonedDateTime nextTestHardDeadline(MonitoredArtifact artifact) {
     return nextTestDue(artifact).plus(extendTestDeadline);
   }
-
 }

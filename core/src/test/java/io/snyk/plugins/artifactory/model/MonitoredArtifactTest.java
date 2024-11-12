@@ -1,6 +1,5 @@
 package io.snyk.plugins.artifactory.model;
 
-import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.properties.FakeArtifactProperties;
 import io.snyk.sdk.model.Severity;
 import org.junit.jupiter.api.Test;
@@ -36,6 +35,23 @@ class MonitoredArtifactTest {
     assertEquals("", properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO).get());
     assertEquals("false", properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD).get());
     assertEquals("", properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD_INFO).get());
+  }
+
+  @Test
+  void write_createsPlainTextLinkAsAWorkaroundForArtifactoryLinkRenderGlitch() {
+    FakeArtifactProperties properties = new FakeArtifactProperties("electron");
+    MonitoredArtifact artifact = new MonitoredArtifact("electron",
+      new TestResult(
+        IssueSummary.from(Stream.empty()),
+        IssueSummary.from(Stream.empty()),
+        URI.create("https://app.snyk.io/package/electron/1.0.0")
+      ),
+      new Ignores()
+    );
+
+    artifact.write(properties);
+
+    assertEquals(" https://app.snyk.io/package/electron/1.0.0", properties.get(ISSUE_URL_PLAINTEXT).get());
   }
 
   @Test
@@ -108,5 +124,21 @@ class MonitoredArtifactTest {
     properties.set(TEST_TIMESTAMP, "not a valid timestamp");
 
     assertTrue(MonitoredArtifact.read(properties).isEmpty());
+  }
+
+  @Test
+  void read_whenUrlHasWhitespaces() {
+    FakeArtifactProperties properties = new FakeArtifactProperties("electron");
+    MonitoredArtifact artifact = new MonitoredArtifact("electron",
+      new TestResult(
+        IssueSummary.from(Stream.of()),
+        IssueSummary.from(Stream.of()),
+        URI.create("https://app.snyk.io/package/electron/1.0.0")
+      ),
+      new Ignores()
+    ).write(properties);
+    properties.set(ISSUE_URL, " https://app.snyk.io/package/electron/1.0.0 ");
+
+    assertEquals(Optional.of(artifact), MonitoredArtifact.read(properties));
   }
 }

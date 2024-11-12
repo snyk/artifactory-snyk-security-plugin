@@ -9,11 +9,9 @@ import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
-import java.net.URLEncoder;
 import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static java.nio.charset.StandardCharsets.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class MavenScanner implements PackageScanner {
@@ -29,7 +27,7 @@ class MavenScanner implements PackageScanner {
   }
 
   public static String getArtifactDetailsURL(String groupID, String artifactID, String artifactVersion) {
-    return "https://snyk.io/vuln/" + URLEncoder.encode("maven:" + groupID + ":" + artifactID + "@" + artifactVersion, UTF_8);
+    return SnykDetailsUrl.create("maven", groupID + ":" + artifactID, artifactVersion).toString();
   }
 
   public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {

@@ -10,13 +10,11 @@ import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
-import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class PythonScanner implements PackageScanner {
@@ -56,7 +54,7 @@ class PythonScanner implements PackageScanner {
   }
 
   public static String getModuleDetailsURL(ModuleURLDetails details) {
-    return "https://snyk.io/vuln/" + URLEncoder.encode("pip:" + details.name + "@" + details.version, UTF_8);
+    return SnykDetailsUrl.create("pip", details.name, details.version).toString();
   }
 
   public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {

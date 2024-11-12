@@ -42,7 +42,7 @@ class NpmScanner implements PackageScanner {
   }
 
   public static String getPackageDetailsURL(PackageURLDetails details) {
-    return "https://snyk.io/test/npm/" + details.name + "/" + details.version;
+    return SnykDetailsUrl.create("npm", details.name, details.version).toString();
   }
 
   public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {

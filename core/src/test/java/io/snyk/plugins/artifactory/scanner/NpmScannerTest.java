@@ -38,7 +38,7 @@ public class NpmScannerTest {
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
     assertTrue(result.getVulnSummary().getTotalCount() > 0);
-    assertEquals("https://snyk.io/test/npm/lodash/4.17.15", result.getDetailsUrl().toString());
+    assertEquals("https://security.snyk.io/package/npm/lodash/4.17.15", result.getDetailsUrl().toString());
   }
 
   @Test
@@ -78,6 +78,6 @@ public class NpmScannerTest {
   void getPackageDetailsURL_shouldUseTestPage() {
     var details = new NpmScanner.PackageURLDetails("@babel/core", "7.0.0-rc.4");
     var result = NpmScanner.getPackageDetailsURL(details);
-    assertEquals("https://snyk.io/test/npm/@babel/core/7.0.0-rc.4", result);
+    assertEquals("https://security.snyk.io/package/npm/%40babel%2Fcore/7.0.0-rc.4", result);
   }
 }

@@ -30,7 +30,8 @@ public class PackageValidator {
       artifact.getTestResult().getVulnSummary(),
       settings.getVulnSeverityThreshold(),
       artifact.getIgnores().shouldIgnoreVulnIssues(),
-      format("VULNERABILITIES, %s", artifact.getPath())
+      "vulnerabilities",
+      artifact
     );
   }
 
@@ -39,24 +40,25 @@ public class PackageValidator {
       artifact.getTestResult().getLicenseSummary(),
       settings.getLicenseSeverityThreshold(),
       artifact.getIgnores().shouldIgnoreLicenseIssues(),
-      format("LICENSES, %s", artifact.getPath())
+      "license issues",
+      artifact
     );
   }
 
-  private void validateIssues(IssueSummary summary, Severity threshold, boolean ignoreIssues, String logContext) {
+  private void validateIssues(IssueSummary summary, Severity threshold, boolean ignoreIssues, String issueType, MonitoredArtifact artifact) {
     int countAboveThreshold = summary.getCountAtOrAbove(threshold);
     if (countAboveThreshold == 0) {
-      LOG.debug("No issues with severity {} or higher: {}", threshold, logContext);
+      LOG.debug("No {} with severity {} or higher: {}", issueType, threshold, artifact.getPath());
       return;
     }
 
     if (ignoreIssues) {
-      LOG.debug("Allowing download because issues are ignored: {}", logContext);
+      LOG.debug("Allowing download because {} are ignored: {}", issueType, artifact.getPath());
       return;
     }
 
-    LOG.debug("Package has issues with severity {} or higher: {}", threshold, logContext);
-    throw new CancelException(format("Artifact has license issues with severity %s or higher: %s", threshold, logContext), 403);
+    LOG.debug("Package has {} with severity {} or higher: {}", issueType, threshold, artifact.getPath());
+    throw new CancelException(format("Artifact has %s with severity %s or higher: %s", issueType, threshold, artifact.getPath()), 403);
   }
 
 }

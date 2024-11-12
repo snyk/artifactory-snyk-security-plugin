@@ -1,6 +1,8 @@
 package io.snyk.plugins.artifactory.model;
 
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
@@ -10,6 +12,8 @@ import java.util.Optional;
 import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.*;
 
 public class TestResult {
+  private static final Logger LOG = LoggerFactory.getLogger(TestResult.class);
+
   private final ZonedDateTime timestamp;
   private final IssueSummary vulnSummary;
   private final IssueSummary licenseSummary;
@@ -43,6 +47,7 @@ public class TestResult {
   }
 
   public void write(ArtifactProperties properties) {
+    LOG.info("Writing Snyk properties for package {}", detailsUrl);
     properties.set(TEST_TIMESTAMP, timestamp.toString());
     properties.set(ISSUE_VULNERABILITIES, getVulnSummary().toString());
     properties.set(ISSUE_LICENSES, getLicenseSummary().toString());

@@ -40,7 +40,7 @@ public class PythonScannerTest {
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
     assertEquals(6, result.getVulnSummary().getTotalCount());
-    assertEquals("https://snyk.io/vuln/pip%3Aurllib3%401.25.7", result.getDetailsUrl().toString());
+    assertEquals("https://security.snyk.io/package/pip/urllib3/1.25.7", result.getDetailsUrl().toString());
   }
 
   @Test
@@ -142,8 +142,8 @@ public class PythonScannerTest {
 
   @Test
   void getModuleDetailsURL_shouldEncodeNameAndVersion() {
-    var details = new PythonScanner.ModuleURLDetails("ws3", "0.0.1.post3");
+    var details = new PythonScanner.ModuleURLDetails("changedetection.io", "0.39.10.post1");
     var result = PythonScanner.getModuleDetailsURL(details);
-    assertEquals("https://snyk.io/vuln/pip%3Aws3%400.0.1.post3", result);
+    assertEquals("https://security.snyk.io/package/pip/changedetection.io/0.39.10.post1", result);
   }
 }

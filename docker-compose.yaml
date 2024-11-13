@@ -8,7 +8,7 @@ services:
   artifactory:
     depends_on:
       - postgres
-    image: releases-docker.jfrog.io/jfrog/artifactory-pro:7.84.20
+    image: releases-docker.jfrog.io/jfrog/artifactory-pro:7.90.14
 
     environment:
       - EXTRA_JAVA_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=8882,server=y,suspend=n"

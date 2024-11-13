@@ -58,7 +58,9 @@ public class PackageValidator {
     }
 
     LOG.debug("Package has {} with severity {} or higher: {}", issueType, threshold, artifact.getPath());
-    throw new CancelException(format("Artifact has %s with severity %s or higher: %s", issueType, threshold, artifact.getPath()), 403);
+    throw new CancelException(format("Artifact has %s with severity %s or higher: %s. Details: %s",
+      issueType, threshold, artifact.getPath(), artifact.getTestResult().getDetailsUrl()
+    ), 403);
   }
 
 }

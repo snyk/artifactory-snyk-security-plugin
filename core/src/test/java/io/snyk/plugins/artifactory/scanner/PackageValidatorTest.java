@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 class PackageValidatorTest {
 
@@ -28,7 +28,7 @@ class PackageValidatorTest {
       new Ignores()
     );
 
-    assertDoesNotThrow(() -> validator.validate(artifact));
+    assertThatCode(() -> validator.validate(artifact)).doesNotThrowAnyException();
   }
 
   @Test
@@ -46,7 +46,7 @@ class PackageValidatorTest {
       new Ignores()
     );
 
-    assertThrows(CancelException.class, () -> validator.validate(artifact));
+    assertThatThrownBy(() -> validator.validate(artifact)).isExactlyInstanceOf(CancelException.class);
   }
 
   @Test
@@ -64,7 +64,7 @@ class PackageValidatorTest {
       new Ignores().withIgnoreVulnIssues(true)
     );
 
-    assertDoesNotThrow(() -> validator.validate(artifact));
+    assertThatCode(() -> validator.validate(artifact)).doesNotThrowAnyException();
   }
 
   @Test
@@ -82,7 +82,7 @@ class PackageValidatorTest {
       new Ignores()
     );
 
-    assertThrows(CancelException.class, () -> validator.validate(artifact));
+    assertThatThrownBy(() -> validator.validate(artifact)).isExactlyInstanceOf(CancelException.class);
   }
 
   @Test
@@ -100,6 +100,25 @@ class PackageValidatorTest {
       new Ignores().withIgnoreLicenseIssues(true)
     );
 
-    assertDoesNotThrow(() -> validator.validate(artifact));
+    assertThatCode(() -> validator.validate(artifact)).doesNotThrowAnyException();
+  }
+
+  @Test
+  void validate_includesSnykDetailsUrlInCancelException() {
+    ValidationSettings settings = new ValidationSettings()
+      .withVulnSeverityThreshold(Severity.LOW);
+    PackageValidator validator = new PackageValidator(settings);
+    MonitoredArtifact artifact = new MonitoredArtifact("",
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.LOW)),
+        IssueSummary.from(Stream.empty()),
+        URI.create("https://snyk.io/package/details")
+      ),
+      new Ignores()
+    );
+
+    assertThatThrownBy(() -> validator.validate(artifact))
+      .isExactlyInstanceOf(CancelException.class)
+      .hasMessageContaining("https://snyk.io/package/details");
   }
 }

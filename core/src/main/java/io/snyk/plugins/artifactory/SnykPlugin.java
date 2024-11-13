@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory;
 
 import io.snyk.plugins.artifactory.audit.AuditModule;
+import io.snyk.plugins.artifactory.configuration.UserAgent;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
@@ -33,7 +34,6 @@ import static java.lang.String.format;
 public class SnykPlugin {
 
   private static final Logger LOG = LoggerFactory.getLogger(SnykPlugin.class);
-  private static final String API_USER_AGENT = "snyk-artifactory-plugin/";
 
   private ConfigurationModule configurationModule;
   private AuditModule auditModule;
@@ -155,7 +155,7 @@ public class SnykPlugin {
     var config = SnykConfig.newBuilder()
       .setBaseUrl(baseUrl)
       .setToken(token)
-      .setUserAgent(API_USER_AGENT + pluginVersion)
+      .setUserAgent(UserAgent.getUserAgent(pluginVersion))
       .setTrustAllCertificates(trustAllCertificates)
       .setSslCertificatePath(sslCertificatePath)
       .setHttpProxyHost(httpProxyHost)

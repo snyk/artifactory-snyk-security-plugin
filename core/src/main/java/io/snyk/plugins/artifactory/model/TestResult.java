@@ -51,14 +51,17 @@ public class TestResult {
     properties.set(TEST_TIMESTAMP, timestamp.toString());
     properties.set(ISSUE_VULNERABILITIES, getVulnSummary().toString());
     properties.set(ISSUE_LICENSES, getLicenseSummary().toString());
-    properties.set(ISSUE_URL, getDetailsUrl().toString());
+    properties.set(ISSUE_URL, detailsUrl.toString());
+    properties.set(ISSUE_URL_PLAINTEXT, " " + detailsUrl);
   }
 
   public static Optional<TestResult> read(ArtifactProperties properties) {
     Optional<ZonedDateTime> timestamp = properties.get(TEST_TIMESTAMP).map(ZonedDateTime::parse);
     Optional<IssueSummary> vulns = properties.get(ISSUE_VULNERABILITIES).flatMap(IssueSummary::parse);
     Optional<IssueSummary> licenses = properties.get(ISSUE_LICENSES).flatMap(IssueSummary::parse);
-    Optional<URI> detailsUrl = properties.get(ISSUE_URL).map(URI::create);
+    Optional<URI> detailsUrl = properties.get(ISSUE_URL)
+      .map(String::trim)
+      .map(URI::create);
 
     if(timestamp.isEmpty() || vulns.isEmpty() || licenses.isEmpty() || detailsUrl.isEmpty()) {
       return Optional.empty();

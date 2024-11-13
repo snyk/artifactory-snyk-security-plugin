@@ -38,8 +38,7 @@
     <version.maven.resources.plugin>3.1.0</version.maven.resources.plugin>
     <version.maven.site.plugin>3.7.1</version.maven.site.plugin>
     <version.maven.surefire.plugin>3.0.0-M3</version.maven.surefire.plugin>
-    <jackson-annotations.version>2.13.4</jackson-annotations.version>
-    <jackson-databind.version>2.13.4.2</jackson-databind.version>
+    <jackson-databind.version>2.15.4</jackson-databind.version>
   </properties>
 
   <build>
@@ -156,11 +155,6 @@
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson-databind.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson-annotations.version}</version>
       </dependency>
       <!-- Add a safe versions for SoS as overrides -->
       <dependency>

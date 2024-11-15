@@ -6,6 +6,7 @@ import org.artifactory.exception.CancelException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
@@ -16,8 +17,8 @@ class PackageValidatorTest {
   @Test
   void validate_severityBelowThreshold_allowed() {
     ValidationSettings settings = new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.MEDIUM)
-      .withLicenseSeverityThreshold(Severity.CRITICAL);
+      .withVulnSeverityThreshold(Optional.of(Severity.MEDIUM))
+      .withLicenseSeverityThreshold(Optional.of(Severity.CRITICAL));
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
       new TestResult(
@@ -34,8 +35,8 @@ class PackageValidatorTest {
   @Test
   void validate_vulnIssueAboveThreshold_forbidden() {
     ValidationSettings settings = new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.HIGH)
-      .withLicenseSeverityThreshold(Severity.LOW);
+      .withVulnSeverityThreshold(Optional.of(Severity.HIGH))
+      .withLicenseSeverityThreshold(Optional.of(Severity.LOW));
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
       new TestResult(
@@ -52,8 +53,8 @@ class PackageValidatorTest {
   @Test
   void validate_vulnIssuesIgnored_allowed() {
     ValidationSettings settings = new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.HIGH)
-      .withLicenseSeverityThreshold(Severity.LOW);
+      .withVulnSeverityThreshold(Optional.of(Severity.HIGH))
+      .withLicenseSeverityThreshold(Optional.of(Severity.LOW));
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
       new TestResult(
@@ -70,8 +71,8 @@ class PackageValidatorTest {
   @Test
   void validate_licenseIssueAboveThreshold_forbidden() {
     ValidationSettings settings = new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.LOW)
-      .withLicenseSeverityThreshold(Severity.MEDIUM);
+      .withVulnSeverityThreshold(Optional.of(Severity.LOW))
+      .withLicenseSeverityThreshold(Optional.of(Severity.MEDIUM));
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
       new TestResult(
@@ -85,11 +86,30 @@ class PackageValidatorTest {
     assertThatThrownBy(() -> validator.validate(artifact)).isExactlyInstanceOf(CancelException.class);
   }
 
+
+  @Test
+  void validate_thresholdNone_allowed() {
+    ValidationSettings settings = new ValidationSettings()
+      .withVulnSeverityThreshold(Optional.empty())
+      .withLicenseSeverityThreshold(Optional.empty());
+    PackageValidator validator = new PackageValidator(settings);
+    MonitoredArtifact artifact = new MonitoredArtifact("",
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.CRITICAL)),
+        IssueSummary.from(Stream.of(Severity.CRITICAL)),
+        URI.create("https://snyk.io/package/version")
+      ),
+      new Ignores()
+    );
+
+    assertThatCode(() -> validator.validate(artifact)).doesNotThrowAnyException();
+  }
+
   @Test
   void validate_licenseIssuesIgnored_allowed() {
     ValidationSettings settings = new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.LOW)
-      .withLicenseSeverityThreshold(Severity.MEDIUM);
+      .withVulnSeverityThreshold(Optional.of(Severity.LOW))
+      .withLicenseSeverityThreshold(Optional.of(Severity.MEDIUM));
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
       new TestResult(
@@ -106,7 +126,7 @@ class PackageValidatorTest {
   @Test
   void validate_includesSnykDetailsUrlInCancelException() {
     ValidationSettings settings = new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.LOW);
+      .withVulnSeverityThreshold(Optional.of(Severity.LOW));
     PackageValidator validator = new PackageValidator(settings);
     MonitoredArtifact artifact = new MonitoredArtifact("",
       new TestResult(

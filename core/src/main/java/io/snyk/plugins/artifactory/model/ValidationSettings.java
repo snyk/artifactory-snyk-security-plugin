@@ -3,43 +3,64 @@ package io.snyk.plugins.artifactory.model;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.sdk.model.Severity;
 
+import java.util.Optional;
+
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_LICENSE_THRESHOLD;
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD;
 
 public class ValidationSettings {
 
-  private final Severity vulnSeverityThreshold;
+  private final Optional<Severity> vulnSeverityThreshold;
 
-  private final Severity licenseSeverityThreshold;
+  private final Optional<Severity> licenseSeverityThreshold;
 
   public ValidationSettings() {
-    this(Severity.HIGH, Severity.HIGH);
+    this(Optional.of(Severity.HIGH), Optional.of(Severity.HIGH));
   }
 
-  private ValidationSettings(Severity vulnSeverityThreshold, Severity licenseSeverityThreshold) {
+  private ValidationSettings(Optional<Severity> vulnSeverityThreshold, Optional<Severity> licenseSeverityThreshold) {
     this.vulnSeverityThreshold = vulnSeverityThreshold;
     this.licenseSeverityThreshold = licenseSeverityThreshold;
   }
 
-  public ValidationSettings withVulnSeverityThreshold(Severity threshold) {
+  public ValidationSettings withVulnSeverityThreshold(Optional<Severity> threshold) {
     return new ValidationSettings(threshold, licenseSeverityThreshold);
   }
 
-  public ValidationSettings withLicenseSeverityThreshold(Severity threshold) {
+  public ValidationSettings withLicenseSeverityThreshold(Optional<Severity> threshold) {
     return new ValidationSettings(vulnSeverityThreshold, threshold);
   }
 
-  public Severity getVulnSeverityThreshold() {
+  public Optional<Severity> getVulnSeverityThreshold() {
     return vulnSeverityThreshold;
   }
 
-  public Severity getLicenseSeverityThreshold() {
+  public Optional<Severity> getLicenseSeverityThreshold() {
     return licenseSeverityThreshold;
   }
 
   public static ValidationSettings from(ConfigurationModule config) {
-    return new ValidationSettings()
-      .withVulnSeverityThreshold(Severity.of(config.getPropertyOrDefault(SCANNER_VULNERABILITY_THRESHOLD)))
-      .withLicenseSeverityThreshold(Severity.of(config.getPropertyOrDefault(SCANNER_LICENSE_THRESHOLD)));
+    return from(
+      config.getPropertyOrDefault(SCANNER_VULNERABILITY_THRESHOLD),
+      config.getPropertyOrDefault(SCANNER_LICENSE_THRESHOLD)
+    );
+  }
+
+  public static ValidationSettings from(String vulnThreshold, String licenseThreshold) {
+    return new ValidationSettings(
+      parseSeverity(vulnThreshold),
+      parseSeverity(licenseThreshold)
+    );
+  }
+
+  private static Optional<Severity> parseSeverity(String severityStr) {
+    if ("none".equalsIgnoreCase(severityStr)) {
+      return Optional.empty();
+    }
+    Severity severity = Severity.of(severityStr);
+    if (severity == null) {
+      throw new IllegalArgumentException("Invalid severity threshold: " + severityStr);
+    }
+    return Optional.of(severity);
   }
 }

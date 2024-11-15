@@ -8,6 +8,8 @@ import org.artifactory.exception.CancelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 import static java.lang.String.format;
 
 public class PackageValidator {
@@ -45,8 +47,13 @@ public class PackageValidator {
     );
   }
 
-  private void validateIssues(IssueSummary summary, Severity threshold, boolean ignoreIssues, String issueType, MonitoredArtifact artifact) {
-    int countAboveThreshold = summary.getCountAtOrAbove(threshold);
+  private void validateIssues(IssueSummary summary, Optional<Severity> threshold, boolean ignoreIssues, String issueType, MonitoredArtifact artifact) {
+    if(threshold.isEmpty()) {
+      LOG.debug("No severity threshold set for {}", issueType);
+      return;
+    }
+
+    int countAboveThreshold = summary.getCountAtOrAbove(threshold.get());
     if (countAboveThreshold == 0) {
       LOG.debug("No {} with severity {} or higher: {}", issueType, threshold, artifact.getPath());
       return;

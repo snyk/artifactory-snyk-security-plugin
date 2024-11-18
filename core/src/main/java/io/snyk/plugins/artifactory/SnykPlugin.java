@@ -4,10 +4,11 @@ import io.snyk.plugins.artifactory.audit.AuditModule;
 import io.snyk.plugins.artifactory.configuration.UserAgent;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
+import io.snyk.plugins.artifactory.ecosystem.Ecosystem;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
 import io.snyk.plugins.artifactory.exception.SnykRuntimeException;
-import io.snyk.plugins.artifactory.scanner.ScannerModule;
+import io.snyk.plugins.artifactory.scanner.*;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.v1.SnykClient;
 import io.snyk.sdk.api.v1.SnykResult;
@@ -63,7 +64,8 @@ public class SnykPlugin {
       final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
 
       auditModule = new AuditModule();
-      scannerModule = new ScannerModule(configurationModule, repositories, snykClient);
+      ScannerResolver scannerResolver = ScannerResolver.setup(configurationModule, snykClient);
+      scannerModule = new ScannerModule(configurationModule, repositories, scannerResolver);
 
       LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {

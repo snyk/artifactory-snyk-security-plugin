@@ -5,12 +5,10 @@ import io.snyk.sdk.model.Severity;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MonitoredArtifactTest {
 
@@ -28,13 +26,13 @@ class MonitoredArtifactTest {
 
     artifact.write(properties);
 
-    assertEquals("1 critical, 0 high, 0 medium, 0 low", properties.get(ISSUE_VULNERABILITIES).get());
-    assertEquals("0 critical, 0 high, 1 medium, 0 low", properties.get(ISSUE_LICENSES).get());
-    assertEquals("https://app.snyk.io/package/electron/1.0.0", properties.get(ISSUE_URL).get());
-    assertEquals("false", properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD).get());
-    assertEquals("", properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO).get());
-    assertEquals("false", properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD).get());
-    assertEquals("", properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD_INFO).get());
+    assertThat(properties.get(ISSUE_VULNERABILITIES)).contains("1 critical, 0 high, 0 medium, 0 low");
+    assertThat(properties.get(ISSUE_LICENSES)).contains("0 critical, 0 high, 1 medium, 0 low");
+    assertThat(properties.get(ISSUE_URL)).contains("https://app.snyk.io/package/electron/1.0.0");
+    assertThat(properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD)).contains("false");
+    assertThat(properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO)).contains("");
+    assertThat(properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD)).contains("false");
+    assertThat(properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD_INFO)).contains("");
   }
 
   @Test
@@ -51,7 +49,7 @@ class MonitoredArtifactTest {
 
     artifact.write(properties);
 
-    assertEquals(" https://app.snyk.io/package/electron/1.0.0", properties.get(ISSUE_URL_PLAINTEXT).get());
+    assertThat(properties.get(ISSUE_URL_PLAINTEXT)).contains(" https://app.snyk.io/package/electron/1.0.0");
   }
 
   @Test
@@ -73,13 +71,13 @@ class MonitoredArtifactTest {
 
     artifact.write(properties);
 
-    assertEquals("0 critical, 1 high, 0 medium, 0 low", properties.get(ISSUE_VULNERABILITIES).get());
-    assertEquals("0 critical, 0 high, 0 medium, 1 low", properties.get(ISSUE_LICENSES).get());
-    assertEquals("https://app.snyk.io/package/electron/2.0.0", properties.get(ISSUE_URL).get());
-    assertEquals("true", properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD).get());
-    assertEquals("issue ignored by prodsec", properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO).get());
-    assertEquals("true", properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD).get());
-    assertEquals("issue ignored by legal", properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD_INFO).get());
+    assertThat(properties.get(ISSUE_VULNERABILITIES)).contains("0 critical, 1 high, 0 medium, 0 low");
+    assertThat(properties.get(ISSUE_LICENSES)).contains("0 critical, 0 high, 0 medium, 1 low");
+    assertThat(properties.get(ISSUE_URL)).contains("https://app.snyk.io/package/electron/2.0.0");
+    assertThat(properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD)).contains("true");
+    assertThat(properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO)).contains("issue ignored by prodsec");
+    assertThat(properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD)).contains("true");
+    assertThat(properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD_INFO)).contains("issue ignored by legal");
   }
 
   @Test
@@ -95,19 +93,31 @@ class MonitoredArtifactTest {
     );
 
     originalArtifact.write(properties);
-    Optional<MonitoredArtifact> retrievedArtifact = MonitoredArtifact.read(properties);
 
-    assertTrue(retrievedArtifact.isPresent());
-    assertEquals(originalArtifact, retrievedArtifact.get());
+    assertThat(MonitoredArtifact.read(properties)).contains(originalArtifact);
   }
 
   @Test
   void read_whenPropertiesMissing() {
     FakeArtifactProperties properties = new FakeArtifactProperties("electron");
 
-    Optional<MonitoredArtifact> retrievedArtifact = MonitoredArtifact.read(properties);
+    assertThat(MonitoredArtifact.read(properties)).isEmpty();
+  }
 
-    assertTrue(retrievedArtifact.isEmpty());
+  @Test
+  void read_whenTimestampMissing() {
+    FakeArtifactProperties properties = new FakeArtifactProperties("electron");
+    new MonitoredArtifact("electron",
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.CRITICAL)),
+        IssueSummary.from(Stream.of(Severity.MEDIUM)),
+        URI.create("https://app.snyk.io/package/electron/1.0.0")
+      ),
+      new Ignores()
+    ).write(properties);
+    properties.set(TEST_TIMESTAMP, "");
+
+    assertThat(MonitoredArtifact.read(properties)).isEmpty();
   }
 
   @Test
@@ -121,9 +131,9 @@ class MonitoredArtifactTest {
       ),
       new Ignores()
     ).write(properties);
-    properties.set(TEST_TIMESTAMP, "not a valid timestamp");
+    properties.set(ISSUE_VULNERABILITIES, "not a valid format");
 
-    assertTrue(MonitoredArtifact.read(properties).isEmpty());
+    assertThat(MonitoredArtifact.read(properties)).isEmpty();
   }
 
   @Test
@@ -139,6 +149,6 @@ class MonitoredArtifactTest {
     ).write(properties);
     properties.set(ISSUE_URL, " https://app.snyk.io/package/electron/1.0.0 ");
 
-    assertEquals(Optional.of(artifact), MonitoredArtifact.read(properties));
+    assertThat(MonitoredArtifact.read(properties)).contains(artifact);
   }
 }

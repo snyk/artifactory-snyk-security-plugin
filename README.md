@@ -56,6 +56,7 @@ After making changes to the plugin, repeat `mvn install` and extract the jar fil
 
 ```shell
 unzip -p distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip plugins/lib/artifactory-snyk-security-core.jar > distribution/docker/etc/artifactory/plugins/lib/artifactory-snyk-security-core.jar
+unzip -p distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip plugins/snykSecurityPlugin.groovy > distribution/docker/etc/artifactory/plugins/snykSecurityPlugin.groovy
 ```
 
 ## Inspecting plugin logs

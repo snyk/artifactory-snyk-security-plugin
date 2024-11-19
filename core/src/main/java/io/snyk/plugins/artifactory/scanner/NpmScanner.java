@@ -3,18 +3,20 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.api.v1.SnykResult;
+import io.snyk.sdk.api.SnykClient;
+import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
+import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class NpmScanner implements PackageScanner {
@@ -52,10 +54,13 @@ class NpmScanner implements PackageScanner {
     SnykResult<TestResult> result;
     try {
       LOG.debug("Running Snyk test: {}", repoPath);
-      result = snykClient.testNpm(
-        details.name,
-        details.version,
-        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION))
+      result = snykClient.get(TestResult.class, request ->
+        request
+          .withPath(String.format("test/npm/%s/%s",
+            URLEncoder.encode(details.name, UTF_8),
+            URLEncoder.encode(details.version, UTF_8)
+          ))
+          .withQueryParam("org", configurationModule.getProperty(API_ORGANIZATION))
       );
     } catch (Exception e) {
       throw new SnykAPIFailureException(e);

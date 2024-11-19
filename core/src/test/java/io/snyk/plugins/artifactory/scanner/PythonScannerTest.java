@@ -5,7 +5,7 @@ import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.model.TestResult;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.SnykClient;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.junit.jupiter.api.Assertions;

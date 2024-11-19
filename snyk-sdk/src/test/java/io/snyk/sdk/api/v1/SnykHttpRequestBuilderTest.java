@@ -1,6 +1,7 @@
 package io.snyk.sdk.api.v1;
 
 import io.snyk.sdk.SnykConfig;
+import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;

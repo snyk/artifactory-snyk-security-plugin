@@ -1,6 +1,7 @@
 package io.snyk.plugins.artifactory;
 
 import io.snyk.plugins.artifactory.audit.AuditModule;
+import io.snyk.plugins.artifactory.configuration.BaseUrlSanitiser;
 import io.snyk.plugins.artifactory.configuration.UserAgent;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
@@ -171,12 +172,7 @@ public class SnykPlugin {
       trustAllCertificates = true;
     }
 
-    if (!baseUrl.endsWith("/")) {
-      if (LOG.isWarnEnabled()) {
-        LOG.warn("'{}' must end in /, your value is '{}'", API_URL.propertyKey(), baseUrl);
-      }
-      baseUrl = baseUrl + "/";
-    }
+    baseUrl = new BaseUrlSanitiser().sanitise(baseUrl);
 
     String sslCertificatePath = configurationModule.getPropertyOrDefault(API_SSL_CERTIFICATE_PATH);
     String httpProxyHost = configurationModule.getPropertyOrDefault(HTTP_PROXY_HOST);

@@ -56,7 +56,7 @@ class NpmScanner implements PackageScanner {
       LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.get(TestResult.class, request ->
         request
-          .withPath(String.format("test/npm/%s/%s",
+          .withPath(String.format("v1/test/npm/%s/%s",
             URLEncoder.encode(details.name, UTF_8),
             URLEncoder.encode(details.version, UTF_8)
           ))

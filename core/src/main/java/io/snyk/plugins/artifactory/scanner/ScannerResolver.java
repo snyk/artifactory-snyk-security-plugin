@@ -3,7 +3,7 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.plugins.artifactory.ecosystem.Ecosystem;
-import io.snyk.sdk.api.v1.SnykClient;
+import io.snyk.sdk.api.SnykClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

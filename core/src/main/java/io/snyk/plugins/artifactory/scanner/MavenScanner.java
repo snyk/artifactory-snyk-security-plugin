@@ -3,15 +3,18 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
-import io.snyk.sdk.api.v1.SnykClient;
-import io.snyk.sdk.api.v1.SnykResult;
+import io.snyk.sdk.api.SnykClient;
+import io.snyk.sdk.api.SnykResult;
+import io.snyk.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.slf4j.Logger;
 
+import java.net.URLEncoder;
 import java.util.Optional;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
 class MavenScanner implements PackageScanner {
@@ -41,12 +44,15 @@ class MavenScanner implements PackageScanner {
     SnykResult<io.snyk.sdk.model.TestResult> result;
     try {
       LOG.debug("Running Snyk test: {}", repoPath);
-      result = snykClient.testMaven(
-        groupID,
-        artifactID,
-        artifactVersion,
-        Optional.ofNullable(configurationModule.getProperty(API_ORGANIZATION)),
-        Optional.empty()
+      result = snykClient.get(TestResult.class, request ->
+        request
+          .withPath(String.format("test/maven/%s/%s/%s",
+            URLEncoder.encode(groupID, UTF_8),
+            URLEncoder.encode(artifactID, UTF_8),
+            URLEncoder.encode(artifactVersion, UTF_8)
+          ))
+          .withQueryParam("org", configurationModule.getProperty(API_ORGANIZATION))
+          .withQueryParam("repository", Optional.empty())
       );
     } catch (Exception e) {
       throw new SnykAPIFailureException(e);

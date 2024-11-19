@@ -1,9 +1,7 @@
-package io.snyk.sdk.api.v1;
+package io.snyk.sdk.api;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -14,7 +12,6 @@ public class SnykResult<T> {
   public Optional<T> result = Optional.empty();
   public Optional<String> responseAsText = Optional.empty();
   public HttpResponse<String> response;
-  private static final Logger LOG = LoggerFactory.getLogger(SnykResult.class);
 
   public SnykResult(int statusCode, T result, String responseBody, HttpResponse<String> response) {
     this.statusCode = statusCode;

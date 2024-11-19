@@ -69,7 +69,7 @@ class PythonScanner implements PackageScanner {
       LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.get(TestResult.class, request ->
         request
-          .withPath(String.format("test/pip/%s/%s",
+          .withPath(String.format("v1/test/pip/%s/%s",
             URLEncoder.encode(details.name, UTF_8),
             URLEncoder.encode(details.version, UTF_8))
           )

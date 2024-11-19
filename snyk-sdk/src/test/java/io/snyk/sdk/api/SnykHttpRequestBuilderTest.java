@@ -1,7 +1,6 @@
-package io.snyk.sdk.api.v1;
+package io.snyk.sdk.api;
 
 import io.snyk.sdk.SnykConfig;
-import io.snyk.sdk.api.SnykHttpRequestBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -17,7 +16,7 @@ public class SnykHttpRequestBuilderTest {
     assertEquals(SnykHttpRequestBuilder.create(configWithDefaultBaseUrl)
         .build()
         .uri().toString(),
-      "https://api.snyk.io/v1/");
+      "https://api.snyk.io/");
 
     String otherBaseUrl = "https://other-host/some-prefix/";
     SnykConfig configWithDifferentBaseUrl = SnykConfig.newBuilder().setBaseUrl(otherBaseUrl).build();
@@ -35,7 +34,7 @@ public class SnykHttpRequestBuilderTest {
   void shouldOnlyIncludeNonNullQueryParameters() {
     SnykConfig config = SnykConfig.withDefaults();
 
-    assertEquals("https://api.snyk.io/v1/some/endpoint?org=abc123",
+    assertEquals("https://api.snyk.io/some/endpoint?org=abc123",
       SnykHttpRequestBuilder.create(config)
         .withPath("some/endpoint")
         .withQueryParam("org", "abc123")
@@ -49,7 +48,7 @@ public class SnykHttpRequestBuilderTest {
   @Test
   void shouldOnlyIncludePresentQueryParameters() {
     SnykConfig config = SnykConfig.withDefaults();
-    assertEquals("https://api.snyk.io/v1/some/endpoint?org=abc123",
+    assertEquals("https://api.snyk.io/some/endpoint?org=abc123",
       SnykHttpRequestBuilder.create(config)
         .withPath("some/endpoint")
         .withQueryParam("org", Optional.of("abc123"))
@@ -63,7 +62,7 @@ public class SnykHttpRequestBuilderTest {
   @Test
   void shouldIncludeMultipleQueryParameters() {
     SnykConfig config = SnykConfig.withDefaults();
-    assertEquals("https://api.snyk.io/v1/some/endpoint?org=abc123&foo=bar",
+    assertEquals("https://api.snyk.io/some/endpoint?org=abc123&foo=bar",
       SnykHttpRequestBuilder.create(config)
         .withPath("some/endpoint")
         .withQueryParam("org", "abc123")

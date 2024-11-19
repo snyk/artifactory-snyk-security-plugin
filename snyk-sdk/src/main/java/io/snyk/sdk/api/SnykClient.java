@@ -65,7 +65,7 @@ public class SnykClient {
   public SnykResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
     return get(NotificationSettings.class, request ->
       request
-        .withPath(String.format("user/me/notification-settings/org/%s", URLEncoder.encode(org, UTF_8)))
+        .withPath(String.format("v1/user/me/notification-settings/org/%s", URLEncoder.encode(org, UTF_8)))
     );
   }
 }

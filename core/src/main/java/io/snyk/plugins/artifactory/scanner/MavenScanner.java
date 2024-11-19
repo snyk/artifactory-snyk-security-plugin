@@ -46,7 +46,7 @@ class MavenScanner implements PackageScanner {
       LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.get(TestResult.class, request ->
         request
-          .withPath(String.format("test/maven/%s/%s/%s",
+          .withPath(String.format("v1/test/maven/%s/%s/%s",
             URLEncoder.encode(groupID, UTF_8),
             URLEncoder.encode(artifactID, UTF_8),
             URLEncoder.encode(artifactVersion, UTF_8)

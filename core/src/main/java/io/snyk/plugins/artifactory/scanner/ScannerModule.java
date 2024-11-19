@@ -4,12 +4,12 @@ import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
 import io.snyk.plugins.artifactory.configuration.properties.RepositoryArtifactProperties;
-import io.snyk.plugins.artifactory.exception.CannotScanException;
+import io.snyk.plugins.artifactory.ecosystem.EcosystemResolver;
+import io.snyk.plugins.artifactory.ecosystem.RepositoryMetadataEcosystemResolver;
 import io.snyk.plugins.artifactory.model.Ignores;
 import io.snyk.plugins.artifactory.model.MonitoredArtifact;
 import io.snyk.plugins.artifactory.model.TestResult;
 import io.snyk.plugins.artifactory.model.ValidationSettings;
-import io.snyk.sdk.api.v1.SnykClient;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
@@ -21,25 +21,23 @@ import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Optional;
 
-import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 public class ScannerModule {
   private static final Logger LOG = LoggerFactory.getLogger(ScannerModule.class);
   private final ConfigurationModule configurationModule;
   private final Repositories repositories;
-  private final MavenScanner mavenScanner;
-  private final NpmScanner npmScanner;
-  private final PythonScanner pythonScanner;
+  private final EcosystemResolver ecosystemResolver;
+  private final ScannerResolver scannerResolver;
   private final ArtifactResolver artifactResolver;
 
-  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull SnykClient snykClient) {
+  public ScannerModule(ConfigurationModule configurationModule, @Nonnull Repositories repositories, ScannerResolver scannerResolver) {
     this.configurationModule = requireNonNull(configurationModule);
     this.repositories = requireNonNull(repositories);
 
-    mavenScanner = new MavenScanner(configurationModule, snykClient);
-    npmScanner = new NpmScanner(configurationModule, snykClient);
-    pythonScanner = new PythonScanner(configurationModule, snykClient);
+    ecosystemResolver = new RepositoryMetadataEcosystemResolver(repositories);
+
+    this.scannerResolver = scannerResolver;
 
     artifactResolver = shouldTestContinuously() ? new ArtifactCache(
       durationHoursProperty(PluginConfiguration.TEST_FREQUENCY_HOURS, configurationModule),
@@ -68,7 +66,9 @@ public class ScannerModule {
   }
 
   private @NotNull Optional<MonitoredArtifact> runTest(RepoPath repoPath) {
-    return getScannerForPackageType(repoPath).map(scanner -> runTestWith(scanner, repoPath));
+    return ecosystemResolver.getFor(repoPath)
+      .flatMap(ecosystem -> scannerResolver.getFor(ecosystem))
+      .map(scanner -> runTestWith(scanner, repoPath));
   }
 
   private MonitoredArtifact runTestWith(PackageScanner scanner, RepoPath repoPath) {
@@ -86,33 +86,6 @@ public class ScannerModule {
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
     return new MonitoredArtifact(repoPath.toString(), testResult, ignores);
-  }
-
-  protected Optional<PackageScanner> getScannerForPackageType(RepoPath repoPath) {
-    String path = Optional.ofNullable(repoPath.getPath())
-      .orElseThrow(() -> new CannotScanException("Path not provided."));
-    return getScannerForPackageType(path);
-  }
-
-  protected Optional<PackageScanner> getScannerForPackageType(String path) {
-    return Ecosystem.fromPackagePath(path).map(this::getScanner);
-  }
-
-  private PackageScanner getScanner(Ecosystem ecosystem) {
-    if (!configurationModule.getPropertyOrDefault(ecosystem.getConfigProperty()).equals("true")) {
-      throw new CannotScanException(format("Plugin Property \"%s\" is not \"true\".", ecosystem.getConfigProperty().propertyKey()));
-    }
-
-    switch (ecosystem) {
-      case MAVEN:
-        return mavenScanner;
-      case NPM:
-        return npmScanner;
-      case PYPI:
-        return pythonScanner;
-      default:
-        throw new IllegalStateException("Unsupported ecosystem: " + ecosystem.name());
-    }
   }
 
   private boolean shouldTestContinuously() {

@@ -28,7 +28,7 @@ public class ArtifactCache implements ArtifactResolver {
   public Optional<MonitoredArtifact> get(ArtifactProperties properties, Supplier<Optional<MonitoredArtifact>> fetch) {
     Optional<MonitoredArtifact> artifact = MonitoredArtifact.read(properties);
     if (artifact.isEmpty()) {
-      LOG.info("Previous Snyk Test result not available - testing {}", properties.getArtifactPath());
+      LOG.info("Previous Snyk Test result not available for {}", properties.getArtifactPath());
       return fetchAndStore(properties, fetch);
     }
 

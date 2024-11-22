@@ -46,10 +46,19 @@ public class ScannerModule {
   }
 
   public Optional<MonitoredArtifact> testArtifact(@Nonnull RepoPath repoPath) {
+    if(skip(repoPath)) {
+      LOG.debug("No ecosystem matching for {}, skipping.", repoPath);
+      return Optional.empty();
+    }
     return runTest(repoPath).map(artifact -> artifact.write(properties(repoPath)));
   }
 
   public void filterAccess(@Nonnull RepoPath repoPath) {
+    if(skip(repoPath)) {
+      LOG.debug("No ecosystem matching for {}, skipping.", repoPath);
+      return;
+    }
+
     resolveArtifact(repoPath)
       .ifPresentOrElse(
         this::filter,
@@ -94,5 +103,9 @@ public class ScannerModule {
 
   private Duration durationHoursProperty(PluginConfiguration property, ConfigurationModule configurationModule) {
     return Duration.ofHours(Integer.parseInt(configurationModule.getPropertyOrDefault(property)));
+  }
+
+  private boolean skip(RepoPath repoPath) {
+    return ecosystemResolver.getFor(repoPath).isEmpty();
   }
 }

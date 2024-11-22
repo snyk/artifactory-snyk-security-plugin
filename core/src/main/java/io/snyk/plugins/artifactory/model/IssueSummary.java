@@ -2,6 +2,7 @@ package io.snyk.plugins.artifactory.model;
 
 import io.snyk.sdk.model.Issue;
 import io.snyk.sdk.model.Severity;
+import io.snyk.sdk.model.purl.PurlIssue;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -20,6 +21,10 @@ public class IssueSummary {
 
   private IssueSummary(Map<Severity, Integer> countBySeverity) {
     this.countBySeverity = countBySeverity;
+  }
+
+  public static IssueSummary fromPurlIssues(List<PurlIssue> issues) {
+    return IssueSummary.from(issues.stream().map(i -> i.attribute.severity));
   }
 
   public static IssueSummary from(List<? extends Issue> issues) {

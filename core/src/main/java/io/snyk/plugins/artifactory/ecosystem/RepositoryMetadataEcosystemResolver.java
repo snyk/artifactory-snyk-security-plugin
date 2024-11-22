@@ -32,6 +32,6 @@ public class RepositoryMetadataEcosystemResolver implements EcosystemResolver {
       return Optional.empty();
     }
 
-    return Ecosystem.fromPackageType(packageType);
+    return Ecosystem.match(packageType, repoPath.getPath());
   }
 }

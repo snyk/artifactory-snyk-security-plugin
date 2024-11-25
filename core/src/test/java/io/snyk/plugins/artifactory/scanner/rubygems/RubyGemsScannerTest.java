@@ -2,6 +2,7 @@ package io.snyk.plugins.artifactory.scanner.rubygems;
 
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.model.TestResult;
+import io.snyk.plugins.artifactory.scanner.purl.PurlScanner;
 import io.snyk.plugins.artifactory.util.SnykConfigForTests;
 import io.snyk.sdk.SnykConfig;
 import io.snyk.sdk.api.SnykClient;
@@ -31,7 +32,7 @@ class RubyGemsScannerTest {
     SnykConfig config = SnykConfigForTests.withDefaults();
 
     SnykClient snykClient = new SnykClient(config);
-    scanner = new RubyGemsScanner(snykClient, org);
+    scanner = new RubyGemsScanner(new PurlScanner(snykClient, org));
 
     repoPath = mock(RepoPath.class);
     fileLayoutInfo = mock(FileLayoutInfo.class);

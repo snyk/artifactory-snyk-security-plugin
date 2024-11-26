@@ -93,10 +93,10 @@ public class SnykPlugin {
    * Invoked once when an artifact is first fetched from an external repository.
    * Runs Snyk test and persists the result in properties.
    * <p>
-   * Extension point: {@code download.afterRemoteDownload}.
+   * Extension point: {@code storage.afterCreate}.
    */
-  public void handleAfterRemoteDownloadEvent(RepoPath repoPath) {
-    LOG.debug("Handle 'afterRemoteDownload' event for: {}", repoPath);
+  public void handleAfterCreate(RepoPath repoPath) {
+    LOG.debug("Handle 'afterCreate' event for: {}", repoPath);
 
     try {
       scannerModule.testArtifact(repoPath);

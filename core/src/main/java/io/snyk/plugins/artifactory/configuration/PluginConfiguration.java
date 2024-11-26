@@ -20,6 +20,8 @@ public enum PluginConfiguration implements Configuration {
   SCANNER_PACKAGE_TYPE_NPM("snyk.scanner.packageType.npm", "true"),
   SCANNER_PACKAGE_TYPE_PYPI("snyk.scanner.packageType.pypi", "false"),
   SCANNER_PACKAGE_TYPE_RUBYGEMS("snyk.scanner.packageType.gems", "false"),
+  SCANNER_PACKAGE_TYPE_NUGET("snyk.scanner.packageType.nuget", "false"),
+  SCANNER_PACKAGE_TYPE_COCOAPODS("snyk.scanner.packageType.cocoapods", "false"),
   TEST_CONTINUOUSLY("snyk.scanner.test.continuously","false"),
   TEST_FREQUENCY_HOURS("snyk.scanner.frequency.hours", "168"),
   EXTEND_TEST_DEADLINE_HOURS("snyk.scanner.extendTestDeadline.hours", "24");

@@ -47,7 +47,7 @@ public class TestResult {
   }
 
   public void write(ArtifactProperties properties) {
-    LOG.info("Writing Snyk properties for package {}", detailsUrl);
+    LOG.info("Writing Snyk properties for package {} - artifactory path {}", detailsUrl, properties.getArtifactPath());
     properties.set(TEST_TIMESTAMP, timestamp.toString());
     properties.set(ISSUE_VULNERABILITIES, vulnSummary.toString());
     properties.set(ISSUE_LICENSES, licenseSummary.toString());

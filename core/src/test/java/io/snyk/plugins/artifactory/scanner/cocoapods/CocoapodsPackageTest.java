@@ -20,6 +20,17 @@ class CocoapodsPackageTest {
   }
 
   @Test
+  void parse_whenVersionNumberHasVPrefix() {
+    Optional<CocoapodsPackage> pckg = CocoapodsPackage.parse(
+        "libwebp-v1.3.0.tar.gz"
+    );
+
+    assertThat(pckg).isNotEmpty();
+    assertThat(pckg.get().getName()).isEqualTo("libwebp");
+    assertThat(pckg.get().getVersion()).isEqualTo("1.3.0");
+  }
+
+  @Test
   void parse_unexpectedPackageName() {
     assertThat(CocoapodsPackage.parse("3.5.1.tar.gz")).isEmpty();
   }

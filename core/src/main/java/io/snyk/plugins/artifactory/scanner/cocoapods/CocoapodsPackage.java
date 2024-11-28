@@ -33,8 +33,7 @@ public class CocoapodsPackage {
     }
 
     String[] nameVersion = artifactoryPackageName.replace(".tar.gz", "")
-        .replaceFirst("(?s)-(?!.*?-)", "!")
-        .split("!");
+        .split("(?s)-[a-zA-Z]*(?!.*?-)");
 
     if (nameVersion.length != 2) {
       LOG.warn("Unexpected Cocoapods package name: {}", artifactoryPackageName);

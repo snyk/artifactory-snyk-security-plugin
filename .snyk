@@ -1,0 +1,21 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+patch: {}
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  'SNYK-JAVA-COMGOOGLEPROTOBUF-8055227':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2024-12-19T00:00:00.000Z
+  'SNYK-JAVA-DNSJAVA-7547403':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2024-12-19T00:00:00.000Z
+  'SNYK-JAVA-DNSJAVA-7547404':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2024-12-19T00:00:00.000Z
+  'SNYK-JAVA-DNSJAVA-7547405':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2024-12-19T00:00:00.000Z

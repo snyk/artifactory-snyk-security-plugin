@@ -13,7 +13,7 @@ jobs:
       - prodsec/security_scans:
           mode: auto
           open-source-scan-all-projects: false
-          open-source-additional-arguments: --file=pom.xml --maven-aggregate-project
+          open-source-additional-arguments: --file=pom.xml --maven-aggregate-project --policy-file=.snyk
           iac-scan: disabled
 
 workflows:

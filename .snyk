@@ -19,3 +19,11 @@ ignore:
     - '*':
         reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
         created: 2024-12-19T00:00:00.000Z
+  'SNYK-JAVA-COMMONSLANG-10734077':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2025-07-17T00:00:00.000Z
+  'SNYK-JAVA-ORGAPACHECOMMONS-10734078':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2025-07-17T00:00:00.000Z

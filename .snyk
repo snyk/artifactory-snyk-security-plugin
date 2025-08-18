@@ -27,3 +27,7 @@ ignore:
     - '*':
         reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
         created: 2025-07-17T00:00:00.000Z
+  'SNYK-JAVA-ORGSPRINGFRAMEWORK-11958848':
+    - '*':
+        reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
+        created: 2025-08-18T00:00:00.000Z

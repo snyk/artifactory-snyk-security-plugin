@@ -1,8 +1,11 @@
-package io.snyk.plugins.artifactory.scanner;
+package io.snyk.plugins.artifactory.scanner.npm;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
+import io.snyk.plugins.artifactory.scanner.PackageScanner;
+import io.snyk.plugins.artifactory.scanner.SnykDetailsUrl;
+import io.snyk.plugins.artifactory.scanner.TestResultConverter;
 import io.snyk.sdk.api.SnykClient;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.TestResult;
@@ -19,35 +22,23 @@ import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
-class PythonScanner implements PackageScanner {
+public class NpmScanner implements PackageScanner {
 
-  private static final Logger LOG = getLogger(PythonScanner.class);
+  private static final Logger LOG = getLogger(NpmScanner.class);
 
   private final ConfigurationModule configurationModule;
   private final SnykClient snykClient;
 
-  PythonScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  public NpmScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
     this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }
 
-  public static Optional<ModuleURLDetails> getModuleDetailsFromFileLayoutInfo(FileLayoutInfo fileLayoutInfo) {
-    String module = fileLayoutInfo.getModule();
-    String baseRevision = fileLayoutInfo.getBaseRevision();
-    if (module == null || baseRevision == null) {
-      return Optional.empty();
-    }
-    return Optional.of(new ModuleURLDetails(
-      module,
-      baseRevision
-    ));
-  }
-
-  public static Optional<ModuleURLDetails> getModuleDetailsFromUrl(String repoPath) {
-    Pattern pattern = Pattern.compile("^.+:.+/.+/.+/(?<packageName>.+)-(?<packageVersion>\\d+(?:\\.[A-Za-z0-9]+)*).*\\.(?:whl|egg|zip|tar\\.gz)$");
+  public static Optional<PackageURLDetails> getPackageDetailsFromUrl(String repoPath) {
+    Pattern pattern = Pattern.compile("^(?:.+:)?(?<packageName>.+)/-/.+-(?<packageVersion>\\d+\\.\\d+\\.\\d+.*)\\.tgz$");
     Matcher matcher = pattern.matcher(repoPath);
     if (matcher.matches()) {
-      return Optional.of(new ModuleURLDetails(
+      return Optional.of(new PackageURLDetails(
         matcher.group("packageName"),
         matcher.group("packageVersion")
       ));
@@ -55,24 +46,23 @@ class PythonScanner implements PackageScanner {
     return Optional.empty();
   }
 
-  public static String getModuleDetailsURL(ModuleURLDetails details) {
-    return SnykDetailsUrl.create("pip", details.name, details.version).toString();
+  public static String getPackageDetailsURL(PackageURLDetails details) {
+    return SnykDetailsUrl.create("npm", details.name, details.version).toString();
   }
 
   public io.snyk.plugins.artifactory.model.TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath) {
-    ModuleURLDetails details = getModuleDetailsFromFileLayoutInfo(fileLayoutInfo)
-      .orElseGet(() -> getModuleDetailsFromUrl(repoPath.toString())
-        .orElseThrow(() -> new CannotScanException("Module details not provided.")));
+    PackageURLDetails details = getPackageDetailsFromUrl(repoPath.toString())
+      .orElseThrow(() -> new CannotScanException("Package details not provided."));
 
     SnykResult<TestResult> result;
     try {
       LOG.debug("Running Snyk test: {}", repoPath);
       result = snykClient.get(TestResult.class, request ->
         request
-          .withPath(String.format("v1/test/pip/%s/%s",
+          .withPath(String.format("v1/test/npm/%s/%s",
             URLEncoder.encode(details.name, UTF_8),
-            URLEncoder.encode(details.version, UTF_8))
-          )
+            URLEncoder.encode(details.version, UTF_8)
+          ))
           .withQueryParam("org", configurationModule.getProperty(API_ORGANIZATION))
       );
     } catch (Exception e) {
@@ -80,15 +70,15 @@ class PythonScanner implements PackageScanner {
     }
 
     TestResult testResult = result.get().orElseThrow(() -> new SnykAPIFailureException(result));
-    testResult.packageDetailsURL = getModuleDetailsURL(details);
+    testResult.packageDetailsURL = getPackageDetailsURL(details);
     return TestResultConverter.convert(testResult);
   }
 
-  public static class ModuleURLDetails {
+  public static class PackageURLDetails {
     public final String name;
     public final String version;
 
-    public ModuleURLDetails(String name, String version) {
+    public PackageURLDetails(String name, String version) {
       this.name = name;
       this.version = version;
     }

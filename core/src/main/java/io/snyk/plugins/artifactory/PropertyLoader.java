@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.util.Properties;
 
 import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 final class PropertyLoader {
 
@@ -53,6 +52,6 @@ final class PropertyLoader {
       throw new IOException(format(FILE_NOT_FOUND_ERROR_MESSAGE, pluginVersionFile.getAbsolutePath()));
     }
 
-    return new String(Files.readAllBytes(pluginVersionFile.toPath()), UTF_8);
+    return Files.readString(pluginVersionFile.toPath());
   }
 }

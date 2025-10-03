@@ -48,7 +48,7 @@ public class SnykClient {
 
     if (!config.httpProxyHost.isBlank()) {
       builder.proxy(ProxySelector.of(new InetSocketAddress(config.httpProxyHost, config.httpProxyPort)));
-      LOG.info("added proxy with ", config.httpProxyHost, config.httpProxyPort);
+      LOG.info("added proxy with host: {}, port: {}", config.httpProxyHost, config.httpProxyPort);
     }
 
     httpClient = builder.build();

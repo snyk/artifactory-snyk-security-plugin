@@ -1,4 +1,4 @@
-package io.snyk.plugins.artifactory.scanner;
+package io.snyk.plugins.artifactory.scanner.python;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;

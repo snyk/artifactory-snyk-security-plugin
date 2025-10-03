@@ -52,15 +52,15 @@ public class SnykPlugin {
       validateConfiguration();
 
       LOG.info("Creating api client and modules...");
-      LOG.info("BaseURL:" + configurationModule.getPropertyOrDefault(API_URL));
-      LOG.info("Organization:" + configurationModule.getPropertyOrDefault(API_ORGANIZATION));
+      LOG.info("BaseURL: {}", configurationModule.getPropertyOrDefault(API_URL));
+      LOG.info("Organization: {}", configurationModule.getPropertyOrDefault(API_ORGANIZATION));
       String token = configurationModule.getPropertyOrDefault(API_TOKEN);
       if (null != token && token.length() > 4) {
         token = token.substring(0, 4) + "...";
       } else {
         token = "no token configured";
       }
-      LOG.debug("Token:" + token);
+      LOG.debug("Token: {}", token);
       final SnykClient snykClient = createSnykClient(configurationModule, pluginVersion);
 
       auditModule = new AuditModule();
@@ -191,8 +191,8 @@ public class SnykPlugin {
       .build();
 
     LOG.debug("about to log config...");
-    LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
-    LOG.debug("config.httpProxyPort: " + config.httpProxyPort);
+    LOG.debug("config.httpProxyHost: {}", config.httpProxyHost);
+    LOG.debug("config.httpProxyPort: {}", config.httpProxyPort);
 
     final SnykClient snykClient = new SnykClient(config);
 

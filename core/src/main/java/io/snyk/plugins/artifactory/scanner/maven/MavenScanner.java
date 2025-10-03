@@ -1,8 +1,11 @@
-package io.snyk.plugins.artifactory.scanner;
+package io.snyk.plugins.artifactory.scanner.maven;
 
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
+import io.snyk.plugins.artifactory.scanner.PackageScanner;
+import io.snyk.plugins.artifactory.scanner.SnykDetailsUrl;
+import io.snyk.plugins.artifactory.scanner.TestResultConverter;
 import io.snyk.sdk.api.SnykClient;
 import io.snyk.sdk.api.SnykResult;
 import io.snyk.sdk.model.TestResult;
@@ -17,14 +20,14 @@ import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 
-class MavenScanner implements PackageScanner {
+public class MavenScanner implements PackageScanner {
 
   private static final Logger LOG = getLogger(MavenScanner.class);
 
   private final ConfigurationModule configurationModule;
   private final SnykClient snykClient;
 
-  MavenScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
+  public MavenScanner(ConfigurationModule configurationModule, SnykClient snykClient) {
     this.configurationModule = configurationModule;
     this.snykClient = snykClient;
   }

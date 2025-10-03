@@ -42,7 +42,9 @@ class CocoapodsScannerTest {
     when(repoPath.getPath()).thenReturn("OpenSSL/OpenSSL/tags/1.0.2/OpenSSL-1.0.2.tar.gz");
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
-    assertThat(result.getVulnSummary().getCountAtOrAbove(Severity.MEDIUM)).isGreaterThanOrEqualTo(63);
+    assertThat(result.getVulnSummary().getCountAtOrAbove(Severity.MEDIUM))
+      .isGreaterThanOrEqualTo(63)
+      .withFailMessage("As of 2025-10-03 OpenSSL@1.0.2 should have at least 63 medium+ vulns");
     assertThat(result.getDetailsUrl().toString()).isEqualTo("https://security.snyk.io/package/cocoapods/OpenSSL/1.0.2");
   }
 }

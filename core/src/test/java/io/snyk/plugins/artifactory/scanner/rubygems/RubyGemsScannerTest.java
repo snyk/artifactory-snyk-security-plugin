@@ -43,7 +43,9 @@ class RubyGemsScannerTest {
     when(repoPath.getName()).thenReturn("sinatra-2.0.0.gem");
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
-    assertThat(result.getVulnSummary().getCountAtOrAbove(Severity.MEDIUM)).isGreaterThanOrEqualTo(5);
+    assertThat(result.getVulnSummary().getCountAtOrAbove(Severity.MEDIUM))
+      .isGreaterThanOrEqualTo(5)
+      .withFailMessage("As of 2025-10-03 sinatra@2.0.0 should have at least 5 medium+ vulns");
     assertThat(result.getDetailsUrl().toString()).isEqualTo("https://security.snyk.io/package/rubygems/sinatra/2.0.0");
   }
 

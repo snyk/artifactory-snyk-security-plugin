@@ -42,7 +42,9 @@ class NugetScannerTest {
     when(repoPath.getName()).thenReturn("newtonsoft.json.13.0.0.nupkg");
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
-    assertThat(result.getVulnSummary().getCountAtOrAbove(Severity.MEDIUM)).isGreaterThanOrEqualTo(1);
+    assertThat(result.getVulnSummary().getCountAtOrAbove(Severity.MEDIUM))
+      .isGreaterThanOrEqualTo(1)
+      .withFailMessage("As of 2025-10-03 newtonsoft.json@13.0.0 should have at least 1 medium+ vuln");
     assertThat(result.getDetailsUrl().toString()).isEqualTo("https://security.snyk.io/package/nuget/newtonsoft.json/13.0.0");
   }
 

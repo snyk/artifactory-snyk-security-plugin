@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,7 +40,9 @@ public class PythonScannerTest {
     when(fileLayoutInfo.getBaseRevision()).thenReturn("1.25.7");
 
     TestResult result = scanner.scan(fileLayoutInfo, repoPath);
-    assertEquals(6, result.getVulnSummary().getTotalCount());
+    assertThat(result.getVulnSummary().getTotalCount())
+      .isGreaterThanOrEqualTo(7)
+      .withFailMessage("As of 2025-10-03 urllib3@1.25.7 should have at least 7 vulns");
     assertEquals("https://security.snyk.io/package/pip/urllib3/1.25.7", result.getDetailsUrl().toString());
   }
 

@@ -8,6 +8,14 @@ public enum PluginConfiguration implements Configuration {
   API_SSL_CERTIFICATE_PATH("snyk.api.sslCertificatePath", ""),
   API_TRUST_ALL_CERTIFICATES("snyk.api.trustAllCertificates", "false"),
   API_TIMEOUT("snyk.api.timeout", "60000"),
+  /* API_REST_ENABLED is used to determine whether to use the REST API or the legacy API
+   * for the Maven, Npm, and Python scanners.
+   * This results in different behavior:
+   * - the REST API does not provide licensing information, but does provide vulnerability information
+   * - the legacy API provides both licensing and vulnerability information
+   * This does not affect the RubyGems, Nuget, and CocoaPods scanners, which only use the REST API.
+   */
+  API_REST_ENABLED("snyk.api.rest.enabled", "false"),
 
   HTTP_PROXY_HOST("snyk.http.proxyHost", ""),
   HTTP_PROXY_PORT("snyk.http.proxyPort", "80"),

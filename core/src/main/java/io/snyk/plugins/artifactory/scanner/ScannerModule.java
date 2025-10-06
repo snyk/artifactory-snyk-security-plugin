@@ -76,7 +76,7 @@ public class ScannerModule {
 
   private @NotNull Optional<MonitoredArtifact> runTest(RepoPath repoPath) {
     return ecosystemResolver.getFor(repoPath)
-      .flatMap(ecosystem -> scannerResolver.getFor(ecosystem))
+      .flatMap(scannerResolver::getFor)
       .map(scanner -> runTestWith(scanner, repoPath));
   }
 

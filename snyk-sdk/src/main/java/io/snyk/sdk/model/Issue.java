@@ -29,4 +29,6 @@ public class Issue implements Serializable {
   public String language;
   @JsonProperty("packageManager")
   public String packageManager;
+  @JsonProperty("isIgnored")
+  public Boolean isIgnored; // nullable; absent in many responses
 }

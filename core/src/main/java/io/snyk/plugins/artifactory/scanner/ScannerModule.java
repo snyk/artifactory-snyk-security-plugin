@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.LocalDate;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -98,23 +98,23 @@ public class ScannerModule {
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
-    Optional<Instant> createdDate = getCreatedDate(repoPath);
+    Instant createdDate = getCreatedDate(repoPath);
     return new MonitoredArtifact(repoPath.toString(), testResult, ignores, createdDate);
   }
 
-  private Optional<Instant> getCreatedDate(RepoPath repoPath) {
+  private Instant getCreatedDate(RepoPath repoPath) {
     try {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
-        LocalDate created = Instant.ofEpochMilli(createdDate).atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate created = Instant.ofEpochMilli(itemInfo.getCreated()).atZone(ZoneId.systemDefault()).toLocalDate();
         if (created != null) {
-          return Optional.of(created.atStartOfDay(ZoneId.systemDefault()).toInstant());
+          return created.atStartOfDay(ZoneId.systemDefault()).toInstant();
         }
       }
     } catch (Exception e) {
       LOG.debug("Could not retrieve created date for {}: {}", repoPath, e);
     }
-    return Optional.empty();
+    return null;
   }
 
   private boolean shouldTestContinuously() {

@@ -145,9 +145,9 @@ class PackageValidatorTest {
 
   @Test
   void validate_includesCreatedDateDelay() {
-    int createdDelayDays = 14
+    Integer createdDelayDays = 14;
     ValidationSettings settings = new ValidationSettings()
-    .withCreatedDelayDays(createdDelayDays)
+    .withCreatedDelayDays(Optional.of(createdDelayDays))
     .withVulnSeverityThreshold(Optional.empty())
     .withLicenseSeverityThreshold(Optional.empty());
 
@@ -159,12 +159,12 @@ class PackageValidatorTest {
         IssueSummary.from(Stream.empty()),
         URI.create("https://snyk.io/package/details")
       ),
-      new Ignores()
+      new Ignores(),
       Instant.now()
     );
 
     assertThatThrownBy(() -> validator.validate(artifact))
     .isExactlyInstanceOf(CancelException.class)
-    .hasMessageContaining(format("Artifact was created 0 days ago, which is less than the configured delay of %d days", createdDelayDays))
+    .hasMessageContaining("Artifact was created 0 days ago, which is less than the configured delay of 14 days");
   }
 }

@@ -13,13 +13,13 @@ public class ValidationSettings {
 
   private final Optional<Severity> vulnSeverityThreshold;
   private final Optional<Severity> licenseSeverityThreshold;
-  private final Optional<int> createdDelayDays;
+  private final Optional<Integer> createdDelayDays;
 
   public ValidationSettings() {
     this(Optional.of(Severity.HIGH), Optional.of(Severity.HIGH), Optional.of(0));
   }
 
-  private ValidationSettings(Optional<Severity> vulnSeverityThreshold, Optional<Severity> licenseSeverityThreshold, Optional<int> createdDelayDays) {
+  private ValidationSettings(Optional<Severity> vulnSeverityThreshold, Optional<Severity> licenseSeverityThreshold, Optional<Integer> createdDelayDays) {
     this.vulnSeverityThreshold = vulnSeverityThreshold;
     this.licenseSeverityThreshold = licenseSeverityThreshold;
     this.createdDelayDays = createdDelayDays;
@@ -33,7 +33,7 @@ public class ValidationSettings {
     return new ValidationSettings(vulnSeverityThreshold, threshold, createdDelayDays);
   }
 
-  public ValidationSettings withCreatedDelayDays(Optional<int> days) {
+  public ValidationSettings withCreatedDelayDays(Optional<Integer> days) {
     return new ValidationSettings(vulnSeverityThreshold, licenseSeverityThreshold, days);
   }
 
@@ -45,7 +45,7 @@ public class ValidationSettings {
     return licenseSeverityThreshold;
   }
 
-  public Optional<int> getCreatedDelayDays() {
+  public Optional<Integer> getCreatedDelayDays() {
     return createdDelayDays;
   }
 
@@ -65,7 +65,7 @@ public class ValidationSettings {
     return new ValidationSettings(
       parseSeverity(vulnThreshold),
       parseSeverity(licenseThreshold),
-      Integer.parseInt(createdDelayDaysStr)
+      Optional.of(Integer.parseInt(createdDelayDaysStr))
     );
   }
 

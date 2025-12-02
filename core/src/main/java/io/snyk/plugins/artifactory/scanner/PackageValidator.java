@@ -31,8 +31,8 @@ public class PackageValidator {
   }
 
   private void validateCreatedDelay(MonitoredArtifact artifact) {
-    int delayDays = settings.getCreatedDelayDays();
-    if (delayDays <= 0) {
+    Integer delayDays = settings.getCreatedDelayDays().get();
+    if (delayDays == null || delayDays <= 0) {
       LOG.debug("Created delay is disabled ({} days)", delayDays);
       return;
     }

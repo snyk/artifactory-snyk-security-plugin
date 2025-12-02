@@ -75,7 +75,7 @@ public class MonitoredArtifact {
           properties.getArtifactPath(),
           testResult,
           Ignores.read(properties),
-          Optional.empty() // Created date not stored in properties
+          null // Created date not stored in properties
         )
       );
     } catch (RuntimeException e) {

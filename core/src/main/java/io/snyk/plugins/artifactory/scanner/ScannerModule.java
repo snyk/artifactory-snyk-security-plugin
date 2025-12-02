@@ -108,7 +108,7 @@ public class ScannerModule {
       if (itemInfo != null) {
         LocalDate created = Instant.ofEpochMilli(createdDate).atZone(ZoneId.systemDefault()).toLocalDate();
         if (created != null) {
-          return Optional.of(created.atStartOfDay(ZoneId.systemDefault()).toInstant(););
+          return Optional.of(created.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
       }
     } catch (Exception e) {

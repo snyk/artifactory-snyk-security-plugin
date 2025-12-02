@@ -19,11 +19,9 @@ public class PackageValidator {
   private static final Logger LOG = LoggerFactory.getLogger(PackageValidator.class);
 
   private final ValidationSettings settings;
-  private final Repositories repositories;
 
-  public PackageValidator(ValidationSettings settings, Repositories repositories) {
+  public PackageValidator(ValidationSettings settings) {
     this.settings = settings;
-    this.repositories = repositories;
   }
 
   public void validate(MonitoredArtifact artifact) {

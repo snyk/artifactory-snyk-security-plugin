@@ -22,17 +22,17 @@ public class MonitoredArtifact {
 
   private final Ignores ignores;
 
-  private final Instant createdDate;
+  private final Instant lastModifiedDate;
 
   public MonitoredArtifact(String path, TestResult testResult, Ignores ignores) {
     this(path, testResult, ignores, null);
   }
 
-  public MonitoredArtifact(String path, TestResult testResult, Ignores ignores, Instant createdDate) {
+  public MonitoredArtifact(String path, TestResult testResult, Ignores ignores, Instant lastModifiedDate) {
     this.path = path;
     this.testResult = testResult;
     this.ignores = ignores;
-    this.createdDate = createdDate;
+    this.lastModifiedDate = lastModifiedDate;
   }
 
   public String getPath() {
@@ -47,8 +47,8 @@ public class MonitoredArtifact {
     return ignores;
   }
 
-  public Optional<Instant> getCreatedDate() {
-   return Optional.ofNullable(createdDate);
+  public Optional<Instant> getLastModifiedDate() {
+   return Optional.ofNullable(lastModifiedDate);
   }
 
   public MonitoredArtifact write(ArtifactProperties properties) {
@@ -89,12 +89,12 @@ public class MonitoredArtifact {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     MonitoredArtifact artifact = (MonitoredArtifact) o;
-    return Objects.equals(path, artifact.path) && Objects.equals(testResult, artifact.testResult) && Objects.equals(ignores, artifact.ignores) && Objects.equals(createdDate, artifact.createdDate);
+    return Objects.equals(path, artifact.path) && Objects.equals(testResult, artifact.testResult) && Objects.equals(ignores, artifact.ignores) && Objects.equals(lastModifiedDate, artifact.lastModifiedDate);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, testResult, ignores, createdDate);
+    return Objects.hash(path, testResult, ignores, lastModifiedDate);
   }
 
   @Override
@@ -103,6 +103,7 @@ public class MonitoredArtifact {
       "path='" + path + '\'' +
       ", testResult=" + testResult +
       ", ignores=" + ignores +
+      ", lastModifiedDate=" + lastModifiedDate +
       '}';
   }
 }

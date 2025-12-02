@@ -33,7 +33,7 @@ public enum PluginConfiguration implements Configuration {
   TEST_CONTINUOUSLY("snyk.scanner.test.continuously","false"),
   TEST_FREQUENCY_HOURS("snyk.scanner.frequency.hours", "168"),
   EXTEND_TEST_DEADLINE_HOURS("snyk.scanner.extendTestDeadline.hours", "24"),
-  SCANNER_CREATED_DELAY_DAYS("snyk.scanner.createdDelay.days", "0");
+  SCANNER_LAST_MODIFIED_DELAY_DAYS("snyk.scanner.lastModified.days", "0");
 
   private final String propertyKey;
   private final String defaultValue;

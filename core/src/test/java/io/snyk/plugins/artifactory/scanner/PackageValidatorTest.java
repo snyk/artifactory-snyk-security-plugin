@@ -144,10 +144,10 @@ class PackageValidatorTest {
   }
 
   @Test
-  void validate_includesCreatedDateDelay() {
-    Integer createdDelayDays = 14;
+  void validate_includesLastModifiedDateDelay() {
+    Integer lastModifiedDelayDays = 14;
     ValidationSettings settings = new ValidationSettings()
-    .withCreatedDelayDays(Optional.of(createdDelayDays))
+    .withLastModifiedDelayDays(Optional.of(lastModifiedDelayDays))
     .withVulnSeverityThreshold(Optional.empty())
     .withLicenseSeverityThreshold(Optional.empty());
 

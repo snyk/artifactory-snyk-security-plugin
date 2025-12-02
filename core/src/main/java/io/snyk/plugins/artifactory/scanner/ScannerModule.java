@@ -21,8 +21,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -98,18 +96,16 @@ public class ScannerModule {
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
-    Instant createdDate = getCreatedDate(repoPath);
-    return new MonitoredArtifact(repoPath.toString(), testResult, ignores, createdDate);
+    Instant lastModifiedDate = getLastModifiedDate(repoPath);
+    return new MonitoredArtifact(repoPath.toString(), testResult, ignores, lastModifiedDate);
   }
 
-  private Instant getCreatedDate(RepoPath repoPath) {
+  private Instant getLastModifiedDate(RepoPath repoPath) {
     try {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
-        LocalDate created = Instant.ofEpochMilli(itemInfo.getCreated()).atZone(ZoneId.systemDefault()).toLocalDate();
-        if (created != null) {
-          return created.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        }
+        Instant lastModified = Instant.ofEpochMilli(itemInfo.getLastModified());
+        return lastModified;
       }
     } catch (Exception e) {
       LOG.debug("Could not retrieve created date for {}: {}", repoPath, e);

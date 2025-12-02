@@ -105,7 +105,7 @@ public class ScannerModule {
     try {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
-        Date created = itemInfo.getCreated();
+        Date created = new Date(itemInfo.getCreated());
         if (created != null) {
           return Optional.of(created.toInstant());
         }

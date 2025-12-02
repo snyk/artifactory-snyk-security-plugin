@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
+import java.util.LocalDate;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -105,13 +105,13 @@ public class ScannerModule {
     try {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
-        Date created = new Date(itemInfo.getCreated());
+        LocalDate created = Instant.ofEpochMilli(createdDate).atZone(ZoneId.systemDefault()).toLocalDate();
         if (created != null) {
-          return Optional.of(created.toInstant());
+          return Optional.of(created.atStartOfDay(ZoneId.systemDefault()).toInstant(););
         }
       }
     } catch (Exception e) {
-      LOG.debug("Could not retrieve created date for {}: {}", repoPath, e.getMessage());
+      LOG.debug("Could not retrieve created date for {}: {}", repoPath, e);
     }
     return Optional.empty();
   }

@@ -22,13 +22,13 @@ public class MonitoredArtifact {
 
   private final Ignores ignores;
 
-  private final Optional<Instant> createdDate;
+  private final Instant createdDate;
 
   public MonitoredArtifact(String path, TestResult testResult, Ignores ignores) {
-    this(path, testResult, ignores, Optional.empty());
+    this(path, testResult, ignores, null);
   }
 
-  public MonitoredArtifact(String path, TestResult testResult, Ignores ignores, Optional<Instant> createdDate) {
+  public MonitoredArtifact(String path, TestResult testResult, Ignores ignores, Instant createdDate) {
     this.path = path;
     this.testResult = testResult;
     this.ignores = ignores;
@@ -48,7 +48,7 @@ public class MonitoredArtifact {
   }
 
   public Optional<Instant> getCreatedDate() {
-    return createdDate;
+   return Optional.ofNullable(createdDate);
   }
 
   public MonitoredArtifact write(ArtifactProperties properties) {

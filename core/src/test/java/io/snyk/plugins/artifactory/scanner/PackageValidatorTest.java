@@ -6,6 +6,7 @@ import org.artifactory.exception.CancelException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -140,5 +141,30 @@ class PackageValidatorTest {
     assertThatThrownBy(() -> validator.validate(artifact))
       .isExactlyInstanceOf(CancelException.class)
       .hasMessageContaining("https://snyk.io/package/details");
+  }
+
+  @Test
+  void validate_includesCreatedDateDelay() {
+    int createdDelayDays = 14
+    ValidationSettings settings = new ValidationSettings()
+    .withCreatedDelayDays(createdDelayDays)
+    .withVulnSeverityThreshold(Optional.empty())
+    .withLicenseSeverityThreshold(Optional.empty());
+
+    PackageValidator validator = new PackageValidator(settings);
+    
+    MonitoredArtifact artifact = new MonitoredArtifact("",
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.LOW)),
+        IssueSummary.from(Stream.empty()),
+        URI.create("https://snyk.io/package/details")
+      ),
+      new Ignores()
+      Instant.now()
+    );
+
+    assertThatThrownBy(() -> validator.validate(artifact))
+    .isExactlyInstanceOf(CancelException.class)
+    .hasMessageContaining(format("Artifact was created 0 days ago, which is less than the configured delay of %d days", createdDelayDays))
   }
 }

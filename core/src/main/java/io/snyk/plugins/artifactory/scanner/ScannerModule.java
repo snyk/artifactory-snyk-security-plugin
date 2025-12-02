@@ -11,6 +11,7 @@ import io.snyk.plugins.artifactory.model.MonitoredArtifact;
 import io.snyk.plugins.artifactory.model.TestResult;
 import io.snyk.plugins.artifactory.model.ValidationSettings;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -88,13 +91,29 @@ public class ScannerModule {
 
   private void filter(MonitoredArtifact artifact) {
     ValidationSettings validationSettings = ValidationSettings.from(configurationModule);
-    PackageValidator validator = new PackageValidator(validationSettings);
+    PackageValidator validator = new PackageValidator(validationSettings, repositories);
     validator.validate(artifact);
   }
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
-    return new MonitoredArtifact(repoPath.toString(), testResult, ignores);
+    Optional<Instant> createdDate = getCreatedDate(repoPath);
+    return new MonitoredArtifact(repoPath.toString(), testResult, ignores, createdDate);
+  }
+
+  private Optional<Instant> getCreatedDate(RepoPath repoPath) {
+    try {
+      ItemInfo itemInfo = repositories.getItemInfo(repoPath);
+      if (itemInfo != null) {
+        Date created = itemInfo.getCreated();
+        if (created != null) {
+          return Optional.of(created.toInstant());
+        }
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not retrieve created date for {}: {}", repoPath, e.getMessage());
+    }
+    return Optional.empty();
   }
 
   private boolean shouldTestContinuously() {

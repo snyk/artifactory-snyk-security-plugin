@@ -91,7 +91,7 @@ public class ScannerModule {
 
   private void filter(MonitoredArtifact artifact) {
     ValidationSettings validationSettings = ValidationSettings.from(configurationModule);
-    PackageValidator validator = new PackageValidator(validationSettings, repositories);
+    PackageValidator validator = new PackageValidator(validationSettings);
     validator.validate(artifact);
   }
 

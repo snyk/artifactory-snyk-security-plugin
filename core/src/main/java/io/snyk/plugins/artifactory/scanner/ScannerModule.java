@@ -14,6 +14,7 @@ import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
+import org.artifactory.repo.RepositoryConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +98,11 @@ public class ScannerModule {
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
     Instant lastModifiedDate = getLastModifiedDate(repoPath);
+    
+    // Only apply lastModifiedDate to packages from remote repositories.
+    if(!isRemoteRepository(repoPath)) {
+      lastModifiedDate = null;
+    }
     return new MonitoredArtifact(repoPath.toString(), testResult, ignores, lastModifiedDate);
   }
 
@@ -108,9 +114,19 @@ public class ScannerModule {
         return lastModified;
       }
     } catch (Exception e) {
-      LOG.debug("Could not retrieve created date for {}: {}", repoPath, e);
+      LOG.debug("Could not retrieve last modified date for {}: {}", repoPath, e);
     }
     return null;
+  }
+
+  private boolean isRemoteRepository(RepoPath repoPath) {
+    String repoKey = repoPath.getRepoKey();
+    RepositoryConfiguration repoConfig = repositories.getRepositoryConfiguration(repoKey);
+    repoType = repoConfig.getType();
+
+    LOG.debug("Found repository type: {}", repoType);
+
+    return repoType == "remote";
   }
 
   private boolean shouldTestContinuously() {

@@ -100,7 +100,7 @@ public class ScannerModule {
     Instant lastModifiedDate = getLastModifiedDate(repoPath);
     
     // Only apply lastModifiedDate to packages from remote repositories.
-    if(!isRemoteRepository(repoPath)) {
+    if(lastModifiedDateRemoteOnly() && !isRemoteRepository(repoPath)) {
       lastModifiedDate = null;
     }
     return new MonitoredArtifact(repoPath.toString(), testResult, ignores, lastModifiedDate);
@@ -131,6 +131,10 @@ public class ScannerModule {
 
   private boolean shouldTestContinuously() {
     return configurationModule.getPropertyOrDefault(PluginConfiguration.TEST_CONTINUOUSLY).equals("true");
+  }
+
+  private boolean lastModifiedDateRemoteOnly() {
+    return configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE).equals("true");
   }
 
   private Duration durationHoursProperty(PluginConfiguration property, ConfigurationModule configurationModule) {

@@ -122,7 +122,7 @@ public class ScannerModule {
   private boolean isRemoteRepository(RepoPath repoPath) {
     String repoKey = repoPath.getRepoKey();
     RepositoryConfiguration repoConfig = repositories.getRepositoryConfiguration(repoKey);
-    repoType = repoConfig.getType();
+    String repoType = repoConfig.getType();
 
     LOG.debug("Found repository type: {}", repoType);
 

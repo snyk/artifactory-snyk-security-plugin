@@ -126,7 +126,7 @@ public class ScannerModule {
 
     LOG.debug("Found repository type: {}", repoType);
 
-    return repoType == "remote";
+    return repoType.equals("remote");
   }
 
   private boolean shouldTestContinuously() {

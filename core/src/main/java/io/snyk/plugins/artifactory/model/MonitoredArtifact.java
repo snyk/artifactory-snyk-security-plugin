@@ -10,6 +10,8 @@ import java.util.Optional;
 import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.time.Instant;
+
 public class MonitoredArtifact {
 
   private static final Logger LOG = getLogger(MonitoredArtifact.class);
@@ -20,10 +22,17 @@ public class MonitoredArtifact {
 
   private final Ignores ignores;
 
+  private final Instant lastModifiedDate;
+
   public MonitoredArtifact(String path, TestResult testResult, Ignores ignores) {
+    this(path, testResult, ignores, null);
+  }
+
+  public MonitoredArtifact(String path, TestResult testResult, Ignores ignores, Instant lastModifiedDate) {
     this.path = path;
     this.testResult = testResult;
     this.ignores = ignores;
+    this.lastModifiedDate = lastModifiedDate;
   }
 
   public String getPath() {
@@ -36,6 +45,10 @@ public class MonitoredArtifact {
 
   public Ignores getIgnores() {
     return ignores;
+  }
+
+  public Optional<Instant> getLastModifiedDate() {
+   return Optional.ofNullable(lastModifiedDate);
   }
 
   public MonitoredArtifact write(ArtifactProperties properties) {
@@ -61,7 +74,8 @@ public class MonitoredArtifact {
         new MonitoredArtifact(
           properties.getArtifactPath(),
           testResult,
-          Ignores.read(properties)
+          Ignores.read(properties),
+          null // Created date not stored in properties
         )
       );
     } catch (RuntimeException e) {
@@ -75,12 +89,12 @@ public class MonitoredArtifact {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     MonitoredArtifact artifact = (MonitoredArtifact) o;
-    return Objects.equals(path, artifact.path) && Objects.equals(testResult, artifact.testResult) && Objects.equals(ignores, artifact.ignores);
+    return Objects.equals(path, artifact.path) && Objects.equals(testResult, artifact.testResult) && Objects.equals(ignores, artifact.ignores) && Objects.equals(lastModifiedDate, artifact.lastModifiedDate);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, testResult, ignores);
+    return Objects.hash(path, testResult, ignores, lastModifiedDate);
   }
 
   @Override
@@ -89,6 +103,7 @@ public class MonitoredArtifact {
       "path='" + path + '\'' +
       ", testResult=" + testResult +
       ", ignores=" + ignores +
+      ", lastModifiedDate=" + lastModifiedDate +
       '}';
   }
 }

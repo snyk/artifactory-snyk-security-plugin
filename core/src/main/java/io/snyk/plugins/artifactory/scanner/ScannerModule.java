@@ -11,14 +11,17 @@ import io.snyk.plugins.artifactory.model.MonitoredArtifact;
 import io.snyk.plugins.artifactory.model.TestResult;
 import io.snyk.plugins.artifactory.model.ValidationSettings;
 import org.artifactory.fs.FileLayoutInfo;
+import org.artifactory.fs.ItemInfo;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
+import org.artifactory.repo.RepositoryConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -94,11 +97,44 @@ public class ScannerModule {
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
-    return new MonitoredArtifact(repoPath.toString(), testResult, ignores);
+    Instant lastModifiedDate = getLastModifiedDate(repoPath);
+    
+    // Only apply lastModifiedDate to packages from remote repositories.
+    if(lastModifiedDateRemoteOnly() && !isRemoteRepository(repoPath)) {
+      lastModifiedDate = null;
+    }
+    return new MonitoredArtifact(repoPath.toString(), testResult, ignores, lastModifiedDate);
+  }
+
+  private Instant getLastModifiedDate(RepoPath repoPath) {
+    try {
+      ItemInfo itemInfo = repositories.getItemInfo(repoPath);
+      if (itemInfo != null) {
+        Instant lastModified = Instant.ofEpochMilli(itemInfo.getLastModified());
+        return lastModified;
+      }
+    } catch (Exception e) {
+      LOG.debug("Could not retrieve last modified date for {}: {}", repoPath, e);
+    }
+    return null;
+  }
+
+  private boolean isRemoteRepository(RepoPath repoPath) {
+    String repoKey = repoPath.getRepoKey();
+    RepositoryConfiguration repoConfig = repositories.getRepositoryConfiguration(repoKey);
+    String repoType = repoConfig.getType();
+
+    LOG.debug("Found repository type: {}", repoType);
+
+    return repoType.toLowerCase().equals("remote");
   }
 
   private boolean shouldTestContinuously() {
     return configurationModule.getPropertyOrDefault(PluginConfiguration.TEST_CONTINUOUSLY).equals("true");
+  }
+
+  private boolean lastModifiedDateRemoteOnly() {
+    return configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE).equals("true");
   }
 
   private Duration durationHoursProperty(PluginConfiguration property, ConfigurationModule configurationModule) {

@@ -8,6 +8,8 @@ import org.artifactory.exception.CancelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -23,8 +25,38 @@ public class PackageValidator {
   }
 
   public void validate(MonitoredArtifact artifact) {
+    validateLastModifiedDelay(artifact);
     validateVulnerabilityIssues(artifact);
     validateLicenseIssues(artifact);
+  }
+
+  private void validateLastModifiedDelay(MonitoredArtifact artifact) {
+    Integer delayDays = settings.getLastModifiedDelayDays().get();
+    if (delayDays == null || delayDays <= 0) {
+      LOG.debug("Created delay is disabled ({} days)", delayDays);
+      return;
+    }
+
+    Optional<Instant> lastModifiedDate = artifact.getLastModifiedDate();
+    if (lastModifiedDate.isEmpty()) {
+      LOG.debug("Created date not available for {}, skipping created delay check", artifact.getPath());
+      return;
+    }
+
+    Instant now = Instant.now();
+    long daysSinceLastModified = ChronoUnit.DAYS.between(lastModifiedDate.get(), now);
+    
+    if (daysSinceLastModified < delayDays) {
+      LOG.debug("Package created {} days ago, which is less than the delay of {} days: {}", 
+                daysSinceLastModified, delayDays, artifact.getPath());
+      throw new CancelException(format(
+        "Artifact was created %d days ago, which is less than the configured delay of %d days: %s",
+        daysSinceLastModified, delayDays, artifact.getPath()
+      ), 403);
+    }
+
+    LOG.debug("Package created {} days ago, which exceeds the delay of {} days: {}", 
+              daysSinceLastModified, delayDays, artifact.getPath());
   }
 
   private void validateVulnerabilityIssues(MonitoredArtifact artifact) {

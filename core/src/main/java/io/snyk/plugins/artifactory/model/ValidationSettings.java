@@ -65,8 +65,17 @@ public class ValidationSettings {
     return new ValidationSettings(
       parseSeverity(vulnThreshold),
       parseSeverity(licenseThreshold),
-      Optional.of(Integer.parseInt(lastModifiedDelayDaysStr))
+      parseLastModifiedDelayDays(lastModifiedDelayDaysStr)
     );
+  } 
+
+  private static Optional<Integer> parseLastModifiedDelayDays(String lastModifiedDelayDaysStr) {
+    try {
+      Integer lastModifiedDelayDays = Integer.parseInt(lastModifiedDelayDaysStr);
+      return Optional.of(lastModifiedDelayDays);
+    } catch(NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid value for last modified delay days: " + lastModifiedDelayDaysStr);
+    }
   }
 
   private static Optional<Severity> parseSeverity(String severityStr) {

@@ -24,11 +24,19 @@ public class IssueSummary {
   }
 
   public static IssueSummary fromPurlIssues(List<PurlIssue> issues) {
-    return IssueSummary.from(issues.stream().map(i -> i.attribute.severity));
+    return IssueSummary.from(
+      issues.stream()
+        .filter(i -> (i.attribute != null && (i.attribute.isIgnored == null || !i.attribute.isIgnored))
+          && (i.isIgnored == null || !i.isIgnored))
+        .map(i -> i.attribute.severity)
+    );
   }
 
   public static IssueSummary from(List<? extends Issue> issues) {
-    return IssueSummary.from(issues.stream().map(i -> i.severity));
+    return IssueSummary.from(
+      issues.stream()
+      .filter(i -> i.isIgnored == null || !i.isIgnored)
+      .map(i -> i.severity));
   }
 
   public static IssueSummary from(Stream<Severity> severities) {

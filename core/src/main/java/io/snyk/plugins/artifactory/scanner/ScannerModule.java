@@ -117,6 +117,7 @@ public class ScannerModule {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
         Instant lastModified = Instant.ofEpochMilli(itemInfo.getLastModified());
+        LOG.debug("Retrieved last modifed date of {}", lastModified.toString());
         return lastModified;
       } else {
         LOG.debug("Unable to retrieve ItemInfo for {}, could not retrieve last modified date", repoPath);

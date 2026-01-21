@@ -33,13 +33,13 @@ public class PackageValidator {
   private void validateLastModifiedDelay(MonitoredArtifact artifact) {
     Integer delayDays = settings.getLastModifiedDelayDays().get();
     if (delayDays == null || delayDays <= 0) {
-      LOG.debug("Created delay is disabled ({} days)", delayDays);
+      LOG.debug("Last modifed date delay is disabled ({} days)", delayDays);
       return;
     }
 
     Optional<Instant> lastModifiedDate = artifact.getLastModifiedDate();
     if (lastModifiedDate.isEmpty()) {
-      LOG.debug("Created date not available for {}, skipping created delay check", artifact.getPath());
+      LOG.debug("Last modified date not available for {}, skipping created delay check", artifact.getPath());
       return;
     }
 

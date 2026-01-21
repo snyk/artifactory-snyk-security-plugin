@@ -22,7 +22,7 @@ public class MonitoredArtifact {
 
   private final Ignores ignores;
 
-  private final Instant lastModifiedDate;
+  private Instant lastModifiedDate;
 
   public MonitoredArtifact(String path, TestResult testResult, Ignores ignores) {
     this(path, testResult, ignores, null);
@@ -49,6 +49,10 @@ public class MonitoredArtifact {
 
   public Optional<Instant> getLastModifiedDate() {
    return Optional.ofNullable(lastModifiedDate);
+  }
+
+  public void setLastModifiedDate(Instant lastModifiedDate) {
+   this.lastModifiedDate = lastModifiedDate;
   }
 
   public MonitoredArtifact write(ArtifactProperties properties) {

@@ -70,7 +70,10 @@ public class ScannerModule {
   }
 
   private Optional<MonitoredArtifact> resolveArtifact(RepoPath repoPath) {
-    return artifactResolver.get(properties(repoPath), () -> runTest(repoPath));
+    Optional<MonitoredArtifact> monitoredArtifact = artifactResolver.get(properties(repoPath), () -> runTest(repoPath));
+    Instant lastModifiedDate = getLastModifiedDate(repoPath);
+    monitoredArtifact.ifPresent(artifact -> artifact.setLastModifiedDate(lastModifiedDate));
+    return monitoredArtifact;
   }
 
   private ArtifactProperties properties(RepoPath repoPath) {
@@ -98,8 +101,6 @@ public class ScannerModule {
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
     Instant lastModifiedDate = getLastModifiedDate(repoPath);
-
-    LOG.debug("Retrieved last modified date of {} for {}", lastModifiedDate, repoPath);
     
     // Only apply lastModifiedDate to packages from remote repositories.
     if(lastModifiedDateRemoteOnly()) {
@@ -117,7 +118,7 @@ public class ScannerModule {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
         Instant lastModified = Instant.ofEpochMilli(itemInfo.getLastModified());
-        LOG.debug("Retrieved last modifed date of {}", lastModified.toString());
+        LOG.debug("Retrieved last modified date of {} for {}", lastModified, repoPath);
         return lastModified;
       } else {
         LOG.debug("Unable to retrieve ItemInfo for {}, could not retrieve last modified date", repoPath);

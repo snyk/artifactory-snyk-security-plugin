@@ -70,7 +70,7 @@ public class ScannerModule {
   }
 
   private Optional<MonitoredArtifact> resolveArtifact(RepoPath repoPath) {
-      Optional<MonitoredArtifact> monitoredArtifact = artifactResolver.get(properties(repoPath), () -> runTest(repoPath));
+    Optional<MonitoredArtifact> monitoredArtifact = artifactResolver.get(properties(repoPath), () -> runTest(repoPath));
     Instant lastModifiedDate = getLastModifiedDate(repoPath);
     monitoredArtifact.ifPresent(artifact -> artifact.setLastModifiedDate(lastModifiedDate));
     return monitoredArtifact;

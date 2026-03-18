@@ -63,6 +63,8 @@ public class MonitoredArtifact {
     setDefaultArtifactProperty(properties, ISSUE_LICENSES_FORCE_DOWNLOAD, "false");
     setDefaultArtifactProperty(properties, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO, "");
 
+    properties.remove(BLOCK_REASON);
+
     return this;
   }
 

@@ -33,4 +33,9 @@ public class FakeArtifactProperties implements ArtifactProperties {
   public boolean has(ArtifactProperty property) {
     return properties.containsKey(property);
   }
+
+  @Override
+  public void remove(ArtifactProperty property) {
+    properties.remove(property);
+  }
 }

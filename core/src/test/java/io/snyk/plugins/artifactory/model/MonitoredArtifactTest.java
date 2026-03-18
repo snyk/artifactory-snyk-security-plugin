@@ -33,6 +33,25 @@ class MonitoredArtifactTest {
     assertThat(properties.get(ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO)).contains("");
     assertThat(properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD)).contains("false");
     assertThat(properties.get(ISSUE_LICENSES_FORCE_DOWNLOAD_INFO)).contains("");
+    assertThat(properties.get(BLOCK_REASON)).isEmpty();
+  }
+
+  @Test
+  void write_clearsBlockReasonWhenPresent() {
+    FakeArtifactProperties properties = new FakeArtifactProperties("electron");
+    properties.set(BLOCK_REASON, "previously blocked");
+    MonitoredArtifact artifact = new MonitoredArtifact("electron",
+      new TestResult(
+        IssueSummary.from(Stream.of(Severity.LOW)),
+        IssueSummary.from(Stream.empty()),
+        URI.create("https://app.snyk.io/package/electron/1.0.0")
+      ),
+      new Ignores()
+    );
+
+    artifact.write(properties);
+
+    assertThat(properties.get(BLOCK_REASON)).isEmpty();
   }
 
   @Test

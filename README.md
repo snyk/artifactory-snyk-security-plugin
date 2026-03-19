@@ -59,6 +59,9 @@ unzip -p distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip
 unzip -p distribution/target/artifactory-snyk-security-plugin-LOCAL-SNAPSHOT.zip plugins/snykSecurityPlugin.groovy > distribution/docker/etc/artifactory/plugins/snykSecurityPlugin.groovy
 ```
 
+## Artifact property: block reason
+When a download is blocked (policy violation or Snyk API failure with `snyk.scanner.block-on-api-failure=true`), the plugin sets **`snyk.block.reason`** on the artifact to the same message returned to the client (truncated if very long). The property is removed when a new Snyk scan completes successfully (`storage.afterCreate`) or when a download is allowed after validation (each download attempt clears it before re-checking).
+
 ## Inspecting plugin logs
 In order to see the logs, set the log level for Snyk by inserting this line: `<logger name="io.snyk" level="debug"/>`
 into this file: `distribution/docker/etc/artifactory/logback.xml`.

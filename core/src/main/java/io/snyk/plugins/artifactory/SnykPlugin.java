@@ -4,6 +4,8 @@ import io.snyk.plugins.artifactory.audit.AuditModule;
 import io.snyk.plugins.artifactory.configuration.BaseUrlSanitiser;
 import io.snyk.plugins.artifactory.configuration.UserAgent;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty;
+import io.snyk.plugins.artifactory.configuration.properties.BlockReasonProperty;
+import io.snyk.plugins.artifactory.configuration.properties.RepositoryArtifactProperties;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.exception.CannotScanException;
 import io.snyk.plugins.artifactory.exception.SnykAPIFailureException;
@@ -30,6 +32,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static io.snyk.plugins.artifactory.configuration.PluginConfiguration.*;
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.BLOCK_REASON;
 import static java.lang.String.format;
 
 public class SnykPlugin {
@@ -39,6 +42,7 @@ public class SnykPlugin {
   private ConfigurationModule configurationModule;
   private AuditModule auditModule;
   private ScannerModule scannerModule;
+  private Repositories repositories;
 
   SnykPlugin() {
   }
@@ -65,6 +69,7 @@ public class SnykPlugin {
 
       auditModule = new AuditModule();
       ScannerResolver scannerResolver = ScannerResolver.setup(configurationModule, snykClient);
+      this.repositories = repositories;
       scannerModule = new ScannerModule(configurationModule, repositories, scannerResolver);
 
       LOG.info("Plugin version: {}", pluginVersion);
@@ -131,6 +136,14 @@ public class SnykPlugin {
       LOG.debug(message);
       if ("true".equals(blockOnApiFailure)) {
         LOG.debug("Blocking download. Plugin Property \"{}\" is \"true\". {}", blockOnApiFailurePropertyKey, repoPath);
+        try {
+          new RepositoryArtifactProperties(repoPath, repositories).set(
+            BLOCK_REASON,
+            BlockReasonProperty.truncateForStorage(message)
+          );
+        } catch (Exception ex) {
+          LOG.warn("Could not set {} for {}: {}", BLOCK_REASON.propertyKey(), repoPath, ex.getMessage());
+        }
         throw new CancelException(message, 500);
       }
     }

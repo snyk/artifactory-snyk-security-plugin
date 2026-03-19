@@ -3,6 +3,7 @@ package io.snyk.plugins.artifactory.scanner;
 import io.snyk.plugins.artifactory.configuration.ConfigurationModule;
 import io.snyk.plugins.artifactory.configuration.PluginConfiguration;
 import io.snyk.plugins.artifactory.configuration.properties.ArtifactProperties;
+import io.snyk.plugins.artifactory.configuration.properties.BlockReasonProperty;
 import io.snyk.plugins.artifactory.configuration.properties.RepositoryArtifactProperties;
 import io.snyk.plugins.artifactory.ecosystem.EcosystemResolver;
 import io.snyk.plugins.artifactory.ecosystem.RepositoryMetadataEcosystemResolver;
@@ -12,6 +13,7 @@ import io.snyk.plugins.artifactory.model.TestResult;
 import io.snyk.plugins.artifactory.model.ValidationSettings;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.fs.ItemInfo;
+import org.artifactory.exception.CancelException;
 import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
 import org.artifactory.repo.RepositoryConfiguration;
@@ -24,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
+import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.BLOCK_REASON;
 import static java.util.Objects.requireNonNull;
 
 public class ScannerModule {
@@ -64,7 +67,7 @@ public class ScannerModule {
 
     resolveArtifact(repoPath)
       .ifPresentOrElse(
-        this::filter,
+        artifact -> filter(repoPath, artifact),
         () -> LOG.info("No vulnerability info found for {}", repoPath)
       );
   }
@@ -92,10 +95,26 @@ public class ScannerModule {
     return toMonitoredArtifact(testResult, repoPath);
   }
 
-  private void filter(MonitoredArtifact artifact) {
+  private void filter(RepoPath repoPath, MonitoredArtifact artifact) {
+    ArtifactProperties props = properties(repoPath);
+    try {
+      props.remove(BLOCK_REASON);
+    } catch (Exception e) {
+      LOG.debug("Could not clear block reason for {}: {}", repoPath, e.getMessage());
+    }
+
     ValidationSettings validationSettings = ValidationSettings.from(configurationModule);
     PackageValidator validator = new PackageValidator(validationSettings);
-    validator.validate(artifact);
+    try {
+      validator.validate(artifact);
+    } catch (CancelException e) {
+      try {
+        props.set(BLOCK_REASON, BlockReasonProperty.truncateForStorage(e.getMessage()));
+      } catch (Exception ex) {
+        LOG.warn("Could not set {} for {}: {}", BLOCK_REASON.propertyKey(), repoPath, ex.getMessage());
+      }
+      throw e;
+    }
   }
 
   private @NotNull MonitoredArtifact toMonitoredArtifact(TestResult testResult, @NotNull RepoPath repoPath) {

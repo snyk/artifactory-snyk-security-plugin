@@ -11,4 +11,7 @@ public interface ArtifactProperties {
   void set(ArtifactProperty property, String value);
 
   boolean has(ArtifactProperty property);
+
+  /** Removes the property from the artifact if present. */
+  void remove(ArtifactProperty property);
 }

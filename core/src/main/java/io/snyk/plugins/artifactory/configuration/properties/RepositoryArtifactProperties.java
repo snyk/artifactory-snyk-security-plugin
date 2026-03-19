@@ -35,4 +35,12 @@ public class RepositoryArtifactProperties implements ArtifactProperties {
   public boolean has(ArtifactProperty property) {
     return repositories.hasProperty(repoPath, property.propertyKey());
   }
+
+  @Override
+  public void remove(ArtifactProperty property) {
+    if (!repositories.hasProperty(repoPath, property.propertyKey())) {
+      return;
+    }
+    repositories.deleteProperty(repoPath, property.propertyKey());
+  }
 }

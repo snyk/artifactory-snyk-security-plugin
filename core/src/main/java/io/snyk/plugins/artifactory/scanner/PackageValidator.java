@@ -31,6 +31,12 @@ public class PackageValidator {
   }
 
   private void validateLastModifiedDelay(MonitoredArtifact artifact) {
+    boolean ignoreLastModifiedDelay = artifact.getIgnores().shouldIgnoreVulnIssues();
+    if (ignoreLastModifiedDelay) {
+      LOG.debug("Last modified date delay is ignored for {}", artifact.getPath());
+      return;
+    }
+
     Integer delayDays = settings.getLastModifiedDelayDays().get();
     if (delayDays == null || delayDays <= 0) {
       LOG.debug("Last modifed date delay is disabled ({} days)", delayDays);

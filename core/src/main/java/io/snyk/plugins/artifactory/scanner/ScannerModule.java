@@ -129,7 +129,7 @@ public class ScannerModule {
     if(lastModifiedDateRemoteOnly()) {
       LOG.debug("Last modified date applied to only remote repositories.");
       if (!isRemoteRepository(repoPath)) {
-        LOG.debug("Repository provided is not a remote repository, skipping last modified date check.");
+        LOG.debug("Provided repository is not a remote repository, skipping last modified date check for {}", repoPath);
         return null;
       }
     }

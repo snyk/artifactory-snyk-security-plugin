@@ -121,18 +121,19 @@ public class ScannerModule {
     Ignores ignores = Ignores.read(new RepositoryArtifactProperties(repoPath, repositories));
     Instant lastModifiedDate = getLastModifiedDate(repoPath);
     
+    return new MonitoredArtifact(repoPath.toString(), testResult, ignores, lastModifiedDate);
+  }
+
+  private Instant getLastModifiedDate(RepoPath repoPath) {
     // Only apply lastModifiedDate to packages from remote repositories.
     if(lastModifiedDateRemoteOnly()) {
       LOG.debug("Last modified date applied to only remote repositories.");
       if (!isRemoteRepository(repoPath)) {
         LOG.debug("Repository provided is not a remote repository, skipping last modified date check.");
-        lastModifiedDate = null;
+        return null;
       }
     }
-    return new MonitoredArtifact(repoPath.toString(), testResult, ignores, lastModifiedDate);
-  }
-
-  private Instant getLastModifiedDate(RepoPath repoPath) {
+    
     try {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {

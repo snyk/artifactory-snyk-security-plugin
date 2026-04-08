@@ -151,12 +151,25 @@ public class ScannerModule {
 
   private boolean isRemoteRepository(RepoPath repoPath) {
     String repoKey = repoPath.getRepoKey();
+    String patternsRaw = configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_REPOSITORY_LOCAL_NAME_MATCH_PATTERNS);
+    boolean localNameMatchEnabled = localNameMatchEnabled();
+
     RepositoryConfiguration repoConfig = repositories.getRepositoryConfiguration(repoKey);
-    String repoType = repoConfig.getType();
+    boolean artifactoryTypeIsRemote;
+    if (repoConfig == null) {
+      LOG.debug("No repository configuration for {}, cannot read repository type", repoKey);
+      artifactoryTypeIsRemote = false;
+    } else {
+      String repoType = repoConfig.getType();
+      LOG.debug("Found repository type: {}", repoType);
+      artifactoryTypeIsRemote = repoType != null && repoType.equalsIgnoreCase("remote");
+    }
 
-    LOG.debug("Found repository type: {}", repoType);
+    return RepositoryRemoteClassifier.isRemoteRepository(repoKey, localNameMatchEnabled, patternsRaw, artifactoryTypeIsRemote);
+  }
 
-    return repoType.toLowerCase().equals("remote");
+  private boolean localNameMatchEnabled() {
+    return configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_REPOSITORY_LOCAL_NAME_MATCH_ENABLED).equals("true");
   }
 
   private boolean shouldTestContinuously() {

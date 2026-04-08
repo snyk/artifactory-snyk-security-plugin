@@ -24,13 +24,17 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.snyk.plugins.artifactory.configuration.properties.ArtifactProperty.BLOCK_REASON;
 import static java.util.Objects.requireNonNull;
 
 public class ScannerModule {
   private static final Logger LOG = LoggerFactory.getLogger(ScannerModule.class);
+  private static final AtomicBoolean LOGGED_DEPRECATED_REMOTE_ONLY = new AtomicBoolean(false);
+  private static final AtomicBoolean LOGGED_REMOTE_ONLY_IGNORED_WITH_ALLOWLIST = new AtomicBoolean(false);
   private final ConfigurationModule configurationModule;
   private final Repositories repositories;
   private final EcosystemResolver ecosystemResolver;
@@ -125,15 +129,10 @@ public class ScannerModule {
   }
 
   private Instant getLastModifiedDate(RepoPath repoPath) {
-    // Only apply lastModifiedDate to packages from remote repositories.
-    if(lastModifiedDateRemoteOnly()) {
-      LOG.debug("Last modified date applied to only remote repositories.");
-      if (!isRemoteRepository(repoPath)) {
-        LOG.debug("Provided repository is not a remote repository, skipping last modified date check for {}", repoPath);
-        return null;
-      }
+    if (shouldSkipLastModifiedForRepository(repoPath)) {
+      return null;
     }
-    
+
     try {
       ItemInfo itemInfo = repositories.getItemInfo(repoPath);
       if (itemInfo != null) {
@@ -149,6 +148,45 @@ public class ScannerModule {
     return null;
   }
 
+  /**
+   * When {@link PluginConfiguration#SCANNER_LAST_MODIFIED_ALLOWLIST} is non-empty, repository keys containing any
+   * configured substring skip the last-modified delay check. When the allowlist is empty and legacy
+   * {@link PluginConfiguration#SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE} is true, only remote repositories keep the check.
+   */
+  private boolean shouldSkipLastModifiedForRepository(RepoPath repoPath) {
+    String allowlistRaw = configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LAST_MODIFIED_ALLOWLIST);
+    List<String> allowlist = LastModifiedRepositoryPolicy.parseAllowlist(allowlistRaw);
+    String repoKey = repoPath.getRepoKey();
+
+    if (!allowlist.isEmpty()) {
+      if (lastModifiedDateRemoteOnly() && LOGGED_REMOTE_ONLY_IGNORED_WITH_ALLOWLIST.compareAndSet(false, true)) {
+        LOG.warn(
+          "snyk.scanner.lastModified.remoteOnly is set but ignored because snyk.scanner.lastModified.allowlist is configured; remove remoteOnly."
+        );
+      }
+      if (LastModifiedRepositoryPolicy.repoKeyMatchesAllowlist(repoKey, allowlist)) {
+        LOG.debug("Repository key matches last-modified allowlist, skipping last modified date for {}", repoPath);
+        return true;
+      }
+      return false;
+    }
+
+    if (lastModifiedDateRemoteOnly()) {
+      if (LOGGED_DEPRECATED_REMOTE_ONLY.compareAndSet(false, true)) {
+        LOG.warn(
+          "snyk.scanner.lastModified.remoteOnly is deprecated; use snyk.scanner.lastModified.allowlist to skip the last-modified check for specific repository keys."
+        );
+      }
+      if (!isRemoteRepository(repoPath)) {
+        LOG.debug("Legacy remoteOnly: repository is not remote, skipping last modified date for {}", repoPath);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /** Used only when {@link PluginConfiguration#SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE} is true and the allowlist is empty. */
   private boolean isRemoteRepository(RepoPath repoPath) {
     String repoKey = repoPath.getRepoKey();
     RepositoryConfiguration repoConfig = repositories.getRepositoryConfiguration(repoKey);
@@ -163,6 +201,7 @@ public class ScannerModule {
     return configurationModule.getPropertyOrDefault(PluginConfiguration.TEST_CONTINUOUSLY).equals("true");
   }
 
+  @SuppressWarnings("deprecation")
   private boolean lastModifiedDateRemoteOnly() {
     return configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE).equals("true");
   }

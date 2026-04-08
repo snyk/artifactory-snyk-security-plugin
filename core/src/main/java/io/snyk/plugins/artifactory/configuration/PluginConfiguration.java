@@ -34,7 +34,12 @@ public enum PluginConfiguration implements Configuration {
   TEST_FREQUENCY_HOURS("snyk.scanner.frequency.hours", "168"),
   EXTEND_TEST_DEADLINE_HOURS("snyk.scanner.extendTestDeadline.hours", "24"),
   SCANNER_LAST_MODIFIED_DELAY_DAYS("snyk.scanner.lastModified.days", "0"),
-  SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE("snyk.scanner.lastModified.remoteOnly", "true");
+  SCANNER_LAST_MODIFIED_ALLOWLIST("snyk.scanner.lastModified.allowlist", ""),
+  /**
+   * @deprecated Use {@link #SCANNER_LAST_MODIFIED_ALLOWLIST} to control which repository keys skip the last-modified delay check.
+   */
+  @Deprecated
+  SCANNER_LAST_MODIFIED_CHECK_ONLY_REMOTE("snyk.scanner.lastModified.remoteOnly", "false");
 
   private final String propertyKey;
   private final String defaultValue;

@@ -158,8 +158,8 @@ public class ScannerModule {
     List<String> allowlist = LastModifiedRepositoryPolicy.parseAllowlist(allowlistRaw);
     String repoKey = repoPath.getRepoKey();
 
-    log.debug("allowlist for last-modified check: {} for repoPath {}", allowlist, repoPath);
-    log.debug("repoKey for last-modified check: {} for repoPath {}", repoKey, repoPath);
+    LOG.debug("allowlist for last-modified check: {} for repoPath {}", allowlist, repoPath);
+    LOG.debug("repoKey for last-modified check: {} for repoPath {}", repoKey, repoPath);
 
     if (!allowlist.isEmpty()) {
       if (lastModifiedDateRemoteOnly() && LOGGED_REMOTE_ONLY_IGNORED_WITH_ALLOWLIST.compareAndSet(false, true)) {

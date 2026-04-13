@@ -161,7 +161,9 @@ public class ScannerModule {
     LOG.debug("allowlist for last-modified check: {} for repoPath {}", allowlist, repoPath);
     LOG.debug("repoKey for last-modified check: {} for repoPath {}", repoKey, repoPath);
 
-    if (!allowlist.isEmpty()) {
+    if (allowlist == null || allowlist.isEmpty()) {
+      LOG.debug("No allowlist for last-modified check, skipping last modified date for {}", repoPath);
+    } else {
       if (lastModifiedDateRemoteOnly() && LOGGED_REMOTE_ONLY_IGNORED_WITH_ALLOWLIST.compareAndSet(false, true)) {
         LOG.warn(
           "snyk.scanner.lastModified.remoteOnly is set but ignored because snyk.scanner.lastModified.allowlist is configured; remove remoteOnly."

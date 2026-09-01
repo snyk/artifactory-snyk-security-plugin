@@ -34,5 +34,5 @@ workflows:
       - security-scans:
           name: Security Scans
           context:
-            - open_source-managed
+            - engines_sca-scanners
             - prodsec-orb-runtime

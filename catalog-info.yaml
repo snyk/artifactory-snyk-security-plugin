@@ -5,4 +5,4 @@ metadata:
 spec:
   type: external-tooling
   lifecycle: "-"
-  owner: os-managed
+  owner: sca-scanners

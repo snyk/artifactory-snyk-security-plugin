@@ -55,3 +55,50 @@ ignore:
     - '*':
         reason: Transitive dep of artifactory-papi. Actual papi is provided by artifactory env at runtime so this is a false positive.
         created: 2026-08-24T00:00:00.000Z
+  'SNYK-JAVA-ORGSPRINGFRAMEWORK-18326606':
+    - '*':
+        reason: >-
+          CVE-2026-41851 in org.springframework:spring-expression@5.3.27. Transitive dep of
+          artifactory-papi (papi 7.68.5 > artifactory-utils 7.68.5 > spring-context 5.3.27 >
+          spring-expression 5.3.27). Actual papi is provided by artifactory env at runtime so this
+          is a false positive. Not reachable by an upgrade either: the fix versions are 6.0.0 /
+          6.2.19 / 7.0.8 and no artifactory-papi release moves off the Spring 5.3 line. Current
+          Snyk ID as of 2026-09-11; Snyk lists exactly one ID for this CVE on this package version,
+          so there is no retired generation to pair it with.
+        expires: 2026-10-11T00:00:00.000Z
+        created: 2026-09-11T00:00:00.000Z
+  'SNYK-JAVA-ORGSPRINGFRAMEWORK-19267072':
+    - '*':
+        reason: >-
+          CVE-2026-59282 in org.springframework:spring-beans@5.3.27. Transitive dep of
+          artifactory-papi (papi 7.68.5 > artifactory-utils 7.68.5 > spring-beans 5.3.27). Actual
+          papi is provided by artifactory env at runtime so this is a false positive. Not reachable
+          by an upgrade either: the only fix version is 7.0.9 and no artifactory-papi release moves
+          off the Spring 5.3 line. Current Snyk ID as of 2026-09-11; Snyk lists exactly one ID for
+          this CVE on this package version, so there is no retired generation to pair it with.
+        expires: 2026-10-11T00:00:00.000Z
+        created: 2026-09-11T00:00:00.000Z
+  'SNYK-JAVA-ORGSPRINGFRAMEWORK-19267073':
+    - '*':
+        reason: >-
+          CVE-2026-47886 in org.springframework:spring-expression@5.3.27. Transitive dep of
+          artifactory-papi (papi 7.68.5 > artifactory-utils 7.68.5 > spring-context 5.3.27 >
+          spring-expression 5.3.27). Actual papi is provided by artifactory env at runtime so this
+          is a false positive. Not reachable by an upgrade either: the only fix version is 7.0.9 and
+          no artifactory-papi release moves off the Spring 5.3 line. Current Snyk ID as of
+          2026-09-11; Snyk lists exactly one ID for this CVE on this package version, so there is no
+          retired generation to pair it with.
+        expires: 2026-10-11T00:00:00.000Z
+        created: 2026-09-11T00:00:00.000Z
+  'SNYK-JAVA-ORGSPRINGFRAMEWORK-19267075':
+    - '*':
+        reason: >-
+          CVE-2026-59283 in org.springframework:spring-expression@5.3.27. Transitive dep of
+          artifactory-papi (papi 7.68.5 > artifactory-utils 7.68.5 > spring-context 5.3.27 >
+          spring-expression 5.3.27). Actual papi is provided by artifactory env at runtime so this
+          is a false positive. Not reachable by an upgrade either: the only fix version is 7.0.9 and
+          no artifactory-papi release moves off the Spring 5.3 line. Current Snyk ID as of
+          2026-09-11; Snyk lists exactly one ID for this CVE on this package version, so there is no
+          retired generation to pair it with.
+        expires: 2026-10-11T00:00:00.000Z
+        created: 2026-09-11T00:00:00.000Z

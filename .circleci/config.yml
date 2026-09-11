@@ -25,7 +25,7 @@ workflows:
           context:
             - snyk-bot-slack
             - prodsec-orb-runtime
-          channel: snyk-vuln-alerts-sca
+          channel: snyk-vuln-alerts-sca-scanners
           filters:
             branches:
               ignore:
@@ -34,5 +34,5 @@ workflows:
       - security-scans:
           name: Security Scans
           context:
-            - open_source-managed
+            - engines_sca-scanners
             - prodsec-orb-runtime

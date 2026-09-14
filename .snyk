@@ -102,3 +102,143 @@ ignore:
           retired generation to pair it with.
         expires: 2026-10-11T00:00:00.000Z
         created: 2026-09-11T00:00:00.000Z
+  'SNYK-JAVA-ORGBOUNCYCASTLE-18512841':
+    - '*':
+        reason: >-
+          CVE-2026-59649 in org.bouncycastle:bcpg-jdk15on@1.68 (HIGH, CVSS 4.0 8.7). Memory
+          Allocation with Excessive Size Value: UserAttributeSubpacketInputStream.readPacket()
+          allocates an attacker-declared subpacket length, so importing a crafted OpenPGP public key
+          can exhaust the heap. Transitive dep of artifactory-papi (papi 7.68.5 > jfrog-http-client
+          7.84.7 > jfrog-crypto 7.84.7 > bcpg-jdk15on 1.68). Actual papi is provided by artifactory
+          env at runtime so this is a false positive: papi is provided scope in both scanned modules
+          and the distribution assembly bundles runtime scope only, so no BouncyCastle jar ships in
+          the plugin. No upgrade exists: the bcpg-jdk15on artifact line was discontinued at 1.70 and
+          Snyk records this CVE against range [0,) there with no fix version, so no bcpg-jdk15on
+          release will ever carry the fix. The fix exists only on the maintained bcpg-jdk18on line
+          at 1.85, which no artifactory-papi release reaches - papi 7.161.15 does move to
+          jfrog-crypto 13.21.0 and the jdk18on artifacts, but jfrog-commons-parent 13.21.0 pins
+          BouncyCastle 1.84, still vulnerable to this CVE. Not reachable: the plugin imports no
+          org.bouncycastle class and performs no OpenPGP work, and the CI scan reports Reachability:
+          No Path Found. Current Snyk ID as of 2026-09-14; Snyk lists exactly one ID for this CVE on
+          this purl, so there is no retired generation to pair it with. The jdk18on line keys the
+          same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18512835, so this entry goes inert if papi ever
+          moves artifact lines.
+        expires: 2026-10-14T00:00:00.000Z
+        created: 2026-09-14T00:00:00.000Z
+  'SNYK-JAVA-ORGBOUNCYCASTLE-18512946':
+    - '*':
+        reason: >-
+          CVE-2026-59640 in org.bouncycastle:bcpg-jdk15on@1.68 (HIGH, CVSS 4.0 8.7). Exposure of
+          Sensitive Information Through Metadata: PGPSymmetricKeyEncryptedData.getDataStream()
+          throws on the repeated CFB IV bytes before MDC verification completes, giving an adaptive
+          chosen-ciphertext decryption oracle. Transitive dep of artifactory-papi (papi 7.68.5 >
+          jfrog-http-client 7.84.7 > jfrog-crypto 7.84.7 > bcpg-jdk15on 1.68). Actual papi is
+          provided by artifactory env at runtime so this is a false positive: papi is provided scope
+          in both scanned modules and the distribution assembly bundles runtime scope only, so no
+          BouncyCastle jar ships in the plugin. No upgrade exists: the bcpg-jdk15on artifact line
+          was discontinued at 1.70 and Snyk records this CVE against range [0,) there with no fix
+          version. The fix exists only on the maintained bcpg-jdk18on line at 1.85, which no
+          artifactory-papi release reaches - papi 7.161.15 does move to jfrog-crypto 13.21.0 and the
+          jdk18on artifacts, but jfrog-commons-parent 13.21.0 pins BouncyCastle 1.84, still
+          vulnerable to this CVE. Not reachable: the plugin decrypts no PGP data and exposes no
+          decryption endpoint, imports no org.bouncycastle class, and the CI scan reports
+          Reachability: No Path Found. Current Snyk ID as of 2026-09-14; Snyk lists exactly one ID
+          for this CVE on this purl, so there is no retired generation to pair it with. The jdk18on
+          line keys the same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18512940, so this entry goes inert if
+          papi ever moves artifact lines.
+        expires: 2026-10-14T00:00:00.000Z
+        created: 2026-09-14T00:00:00.000Z
+  'SNYK-JAVA-ORGBOUNCYCASTLE-18512973':
+    - '*':
+        reason: >-
+          CVE-2026-59642 in org.bouncycastle:bcpkix-jdk15on@1.68 (HIGH, CVSS 4.0 8.7). Improper
+          Validation of Integrity Check Value: RecipientInformation.getContentStream() authenticates
+          only the DER-encoded authAttrs and never checks the content digest against the
+          messageDigest attribute, so CMS AuthenticatedData content can be substituted and still
+          verify. Transitive dep of artifactory-papi (papi 7.68.5 > jfrog-http-client 7.84.7 >
+          jfrog-crypto 7.84.7 > bcpkix-jdk15on 1.68). Actual papi is provided by artifactory env at
+          runtime so this is a false positive: papi is provided scope in both scanned modules and
+          the distribution assembly bundles runtime scope only, so no BouncyCastle jar ships in the
+          plugin. No upgrade exists: the bcpkix-jdk15on artifact line was discontinued at 1.70 and
+          Snyk records this CVE against range [0,) there with no fix version. The fix exists only on
+          the maintained bcpkix-jdk18on line at 1.85, which no artifactory-papi release reaches -
+          papi 7.161.15 does move to jfrog-crypto 13.21.0 and the jdk18on artifacts, but
+          jfrog-commons-parent 13.21.0 pins BouncyCastle 1.84, still vulnerable to this CVE. Not
+          reachable: the plugin processes no CMS or PKCS#7 messages, imports no org.bouncycastle
+          class, and the CI scan reports Reachability: No Path Found. Current Snyk ID as of
+          2026-09-14; Snyk lists exactly one ID for this CVE on this purl, so there is no retired
+          generation to pair it with. The jdk18on line keys the same CVE as
+          SNYK-JAVA-ORGBOUNCYCASTLE-18512967, so this entry goes inert if papi ever moves artifact
+          lines.
+        expires: 2026-10-14T00:00:00.000Z
+        created: 2026-09-14T00:00:00.000Z
+  'SNYK-JAVA-ORGBOUNCYCASTLE-18513024':
+    - '*':
+        reason: >-
+          CVE-2026-59639 in org.bouncycastle:bcpkix-jdk15on@1.68 (HIGH, CVSS 4.0 8.7). Improper
+          Verification of Cryptographic Signature: CMSSignedData.verifySignatures() returns true on
+          loop completion without requiring any signer, so a degenerate SignedData with an empty
+          signerInfos set makes unsigned content appear authentic. Transitive dep of
+          artifactory-papi (papi 7.68.5 > jfrog-http-client 7.84.7 > jfrog-crypto 7.84.7 >
+          bcpkix-jdk15on 1.68). Actual papi is provided by artifactory env at runtime so this is a
+          false positive: papi is provided scope in both scanned modules and the distribution
+          assembly bundles runtime scope only, so no BouncyCastle jar ships in the plugin. No
+          upgrade exists: the bcpkix-jdk15on artifact line was discontinued at 1.70 and Snyk records
+          this CVE against range [0,) there with no fix version. The fix exists only on the
+          maintained bcpkix-jdk18on line at 1.85, which no artifactory-papi release reaches - papi
+          7.161.15 does move to jfrog-crypto 13.21.0 and the jdk18on artifacts, but
+          jfrog-commons-parent 13.21.0 pins BouncyCastle 1.84, still vulnerable to this CVE. Not
+          reachable: the plugin verifies no CMS or PKCS#7 signatures - its only crypto surface is
+          SSLConfiguration, which uses JDK-native javax.net.ssl and java.security only - and the CI
+          scan reports Reachability: No Path Found. Current Snyk ID as of 2026-09-14; Snyk lists
+          exactly one ID for this CVE on this purl, so there is no retired generation to pair it
+          with. The jdk18on line keys the same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18513021, so this
+          entry goes inert if papi ever moves artifact lines.
+        expires: 2026-10-14T00:00:00.000Z
+        created: 2026-09-14T00:00:00.000Z
+  'SNYK-JAVA-ORGBOUNCYCASTLE-18519220':
+    - '*':
+        reason: >-
+          CVE-2026-12802 in org.bouncycastle:bcpkix-jdk15on@1.68 (HIGH, CVSS 4.0 8.7). Improper
+          Validation of Integrity Check Value: CMS AuthEnvelopedData recipient processing takes the
+          AEAD tag length from the attacker-controlled GCM/CCM ICV length with no minimum-length
+          check, making tag forgery tractable at e.g. 32 bits. Transitive dep of artifactory-papi
+          (papi 7.68.5 > jfrog-http-client 7.84.7 > jfrog-crypto 7.84.7 > bcpkix-jdk15on 1.68).
+          Actual papi is provided by artifactory env at runtime so this is a false positive: papi is
+          provided scope in both scanned modules and the distribution assembly bundles runtime scope
+          only, so no BouncyCastle jar ships in the plugin. No upgrade exists: the bcpkix-jdk15on
+          artifact line was discontinued at 1.70 and Snyk records this CVE against range [0,) there
+          with no fix version. The fix exists only on the maintained bcpkix-jdk18on line at 1.85,
+          which no artifactory-papi release reaches - papi 7.161.15 does move to jfrog-crypto
+          13.21.0 and the jdk18on artifacts, but jfrog-commons-parent 13.21.0 pins BouncyCastle
+          1.84, still vulnerable to this CVE. Not reachable: the plugin processes no CMS
+          AuthEnvelopedData, imports no org.bouncycastle class, and the CI scan reports
+          Reachability: No Path Found. Current Snyk ID as of 2026-09-14; Snyk lists exactly one ID
+          for this CVE on this purl, so there is no retired generation to pair it with. The jdk18on
+          line keys the same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18519217, so this entry goes inert if
+          papi ever moves artifact lines.
+        expires: 2026-10-14T00:00:00.000Z
+        created: 2026-09-14T00:00:00.000Z
+  'SNYK-JAVA-COMGITHUBJAVAJSONTOOLS-19644208':
+    - '*':
+        reason: >-
+          CVE-2026-86321 in com.github.java-json-tools:jackson-coreutils@2.0 (HIGH, CVSS 4.0 8.7).
+          Server-side Request Forgery: JsonLoader.fromURL() fetches any URL without validation, and
+          JacksonUtils.newMapper() enables WRITE_BIGDECIMAL_AS_PLAIN so an unbounded BigDecimal can
+          be used for memory amplification. Transitive dep of artifactory-papi (papi 7.68.5 >
+          artifactory-utils 7.68.5 > jfrog-utils > json-patch 1.13 > jackson-coreutils 2.0). Actual
+          papi is provided by artifactory env at runtime so this is a false positive: papi is
+          provided scope in both scanned modules and the distribution assembly bundles runtime scope
+          only, so no java-json-tools jar ships in the plugin. No upgrade exists: jackson-coreutils
+          2.0 is the newest release on the line and Snyk records this CVE against range [0,) with no
+          fix version, so no released version is fixed. Upstream is abandoned - jackson-coreutils
+          2.0 and its only consumer json-patch 1.13 were both last published in May 2020 - so no
+          newer json-patch or artifactory-papi release can pull a fixed jackson-coreutils. Not
+          reachable: the plugin performs no JSON Patch processing and never calls
+          JsonLoader.fromURL(), and the CI scan reports Reachability: No Path Found. This finding is
+          still inside its remediation SLA today and is not yet blocking; it is included here so it
+          does not block a later PR for the same rationale. Current Snyk ID as of 2026-09-14; Snyk
+          lists exactly one ID for this CVE on this purl, so there is no retired generation to pair
+          it with.
+        expires: 2026-10-14T00:00:00.000Z
+        created: 2026-09-14T00:00:00.000Z

@@ -65,7 +65,7 @@ ignore:
           6.2.19 / 7.0.8 and no artifactory-papi release moves off the Spring 5.3 line. Current
           Snyk ID as of 2026-09-11; Snyk lists exactly one ID for this CVE on this package version,
           so there is no retired generation to pair it with.
-        expires: 2026-10-11T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-11T00:00:00.000Z
   'SNYK-JAVA-ORGSPRINGFRAMEWORK-19267072':
     - '*':
@@ -76,7 +76,7 @@ ignore:
           by an upgrade either: the only fix version is 7.0.9 and no artifactory-papi release moves
           off the Spring 5.3 line. Current Snyk ID as of 2026-09-11; Snyk lists exactly one ID for
           this CVE on this package version, so there is no retired generation to pair it with.
-        expires: 2026-10-11T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-11T00:00:00.000Z
   'SNYK-JAVA-ORGSPRINGFRAMEWORK-19267073':
     - '*':
@@ -88,7 +88,7 @@ ignore:
           no artifactory-papi release moves off the Spring 5.3 line. Current Snyk ID as of
           2026-09-11; Snyk lists exactly one ID for this CVE on this package version, so there is no
           retired generation to pair it with.
-        expires: 2026-10-11T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-11T00:00:00.000Z
   'SNYK-JAVA-ORGSPRINGFRAMEWORK-19267075':
     - '*':
@@ -100,7 +100,7 @@ ignore:
           no artifactory-papi release moves off the Spring 5.3 line. Current Snyk ID as of
           2026-09-11; Snyk lists exactly one ID for this CVE on this package version, so there is no
           retired generation to pair it with.
-        expires: 2026-10-11T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-11T00:00:00.000Z
   'SNYK-JAVA-ORGBOUNCYCASTLE-18512841':
     - '*':
@@ -123,7 +123,7 @@ ignore:
           this purl, so there is no retired generation to pair it with. The jdk18on line keys the
           same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18512835, so this entry goes inert if papi ever
           moves artifact lines.
-        expires: 2026-10-14T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z
   'SNYK-JAVA-ORGBOUNCYCASTLE-18512946':
     - '*':
@@ -146,7 +146,7 @@ ignore:
           for this CVE on this purl, so there is no retired generation to pair it with. The jdk18on
           line keys the same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18512940, so this entry goes inert if
           papi ever moves artifact lines.
-        expires: 2026-10-14T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z
   'SNYK-JAVA-ORGBOUNCYCASTLE-18512973':
     - '*':
@@ -170,7 +170,7 @@ ignore:
           generation to pair it with. The jdk18on line keys the same CVE as
           SNYK-JAVA-ORGBOUNCYCASTLE-18512967, so this entry goes inert if papi ever moves artifact
           lines.
-        expires: 2026-10-14T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z
   'SNYK-JAVA-ORGBOUNCYCASTLE-18513024':
     - '*':
@@ -194,7 +194,7 @@ ignore:
           exactly one ID for this CVE on this purl, so there is no retired generation to pair it
           with. The jdk18on line keys the same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18513021, so this
           entry goes inert if papi ever moves artifact lines.
-        expires: 2026-10-14T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z
   'SNYK-JAVA-ORGBOUNCYCASTLE-18519220':
     - '*':
@@ -217,7 +217,7 @@ ignore:
           for this CVE on this purl, so there is no retired generation to pair it with. The jdk18on
           line keys the same CVE as SNYK-JAVA-ORGBOUNCYCASTLE-18519217, so this entry goes inert if
           papi ever moves artifact lines.
-        expires: 2026-10-14T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z
   'SNYK-JAVA-COMGITHUBJAVAJSONTOOLS-19644208':
     - '*':
@@ -240,5 +240,5 @@ ignore:
           does not block a later PR for the same rationale. Current Snyk ID as of 2026-09-14; Snyk
           lists exactly one ID for this CVE on this purl, so there is no retired generation to pair
           it with.
-        expires: 2026-10-14T00:00:00.000Z
+        expires: 2026-12-03T00:00:00.000Z
         created: 2026-09-14T00:00:00.000Z

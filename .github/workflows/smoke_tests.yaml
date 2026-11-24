@@ -52,7 +52,7 @@ jobs:
         run: docker run -d --name artifactory -p 8082:8082 -v ${GITHUB_WORKSPACE}/distribution/target/plugins:/opt/jfrog/artifactory/var/etc/artifactory/plugins releases-docker.jfrog.io/jfrog/artifactory-pro:${{ matrix.artifactory_version }}
 
       - name: Wait for Artifactory start
-        uses: nev7n/wait_for_response@v1
+        uses: nev7n/wait_for_response@v1.2.0
         with:
           url: "http://localhost:8082/"
           responseCode: 200
@@ -60,16 +60,21 @@ jobs:
           interval: 2000
 
       - name: Save docker logs to file
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2.2.2
         with:
           dest: "./logs"
+          shell: /bin/bash
 
       - name: Find any Snyk plugin errors in docker logs
         run: "! grep -Hrni snyk ./logs | grep -i error"
 
       - name: Dump docker logs (on success)
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2.2.2
+        with:
+          shell: /bin/bash
 
       - name: Dump docker logs (on failure)
         if: failure()
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2.2.2
+        with:
+          shell: /bin/bash
